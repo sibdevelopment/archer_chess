@@ -1,0 +1,333 @@
+body{
+    font-family: "Pangolin", cursive !important;
+}
+.banner-bottom-four-musk-img1{
+    background-color: #75C137 !important;
+}
+.t_green{
+    color: #75C137 !important;
+}
+.t_orange{
+    color: #FC4525 !important;
+}
+.login-btn{
+    padding: 14px 6px;
+}
+.tw_transform-roted--9 {
+    transform: rotate(-6deg);
+}
+.tw-transform-roted--9 {
+    transform: rotate(-6deg);
+}
+.tw-transform-roted-7 {
+    transform: rotate(6deg);
+}
+
+.our-teacher-link {
+    display: block !important;
+
+}
+.programSwiper {
+    overflow: visible !important;
+    padding-bottom: 20px;
+}
+
+.programSwiper .swiper-wrapper{
+    margin-top: 40px !important;
+    margin-bottom: 50px !important;
+}
+.coachSwiper{
+    overflow:visible;
+    padding-bottom:20px;
+}
+
+.coachSwiper .swiper-wrapper{
+    margin-top:40px;
+    margin-bottom:50px;
+}
+
+.chess-journey{
+    padding-top: 20px !important;
+}
+.choose-us-musk-bg-img5{
+    mask-image: none !important;
+    padding-bottom: 60px !important;
+    padding-top: 60px !important;
+    border-radius: 50px !important;
+}
+.iti {
+    width: 100% !important;
+}
+.iti__country-list { z-index: 9999 !important; }
+.iti input {
+    width: 100% !important;
+}
+.modal-icon{
+    min-width: 40px !important;
+    min-height: 40px !important;
+    height: 40px !important;
+    width: 40px !important;
+}
+.modal-icon i{
+    font-size: 20px !important;
+}
+.tcul-floating-icons {
+   position: fixed;
+   bottom: 78px;
+   right: 20px;
+   display: flex;
+   flex-direction: column;
+   gap: 15px;
+   z-index: 9999;
+}
+
+.tcul-floating-icons a {
+   text-decoration: none !important;
+   outline: none !important;
+}
+
+.tcul-contact-icon {
+   color: #fff;
+   width: 50px;
+   height: 50px;
+   font-size: 24px;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+   animation: pulsing 1.25s infinite cubic-bezier(0.66, 0, 0, 1);
+   transition: transform 0.3s ease;
+   cursor: pointer;
+}
+.tcul-contact-icon {
+   background-color: #16c944;
+   color: #fff;
+   width: 50px;
+   height: 50px;
+   font-size: 24px;
+   border-radius: 50%;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+   animation: pulsing 1.25s infinite cubic-bezier(0.66, 0, 0, 1);
+   transition: transform 0.3s ease;
+   cursor: pointer;
+}
+
+.our-teacher-thumb video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.programSwiper .swiper-slide {
+    height: auto;
+}
+
+.programSwiper .swiper-slide > div {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Make text area flexible */
+.programSwiper .text-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Optional: keep paragraph height consistent */
+.programSwiper p {
+    min-height: 120px; /* adjust as needed */
+}
+.search_wrapper .search_top .search_logo a img{
+    filter: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Desktop */
+@media (min-width: 768px) {
+    .menu-header{
+        max-width: 97% !important;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .why-us{
+        padding: 20px 20px !important;
+    }
+    .mobile-flex-start{
+        justify-content: flex-start !important;
+    }
+    .mobile-flex{
+        flex-direction: column;
+    }
+    .mobile-center{
+        justify-content: center !important;
+    }
+    .header{
+        padding-top: 0px !important;
+    }
+    .tw-mb-80-px {
+        margin-bottom: 20px;
+    }
+    .chess-journey{
+        line-height: 40px !important;
+    }
+    .text-middle{
+        text-align: center !important;
+    }
+    .align-middle{
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    .btn {
+        padding: 14px 24px !important;
+    }
+    .mx-sm-auto{
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    .sm-gap-2{
+        gap: 1.5rem;
+    }
+    .our-pircing-text {
+        display: block !important;
+    }
+    .tcul-space{
+        display: none !important;
+    }
+    .our-pricing-card{
+        justify-content: center !important;
+    }
+    .choose-us-musk-bg-img5{
+        padding-top: 40px;
+        padding-bottom: 50px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .mobile-logo-space{
+        padding: 0.1rem 1.5rem !important;
+    }
+    .top-header{
+        /* padding-left: 4px;
+        padding-right: 4px; */
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+    .mobile-justify-btwn{
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+    .pb-sm-0{
+        padding-bottom: 0px !important;
+    }
+    .mobile-no{
+        font-size: clamp(0.75rem, 0.769rem + 0.6813vw, 1.25rem) !important;
+    }
+    .mobile-icon{
+        width: 40px;
+    }
+    .tw-gap-3{
+        gap: 0.5rem;
+    }
+    .choose-us-musk-bg-img1{
+        padding: 1rem 0.75rem;
+    }
+    .choose-us-musk-bg-img2{
+        padding: 1rem 0.75rem;
+    }
+        
+    .our-pricing-card .btn-main-two{
+        order: 10;
+        /* width: 100%;
+        margin-top: 15px; */
+    }
+
+
+
+
+}
+
+@media (min-width: 992px) {
+    .footer-girraf{
+        width: 100px !important;
+        margin-bottom: 10px !important;
+    }
+    .footer-pencil{
+        width: 120px !important;
+        margin-bottom: 100px !important;
+    }
+    .hero-header{
+        font-size: 72px !important;
+    }
+    .tw-pb-260px {
+        padding-bottom: 160px;
+    }
+    .container-two{
+        max-width: 90% !important;
+    }
+    .mw-95{
+        max-width: 95% !important;
+    }
+    .py-100 {
+        padding-block-start: 100px;
+        padding-block-end: 100px;
+    }
+    .py-110 {
+        padding-block-start: 110px;
+        padding-block-end: 110px;
+    }
+    .py-90 {
+        padding-block-start: 90px;
+        padding-block-end: 90px;
+    }
+    .py-80 {
+        padding-block-start: 80px;
+        padding-block-end: 80px;
+    }
+    .py-60 {
+        padding-block-start: 60px;
+        padding-block-end: 60px;
+    }
+    .py-50 {
+        padding-block-start: 50px;
+        padding-block-end: 50px;
+    }
+}

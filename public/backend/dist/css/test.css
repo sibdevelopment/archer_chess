@@ -1,0 +1,144 @@
+:root, [data-bs-theme=light] {
+    --bs-blue: #FF4D4D;
+    --bs-link-color: #ff983f;
+    --bs-link-color-rgb: #FF4D4D;
+    --bs-link-decoration: underline;
+    --bs-link-hover-color: #ff983f;
+    --bs-primary: #ff983f;
+    --bs-primary-rgb: #FF4D4D !important;
+    --bs-nav-link-hover-color: #FF4D4D;
+}
+.bg-light-primary {
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-light-primary-rgb),var(--bs-bg-opacity))!important;
+}
+.sidebar-nav ul .sidebar-item.selected>.sidebar-link, .sidebar-nav ul .sidebar-item.selected>.sidebar-link.active, .sidebar-nav ul .sidebar-item>.sidebar-link.active {
+    border: 2px solid #FF4D4D;
+    color: #FF4D4D;
+    background-color: #fff !important;
+}
+a:hover {
+    color: #FF4D4D;
+}
+.sidebar-nav ul .sidebar-item .sidebar-link:hover {
+    background-color: #f5f5f5;
+    color: #1d1f21;
+}
+.user-profile-tab .nav-item .nav-link.active {
+    color: #FF4D4D;
+    border-bottom: 2px solid #ffffa1;
+}
+.bg-primary {
+    --bs-bg-opacity: 1;
+    background-color: #ff983f !important;
+}
+.bg-secondary {
+    background-color: #929292 !important;
+}
+.bg-info {
+    background-color: #929292 !important;
+}
+.bg-warning {
+    background-color: #ff983f !important;
+}
+.text-secondary {
+    color: #ffffa1 !important;
+}
+.text-info {
+    color: #ffffa1 !important;
+}
+.text-dark {
+    color : #1d1f21 !important
+}
+.bg-light-primary {
+    background-color: #fdeff7 !important;
+}
+.bg-light-secondary {
+    background-color: rgb(243, 239, 253) !important;
+}
+.bg-light-info {
+    background-color: #ff983f !important;
+}
+.bg-light-grey {
+    background-color : #f5f5f5 !important;
+}
+
+.custom-border-color {
+    border-color: #FF4D4D !important;
+}
+.bg-light-white {
+    background-color: #fff !important;
+}
+.custom-text-color {
+    color: #FF4D4D !important;
+}
+.nav-icon-hover:hover::before {
+    background-color: #ffecfc;
+}
+.nav-link:focus, .nav-link:hover {
+    color: #FF4D4D;
+}
+/* Buttons */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #FF4D4D;
+    --bs-btn-border-color: #FF4D4D;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #FF4D4D;
+    --bs-btn-hover-border-color: #FF4D4D;
+    --bs-btn-focus-shadow-rgb: 117,153,255;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #FF4D4D;
+    --bs-btn-active-border-color: #FF4D4D;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #FF4D4D;
+    --bs-btn-disabled-border-color: #FF4D4D;
+}
+.btn-info {
+    --bs-btn-color: #FF4D4D;
+    --bs-btn-bg: #fff;
+    --bs-btn-border-color: #FF4D4D;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #FF4D4D;
+    --bs-btn-hover-border-color: #FF4D4D;
+    --bs-btn-focus-shadow-rgb: 109,170,255;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #FF4D4D;
+    --bs-btn-active-border-color: #FF4D4D;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #FF4D4D;
+    --bs-btn-disabled-border-color: #FF4D4D;
+}
+.btn-secondary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #929292;
+    --bs-btn-border-color: #929292;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #929292;
+    --bs-btn-hover-border-color: #929292;
+    --bs-btn-focus-shadow-rgb: 100,200,255;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #929292;
+    --bs-btn-active-border-color: #929292;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #929292;
+    --bs-btn-disabled-border-color: #929292;
+}
+.nav-tabs {
+    --bs-nav-tabs-border-width: 0;
+    --bs-nav-tabs-border-color: var(--bs-border-color);
+    --bs-nav-tabs-border-radius: 10px;
+    --bs-nav-tabs-link-hover-border-color: var(--bs-secondary-bg) var(--bs-secondary-bg) var(--bs-border-color);
+    --bs-nav-tabs-link-active-color: #fff;
+    --bs-nav-tabs-link-active-bg: #FF4D4D;
+    --bs-nav-tabs-link-active-border-color: var(--bs-border-color) var(--bs-border-color) #FF4D4D;
+    border-bottom: var(--bs-nav-tabs-border-width) solid var(--bs-nav-tabs-border-color);
+}
+.table-responsive .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    color: #fff;
+    background-color: #FF4D4D;
+    border-color: #FF4D4D;
+}

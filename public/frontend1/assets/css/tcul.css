@@ -1,0 +1,61 @@
+body{
+    font-family: "Pangolin", cursive !important;
+}
+.banner-bottom-four-musk-img1{
+    background-color: #75C137 !important;
+}
+.login-btn{
+    padding: 14px 6px;
+}
+.tw_transform-roted--9 {
+    transform: rotate(-6deg);
+}
+.tw-transform-roted--9 {
+    transform: rotate(-6deg);
+}
+.tw-transform-roted-7 {
+    transform: rotate(6deg);
+}
+@media (max-width: 767px) {
+    .mobile-flex{
+        flex-direction: column;
+    }
+}
+@media (min-width: 992px) {
+    .hero-header{
+        font-size: 72px !important;
+    }
+    .tw-pb-260px {
+        padding-bottom: 160px;
+    }
+    .container-two{
+        max-width: 90% !important;
+    }
+    .mw-95{
+        max-width: 95% !important;
+    }
+    .py-100 {
+        padding-block-start: 100px;
+        padding-block-end: 100px;
+    }
+    .py-110 {
+        padding-block-start: 110px;
+        padding-block-end: 110px;
+    }
+    .py-90 {
+        padding-block-start: 90px;
+        padding-block-end: 90px;
+    }
+    .py-80 {
+        padding-block-start: 80px;
+        padding-block-end: 80px;
+    }
+    .py-60 {
+        padding-block-start: 60px;
+        padding-block-end: 60px;
+    }
+    .py-50 {
+        padding-block-start: 50px;
+        padding-block-end: 50px;
+    }
+}

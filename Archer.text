@@ -1,0 +1,3 @@
+1) kavita mam ka 11 am ka alot hai demo dete hue name nahi show ho rha hai Eg: Ria Garg - 07/01/26
+2) Double Attendance - 06/01/26
+3) This pop up is coming for OJAS - Ask the backend team to either remove the entry or if it's not working then they can add the student (Ojas) back in the erp for now, because as there is no student visible in this attendance popup, that's why attendance is also not being captured due to null  value error - Abhishek Bhardwaj - Abhishek MF 1 PM IST - 06/01/26

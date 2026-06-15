@@ -132,7 +132,7 @@ class DemoLeadController extends Controller
                 return '
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div class="flex-grow-1">
-                        <span class="fw-bold">' . htmlspecialchars($demolead->first_name . ' ' . $demolead->last_name) . '</span> 
+                        <span class="fw-bold">' . htmlspecialchars($demolead->first_name . ' ' . $demolead->last_name) . '</span>
                             (' . $demolead->country . ')
                     </div>
                     <div class="mx-3 text-muted">
@@ -289,7 +289,7 @@ Archer Chess Academy";
             ->addIndexColumn()
             ->rawColumns(['first_name', 'age', 'mobile', 'address', 'status', 'remark', 'reason', 'action', 'convert', 'demosession', 'created_by', 'updated_by'])
             ->setRowId('id')
-            ->make(true);
+            ->toJson(JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function show($id)

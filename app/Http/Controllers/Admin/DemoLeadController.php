@@ -132,7 +132,7 @@ class DemoLeadController extends Controller
                 return '
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div class="flex-grow-1">
-                        <span class="fw-bold">' . htmlspecialchars($demolead->first_name . ' ' . $demolead->last_name) . '</span> 
+                        <span class="fw-bold">' . htmlspecialchars($demolead->first_name . ' ' . $demolead->last_name) . '</span>
                             (' . $demolead->country . ')
                     </div>
                     <div class="mx-3 text-muted">

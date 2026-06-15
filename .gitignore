@@ -17,4 +17,5 @@ yarn-error.log
 /.idea
 /.vscode
 error_log
-*C:\xampp\php\logs\php_error_log*
+*php_error_log*
+*.log

@@ -52,7 +52,7 @@ class UkSetFessDue extends Command
                 }
 
                 $student_batch = StudentBatch::where('student_id', $fees_due_student_id)
-                // ->where('status', 'ACTIVE')
+                ->where('status', 'ACTIVE')
                 ->first();
                 if ($student_batch) {
                     $student_batch->status = 'INACTIVE';

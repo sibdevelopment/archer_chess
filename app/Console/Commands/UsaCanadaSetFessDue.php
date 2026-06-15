@@ -36,7 +36,7 @@ class UsaCanadaSetFessDue extends Command
         // dd($fees_due_student_ids);
         foreach ($fees_due_student_ids as $key => $fees_due_student_id) {
             $fees_due_entry = StudentFee::where('student_id', $fees_due_student_id)->orderBy('end_date', 'desc')->first();
-            if($fees_due_entry->end_date == $today->format('Y-m-d')){   
+            if($fees_due_entry->end_date == $today->format('Y-m-d')){
                 $student = Student::find($fees_due_student_id);
                 if ($student) {
                     $student->status = 'FEESDUE';
@@ -70,7 +70,7 @@ class UsaCanadaSetFessDue extends Command
 
                 if (!empty($student->user->email)) {
                     Mail::to($student->user->email)->send(new FeesDueMail($student, $next_date));
-                } 
+                }
             }
         }
     }

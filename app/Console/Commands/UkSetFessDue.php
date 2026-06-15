@@ -32,7 +32,7 @@ class UkSetFessDue extends Command
             $query->whereIn('country', $incountry);
         })
         ->pluck('student_id');
-        
+
         // dd($fees_due_student_ids);
 
         foreach ($fees_due_student_ids as $key => $fees_due_student_id) {
@@ -71,7 +71,7 @@ class UkSetFessDue extends Command
 
                 if (!empty($student->user->email)) {
                     Mail::to($student->user->email)->send(new FeesDueMail($student, $next_date));
-                } 
+                }
             }
         }
     }

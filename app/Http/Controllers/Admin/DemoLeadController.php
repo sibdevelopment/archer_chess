@@ -289,7 +289,7 @@ Archer Chess Academy";
             ->addIndexColumn()
             ->rawColumns(['first_name', 'age', 'mobile', 'address', 'status', 'remark', 'reason', 'action', 'convert', 'demosession', 'created_by', 'updated_by'])
             ->setRowId('id')
-            ->make(true);
+            ->toJson(JSON_INVALID_UTF8_SUBSTITUTE);
     }
 
     public function show($id)

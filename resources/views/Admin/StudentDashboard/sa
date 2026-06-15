@@ -1,0 +1,258 @@
+
+
+@if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
+    @php
+        $student_country = $student->country;
+        $nextPaymentLevelAmount = '0';
+        $currency = '';
+        if ($student_country == 'USA') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->usa_fees;
+            $currency = 'USD';
+        } elseif ($student_country == 'CANADA') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->canada_fees;
+            $currency = 'USD';
+        } elseif ($student_country == 'AUSTRALIA') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->australia_fees;
+            $currency = 'AUD';
+        } elseif ($student_country == 'NEW ZEALAND') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->newzealand_fees;
+            $currency = '';
+        } elseif ($student_country == 'INDIA') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->india_fees;
+            $currency = 'INR';
+        } elseif ($student_country == 'UAE') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->uae_fees;
+            $currency = 'AED';
+        } elseif ($student_country == 'UK') {
+            $nextPaymentLevelAmount = $nextPaymentLevel->uk_fees;
+            $currency = 'GBP';
+        }
+        $currency = 'INR';
+    @endphp
+    <div class="container-fluid mt-4">
+        <!-- Next Payment Level Section -->
+        <div class="card shadow-lg border-0 mb-4 rounded-lg">
+            <div class="card-body">
+                <h3 class="fw-bold text-primary">Next Payment Level Fees</h3>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <p class="fs-5 mb-2"><strong>Level:</strong> {{ $nextPaymentLevel->name }}</p>
+                        <p class="fs-5"><strong>Amount:</strong> {{ $nextPaymentLevelAmount }} {{ $currency }}</p>
+                    </div>
+
+
+                    {{-- HDFC Payment Button --}}
+                    <button type="submit" class="btn btn-primary pay-now-btn me-2 hdfc-btn" id="hdfc-btn"
+                        data-amount="{{ $nextPaymentLevelAmount }}">
+                        <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                    </button>
+
+                    {{-- Razorpay Payment Button --}}
+                    {{-- <button class="btn btn-success pay-now-btn"
+                onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
+                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                Razorpay
+            </button> --}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Next 3 Payment Levels Section -->
+        @php
+            $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
+            if ($student_country == 'USA') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('usa_fees');
+            } elseif ($student_country == 'CANADA') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('canada_fees');
+            } elseif ($student_country == 'AUSTRALIA') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('australia_fees');
+            } elseif ($student_country == 'NEW ZEALAND') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('newzealand_fees');
+            } elseif ($student_country == 'INDIA') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('india_fees');
+            } elseif ($student_country == 'UAE') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uae_fees');
+            } elseif ($student_country == 'UK') {
+                $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uk_fees');
+            }
+        @endphp
+        <div class="card shadow-lg border-0 rounded-lg">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+
+                    <button class="btn btn-primary pay-now-btn hdfc-btn"
+                        data-amount="{{ $nextThreePaymentLevelsAmount }}">
+                        <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                        {{ $currency }}
+                    </button>
+                    {{-- <button class="btn btn-primary pay-now-btn"
+            onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+            {{ $currency }}
+        </button> --}}
+                </div>
+                <ul class="list-group list-group-flush">
+                    @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
+                        @php
+                            if ($student_country == 'USA') {
+                                $amount = $nextThreePaymentLevel->usa_fees;
+                            } elseif ($student_country == 'CANADA') {
+                                $amount = $nextThreePaymentLevel->canada_fees;
+                            } elseif ($student_country == 'AUSTRALIA') {
+                                $amount = $nextThreePaymentLevel->australia_fees;
+                            } elseif ($student_country == 'NEW ZEALAND') {
+                                $amount = $nextThreePaymentLevel->newzealand_fees;
+                            } elseif ($student_country == 'INDIA') {
+                                $amount = $nextThreePaymentLevel->india_fees;
+                            } elseif ($student_country == 'UAE') {
+                                $amount = $nextThreePaymentLevel->uae_fees;
+                            } elseif ($student_country == 'UK') {
+                                $amount = $nextThreePaymentLevel->uk_fees;
+                            }
+                        @endphp
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <p class="mb-1"><strong>Level:</strong> {{ $nextThreePaymentLevel->name }}</p>
+                                <p class="mb-0"><strong>Amount:</strong> {{ $amount }} {{ $currency }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+@endif
+
+
+
+    
+@if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
+        @php
+            $student_country = $student->country;
+            $nextPaymentLevelAmount = '0';
+            $currency = '';
+            if ($student_country == 'USA') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->usa_fees;
+                $currency = 'USD';
+            } elseif ($student_country == 'CANADA') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->canada_fees;
+                $currency = 'USD';
+            } elseif ($student_country == 'AUSTRALIA') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->australia_fees;
+                $currency = 'AUD';
+            } elseif ($student_country == 'NEW ZEALAND') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->newzealand_fees;
+                $currency = '';
+            } elseif ($student_country == 'INDIA') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->india_fees;
+                $currency = 'INR';
+            } elseif ($student_country == 'UAE') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->uae_fees;
+                $currency = 'AED';
+            } elseif ($student_country == 'UK') {
+                $nextPaymentLevelAmount = $nextPaymentLevel->uk_fees;
+                $currency = 'GBP';
+            }
+            $currency = 'INR';
+
+        @endphp
+        <div class="container-fluid mt-4">
+            <!-- Next Payment Level Section -->
+            <div class="card shadow-lg border-0 mb-4 rounded-lg">
+                <div class="card-body">
+                    <h3 class="fw-bold text-primary">Next Payment Level Fees</h3>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div>
+                            <p class="fs-5 mb-2"><strong>Level:</strong> {{ $nextPaymentLevel->name }}</p>
+                            <p class="fs-5"><strong>Amount:</strong> {{ $nextPaymentLevelAmount }} {{ $currency }}</p>
+                        </div>
+
+
+                        {{-- HDFC Payment Button --}}
+                        <button type="submit" class="btn btn-primary pay-now-btn me-2 hdfc-btn" id="hdfc-btn"
+                            data-amount="{{ $nextPaymentLevelAmount }}">
+                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                        </button>
+
+                        {{-- Razorpay Payment Button --}}
+                        {{-- <button class="btn btn-success pay-now-btn"
+                    onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
+                    <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                    Razorpay
+                </button> --}}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next 3 Payment Levels Section -->
+            @php
+                $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
+                if ($student_country == 'USA') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('usa_fees');
+                } elseif ($student_country == 'CANADA') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('canada_fees');
+                } elseif ($student_country == 'AUSTRALIA') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('australia_fees');
+                } elseif ($student_country == 'NEW ZEALAND') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('newzealand_fees');
+                } elseif ($student_country == 'INDIA') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('india_fees');
+                } elseif ($student_country == 'UAE') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uae_fees');
+                } elseif ($student_country == 'UK') {
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uk_fees');
+                }
+            @endphp
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+
+                        <button class="btn btn-primary pay-now-btn hdfc-btn"
+                            data-amount="{{ $nextThreePaymentLevelsAmount }}">
+                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                            {{ $currency }}
+                        </button>
+                        {{-- <button class="btn btn-primary pay-now-btn"
+                onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                {{ $currency }}
+            </button> --}}
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
+                            @php
+                                if ($student_country == 'USA') {
+                                    $amount = $nextThreePaymentLevel->usa_fees;
+                                } elseif ($student_country == 'CANADA') {
+                                    $amount = $nextThreePaymentLevel->canada_fees;
+                                } elseif ($student_country == 'AUSTRALIA') {
+                                    $amount = $nextThreePaymentLevel->australia_fees;
+                                } elseif ($student_country == 'NEW ZEALAND') {
+                                    $amount = $nextThreePaymentLevel->newzealand_fees;
+                                } elseif ($student_country == 'INDIA') {
+                                    $amount = $nextThreePaymentLevel->india_fees;
+                                } elseif ($student_country == 'UAE') {
+                                    $amount = $nextThreePaymentLevel->uae_fees;
+                                } elseif ($student_country == 'UK') {
+                                    $amount = $nextThreePaymentLevel->uk_fees;
+                                }
+                            @endphp
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <p class="mb-1"><strong>Level:</strong> {{ $nextThreePaymentLevel->name }}</p>
+                                    <p class="mb-0"><strong>Amount:</strong> {{ $amount }} {{ $currency }}</p>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @endif
+
+
+
+
+    

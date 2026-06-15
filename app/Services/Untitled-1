@@ -1,0 +1,152 @@
+array:30 [▼ // app/Http/Controllers/Admin/DashboardController.php:87
+  0 => array:3 [▼
+    "id" => "-_SEUFS9QVSEkyUtY98CZQ"
+    "email" => "archerchess25@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  1 => array:3 [▼
+    "id" => "0JFC8FPZTlOEYC-wddq_Ag"
+    "email" => "archerchess20@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  2 => array:3 [▼
+    "id" => "2i-fpe1qSFCHzc0W6T3yWA"
+    "email" => "archerchess22@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  3 => array:3 [▼
+    "id" => "2UzCfJ2aR7qYXBPtcUl11A"
+    "email" => "archerchess23@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  4 => array:3 [▼
+    "id" => "4_9gP2YHS9KYKRJYntPEVw"
+    "email" => "archerchess15@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  5 => array:3 [▼
+    "id" => "5TXzRBpATDSmg0E_TToW5g"
+    "email" => "archerchess21@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  6 => array:3 [▼
+    "id" => "7sngeiIaRrGjkODyFYahmw"
+    "email" => "archerchess12@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  7 => array:3 [▼
+    "id" => "84u1Ln8-TOWYH_-wOboQig"
+    "email" => "archerchess14@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  8 => array:3 [▼
+    "id" => "a1gAV5cZSOOxMOguo8t1mQ"
+    "email" => "archerchess07@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  9 => array:3 [▼
+    "id" => "aPvhOBmuSeem7hjHd-iLeA"
+    "email" => "archerchess11@gmail.com"
+    "name" => "Archer Chess 11"
+  ]
+  10 => array:3 [▼
+    "id" => "cxtSpuRpT8aLq5wcjIoVpg"
+    "email" => "archerchess02@gmail.com"
+    "name" => "Archer Chess Academy"
+  ]
+  11 => array:3 [▼
+    "id" => "fnZXwX9ZTumWCtsaWqq52g"
+    "email" => "archerchess03@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  12 => array:3 [▼
+    "id" => "h8B5_gq6R1KGu-znGdXpPQ"
+    "email" => "archerchess1028@gmail.com"
+    "name" => "Archer Chess Academy 28 "
+  ]
+  13 => array:3 [▼
+    "id" => "haxQ6kOAQDqkUsPRp-VN9g"
+    "email" => "archerchess24@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  14 => array:3 [▼
+    "id" => "hBH4WDj5QySIJUnTbvkKAA"
+    "email" => "archerchess13@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  15 => array:3 [▼
+    "id" => "IFuc-FwsRj6G3sHwRITHFQ"
+    "email" => "archerchess1027@gmail.com"
+    "name" => "Archer Chess Academy 27 "
+  ]
+  16 => array:3 [▼
+    "id" => "K8KnuycDQkyBx_oosBu5-A"
+    "email" => "archerchess30@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  17 => array:3 [▼
+    "id" => "m6nj8aM8Rb2q5VRZ-kdnIQ"
+    "email" => "archerchess29@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  18 => array:3 [▼
+    "id" => "na2WA3c5SPWVhYxBDqYmEw"
+    "email" => "archerchess06@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  19 => array:3 [▼
+    "id" => "OmeWaiEjTw6Sgk9Ht29uUA"
+    "email" => "archerchess05@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  20 => array:3 [▼
+    "id" => "pu5AXQD0R-q60yx-IlR4eQ"
+    "email" => "archerchess09@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  21 => array:3 [▼
+    "id" => "R1mGwwXoQhOSH5Tp-Z_xLQ"
+    "email" => "archerchess16@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  22 => array:3 [▼
+    "id" => "sllrRUIaRdysH3CtO6a0jg"
+    "email" => "archerchess17@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  23 => array:3 [▼
+    "id" => "UFEbQJKmQyCfrk6VBCEX_g"
+    "email" => "archerchess10@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  24 => array:3 [▼
+    "id" => "wgnnhNq-T9KLgRagQbwwjA"
+    "email" => "archerchess04@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  25 => array:3 [▼
+    "id" => "xau8_dUORSa3oKF5q3NsnQ"
+    "email" => "archerchess1026@gmail.com"
+    "name" => "Archer Chess Academy 26 "
+  ]
+  26 => array:3 [▼
+    "id" => "xn4m-tdpQdms1D2h5X7tsw"
+    "email" => "archerchess18@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  27 => array:3 [▼
+    "id" => "xxOg7S18RK6Vf7P6A4K_kQ"
+    "email" => "archerchess19@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+  28 => array:3 [▼
+    "id" => "yrTb0xtmTMasf8e92cUMyw"
+    "email" => "archerchess01@gmail.com"
+    "name" => "Archer Chess 1"
+  ]
+  29 => array:3 [▼
+    "id" => "zvVgunwKTDSW-UMr6BebUQ"
+    "email" => "archerchess08@gmail.com"
+    "name" => "Archer Chess Academy "
+  ]
+]

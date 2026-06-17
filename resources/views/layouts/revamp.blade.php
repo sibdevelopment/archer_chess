@@ -11,7 +11,7 @@
     <meta name="robots" content="index, follow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Title -->
-    <title>Archer Chess Academy</title>
+    <title>{{ config('app.name') }}</title>
     <!-- Favicon -->
     <link rel="icon" href="/frontend/tcul_img/home/archer_favicon.png" type="image/png">
     <!-- Bootstrap -->

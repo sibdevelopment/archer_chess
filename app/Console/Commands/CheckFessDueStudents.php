@@ -23,55 +23,72 @@ class CheckFessDueStudents extends Command
     {
         $notincountry = ['CANADA','USA','UK'];
 
-        $today = Carbon::today();
-        $yesterday = Carbon::yesterday();
+        $cutoffDate = Carbon::yesterday()->format('Y-m-d');
 
-        $fees_due_student_ids = StudentFee::where('end_date', $yesterday)
-        ->whereHas('student', function ($query) use ($notincountry) {
-            $query->whereNotIn('country', $notincountry);
-        })
-        ->pluck('student_id');
-    
-        foreach ($fees_due_student_ids as $key => $fees_due_student_id) {
-            // dd($fees_due_student_id);
-            $fees_due_entry = StudentFee::where('student_id', $fees_due_student_id)->orderBy('end_date', 'desc')->first();
-            // dd($fees_due_entry);
-            if($fees_due_entry->end_date == $yesterday->format('Y-m-d')){
-                $student_batch = StudentBatch::where('student_id', $fees_due_student_id)
-                ->where('status', 'ACTIVE')
-                ->first();
-                $student = Student::find($fees_due_student_id);
-                if ($student) {
-                    $student->status = 'FEESDUE';
-                    $student->save();
+        $students = Student::whereNotIn('country', $notincountry)
+            ->where('status', '!=', 'FEESDUE')
+            ->get();
 
-                    $studentfee = StudentFee::where('student_id', $student->id)->where('status', 'ACTIVE')->first();
-                    if ($studentfee) {
-                        $studentfee->status = 'INACTIVE';
-                        $studentfee->save();
-                    }
+        foreach ($students as $student) {
+            try {
+                $studentfee = StudentFee::where('student_id', $student->id)
+                    ->where('status', 'ACTIVE')
+                    ->orderBy('end_date', 'desc')
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if (!$studentfee || $studentfee->end_date > $cutoffDate) {
+                    continue;
                 }
 
-                if ($student_batch) {
-                    $student_batch->status = 'INACTIVE';
-                    $student_batch->is_fees_due = 1;
-                    $student_batch->end_date = Carbon::today()->subDay();
-                    $student_batch->end_time = Carbon::now()->format('H:i:s');
-                    $student_batch->save();
+                $student->status = 'FEESDUE';
+                $student->save();
+
+                $studentfee->status = 'INACTIVE';
+                $studentfee->save();
+
+                $student_batch = StudentBatch::where('student_id', $student->id)
+                    ->where('status', 'ACTIVE')
+                    ->latest('id')
+                    ->first();
+
+                if (!$student_batch) {
+                    Log::warning('Fees due batch update skipped: active student batch not found', [
+                        'student_id' => $student->id,
+                        'student_fee_id' => $studentfee->id,
+                    ]);
+                    continue;
                 }
 
-                if ($student && $student_batch) {
-                    $batch = Batch::find($student_batch->batch_id);
-                    $batchSchedule = BatchSchedule::where('batch_id', $batch->id)->pluck('weekday')->toArray();
-    
-                    $studentTz = $student->kids_time_zone ?: 'Asia/Kolkata';
-                    $nextCarbon = nextClassDateForBatch($batch, $batchSchedule, $studentTz);
-                    $next_date  = $nextCarbon ? $nextCarbon->format('Y-m-d') : null; // or ->toFormattedDateString()
+                $student_batch->status = 'INACTIVE';
+                $student_batch->is_fees_due = 1;
+                $student_batch->end_date = $cutoffDate;
+                $student_batch->end_time = Carbon::now()->format('H:i:s');
+                $student_batch->save();
 
-                    if (!empty($student->user->email)) {
-                        Mail::to($student->user->email)->send(new FeesDueMail($student, $next_date));
-                    } 
+                $batch = Batch::find($student_batch->batch_id);
+                if (!$batch) {
+                    Log::warning('Fees due mail skipped: batch not found', [
+                        'student_id' => $student->id,
+                        'student_batch_id' => $student_batch->id,
+                    ]);
+                    continue;
                 }
+
+                $batchSchedule = BatchSchedule::where('batch_id', $batch->id)->pluck('weekday')->toArray();
+
+                $studentTz = $student->kids_time_zone ?: 'Asia/Kolkata';
+                $nextCarbon = nextClassDateForBatch($batch, $batchSchedule, $studentTz);
+                $next_date  = $nextCarbon ? $nextCarbon->format('Y-m-d') : null; // or ->toFormattedDateString()
+
+                if (!empty(optional($student->user)->email)) {
+                    Mail::to($student->user->email)->send(new FeesDueMail($student, $next_date));
+                }
+            } catch (\Throwable $e) {
+                Log::error('Fees due cron failed for student', [
+                    'student_id' => $student->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
     }

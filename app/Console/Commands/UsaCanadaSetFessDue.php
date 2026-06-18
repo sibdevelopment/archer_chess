@@ -123,5 +123,5 @@ function nextClassDateForUSABatch($batch, array $batchSchedule, ?string $timezon
         $cursor->addDay();
     }
 
-    return null; // none found within range
+    return null; // none found within ranges
 }

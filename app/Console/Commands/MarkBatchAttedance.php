@@ -78,8 +78,7 @@ class MarkBatchAttedance extends Command
 
                 // Get active students for that date
                 $studentBatches = StudentBatch::where('batch_id', $batch->id)
-                    ->whereDate('start_date', '<=', $date)
-                    ->whereDate('end_date', '>=', $date)
+                    ->eligibleOn($date)
                     ->get();
 
                 foreach ($studentBatches as $studentBatch) {

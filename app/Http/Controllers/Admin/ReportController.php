@@ -445,8 +445,8 @@ class ReportController extends Controller
         // Fetch all batch data for the completed batch IDs
         $batches   = Batch::whereIn('id', $completedBatchIds)->get();
         $batchData = $batches->map(function ($batch) use ($completedBatchData) {
-            $totalActiveStudents  = $batch->studentBatches()->where('status', 'ACTIVE')->count();
-            $activeStudentBatches = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $totalActiveStudents  = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
+            $activeStudentBatches = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $levelNames           = $activeStudentBatches->map(function ($studentBatch) {
                 return $studentBatch->level->name;
             })->unique()->implode(', ');
@@ -588,7 +588,7 @@ class ReportController extends Controller
 
             // Generate status button HTML
             $statusButton        = '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
-            $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
+            $totalActiveStudents = $batch->studentBatches()->eligibleOn($coverupclass->date)->count();
 
             return [
                 'id'                    => $batch->id,
@@ -1532,7 +1532,7 @@ class ReportController extends Controller
         if ($entityType === 'Batch' || $entityType === 'Coverup') {
             $batch                  = Batch::findOrFail($entityId);
             $batchSchedules         = $batch->batchSchedules;
-            $studentBatches         = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $studentBatches         = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $latestCompletedSession = CoachAttendance::where('batch_id', $batch->id)->where('status', 'COMPLETED')->orderByDesc('date')->first();
             $totalSessionsCompleted = $latestCompletedSession ? $latestCompletedSession->number_of_batch_sessions : 0;
             return view('Admin.CoachReports.batchshow', compact('batch', 'batchSchedules', 'studentBatches', 'totalSessionsCompleted'));
@@ -1596,7 +1596,7 @@ class ReportController extends Controller
         $data = Batch::where('id', $id)
         // ->where('coach_id', $coachId)
             ->with(['batchSchedules', 'studentBatches' => function ($query) use ($date) {
-                $query->distinct('student_id')->whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date);
+                $query->eligibleOn($date)->with('student')->distinct('student_id');
             }, 'coach', 'parent'])
             ->first();
 
@@ -1890,6 +1890,7 @@ class ReportController extends Controller
 
         // Normalize studentStatus keys
         $studentIds = array_values(array_map('intval', $request->input('student_ids', [])));
+        $attendanceDate = Carbon::parse($request->input('date'))->toDateString();
         // dd($studentIds);
         $studentStatus = $request->input('studentStatus', []);
         $studentStatusKeys = array_map('intval', array_keys($studentStatus));
@@ -1910,19 +1911,18 @@ class ReportController extends Controller
 
         $validStudentIds = StudentBatch::where('batch_id', $batchId)
             ->whereIn('student_id', $studentIds)
-            ->where('status', 'ACTIVE')
+            ->eligibleOn($attendanceDate)
             ->pluck('student_id')
             ->toArray();
 
         $invalidStudents = array_values(array_diff($studentIds, $validStudentIds));
+        $studentIds = array_values(array_intersect($studentIds, $validStudentIds));
         // if (!empty($invalidStudents)) {
         //     return response()->json([
         //         'error' => 'Some students are not active in this batch',
         //         'invalid_students' => $invalidStudents
         //     ], 422);
         // }
-
-        $attendanceDate = Carbon::parse($request->input('date'))->toDateString();
 
         DB::beginTransaction();
         try {

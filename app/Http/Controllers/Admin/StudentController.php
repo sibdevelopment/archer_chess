@@ -114,7 +114,7 @@ class StudentController extends Controller
             $query->where('country', $request->country);
         }
         if ($request->batch) {
-            $studentIds = StudentBatch::where('batch_id', $request->batch)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('id', $studentIds);
         }
 

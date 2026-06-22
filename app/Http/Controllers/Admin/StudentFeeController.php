@@ -166,6 +166,9 @@ class StudentFeeController extends Controller
         $endDate = Carbon::parse($request->input('end_date'));
 
         $old_status = $student->status;
+        $studentBatchStartDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))->toDateString()
+            : Carbon::today()->toDateString();
 
         if ($endDate->lt($today)) {
             $student_fee->status = 'INACTIVE';
@@ -195,7 +198,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -209,7 +212,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -228,7 +231,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -242,7 +245,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;

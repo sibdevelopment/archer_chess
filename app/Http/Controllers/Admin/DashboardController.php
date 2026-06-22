@@ -1444,6 +1444,15 @@ class DashboardController extends Controller
         }
         
         foreach ($request->student_ids as $studentId) {
+            $studentBatch = StudentBatch::where('batch_id', $request->batch_id)
+                ->where('student_id', $studentId)
+                ->eligibleOn($attendanceDate)
+                ->first();
+
+            if (! $studentBatch) {
+                continue;
+            }
+
             $studentAttendance = StudentAttendance::where('batch_id', $request->batch_id)
                 ->where('student_id', $studentId)
                 ->whereDate('date', $attendanceDate)
@@ -1466,10 +1475,6 @@ class DashboardController extends Controller
                 $studentAttendance = new StudentAttendance();
                 $studentAttendance->student_id = $studentId;
                 $studentAttendance->batch_id = $request->batch_id;
-                $studentBatch = StudentBatch::where('batch_id', $request->batch_id)
-                    ->where('student_id', $studentId)
-                    ->where('status', 'ACTIVE')
-                    ->first();
                 $studentAttendance->level_id = $studentBatch ? $studentBatch->level_id : null; 
                 
                 $studentAttendance->date = $attendanceDate;
@@ -1916,11 +1921,11 @@ class DashboardController extends Controller
             $query->where('students.country', $request->country);
         }
         if ($request->batch) {
-            $studentIds = StudentBatch::where('batch_id', $request->batch)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
         if ($request->coach) {
-            $studentIds = StudentBatch::where('coach_id', $request->coach)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('coach_id', $request->coach)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
 
@@ -2278,7 +2283,7 @@ class DashboardController extends Controller
                 return $batch->name;
             })
             ->addColumn('total_active_students', function ($batch) {
-                $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
+                $totalActiveStudents = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
                 return '<span class="badge bg-warning fs-1">' . $totalActiveStudents . ' &nbsp;  <i class="ti ti-user-shield"></i> </span>';
             })
             ->editColumn('version', function ($batch) {

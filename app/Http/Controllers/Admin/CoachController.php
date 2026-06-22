@@ -152,8 +152,8 @@ class CoachController extends Controller
         ->get();
 
         $batchData = $batches->map(function ($batch) use ($completedBatchData) {
-            $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
-            $activeStudentBatches = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $totalActiveStudents = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
+            $activeStudentBatches = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $levelNames = $activeStudentBatches->map(function ($studentBatch) {
                 return $studentBatch->level->name;
             })->unique()->implode(', ');

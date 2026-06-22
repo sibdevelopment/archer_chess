@@ -445,6 +445,7 @@ Route::post('/razorpay/verify', function (Request $request) {
         $studentfee->receive_date      = date('Y-m-d');
         $studentfee->status            = 'ACTIVE';
         $studentfee->save();
+        $studentBatchStartDate = Carbon::parse($studentfee->start_date)->toDateString();
 
         // Link order ↔ student_fee
         $order->student_fee_id = $studentfee->id;
@@ -475,7 +476,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -489,7 +490,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -508,7 +509,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -522,7 +523,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;

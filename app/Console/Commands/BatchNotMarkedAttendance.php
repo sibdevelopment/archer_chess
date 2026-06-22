@@ -30,8 +30,8 @@ class BatchNotMarkedAttendance extends Command
                 $query->where('weekday', $todayWeekday)
                       ->where('to_time', '<=', $oneHourAgo);
             },
-            'studentBatches' => function ($query) {
-                $query->where('status', 'ACTIVE')->with('student');
+            'studentBatches' => function ($query) use ($todayDate) {
+                $query->eligibleOn($todayDate)->with('student');
             },
             'coach',
             'parent',

@@ -19,7 +19,8 @@ class MarkFeesDueBySchedule extends Command
 {
     protected $signature = 'fees:mark-due-by-schedule
         {--dry-run : Show who would be marked without changing data}
-        {--buffer=15 : Minutes to wait after the last scheduled class end time}';
+        {--buffer=15 : Minutes to wait after the last scheduled class end time}
+        {--no-class-cutoff=23:30 : IST time to mark fee due when fee ends today but no class is scheduled}';
 
     protected $description = 'Mark fee-due students after their last scheduled class on fee end date, with backfill.';
 
@@ -33,6 +34,7 @@ class MarkFeesDueBySchedule extends Command
 
         $dryRun = (bool) $this->option('dry-run');
         $bufferMinutes = max(0, (int) $this->option('buffer'));
+        $noClassCutoff = (string) $this->option('no-class-cutoff');
         $now = Carbon::now('Asia/Kolkata');
         $today = $now->toDateString();
 
@@ -45,7 +47,7 @@ class MarkFeesDueBySchedule extends Command
         try {
             Student::where('status', '!=', 'FEESDUE')
                 ->orderBy('id')
-                ->chunkById(100, function ($students) use ($dryRun, $bufferMinutes, $now, $today, &$marked, &$skipped, &$errors) {
+                ->chunkById(100, function ($students) use ($dryRun, $bufferMinutes, $noClassCutoff, $now, $today, &$marked, &$skipped, &$errors) {
                     foreach ($students as $student) {
                         try {
                             $studentFee = $this->latestActiveFee($student);
@@ -73,10 +75,21 @@ class MarkFeesDueBySchedule extends Command
                             $latestEndAt = $this->latestScheduleEndAtForStudent($student, $feeEndDate, $bufferMinutes);
 
                             if (! $latestEndAt) {
-                                $skipped++;
-                                $this->logDecision('SKIPPED_NO_CLASS_TODAY', $student, $studentFee, [
-                                    'fee_end_date' => $feeEndDate,
+                                $cutoffAt = $this->noClassCutoffAt($feeEndDate, $noClassCutoff);
+
+                                if ($now->lt($cutoffAt)) {
+                                    $skipped++;
+                                    $this->logDecision('SKIPPED_NO_CLASS_TODAY_CUTOFF_PENDING', $student, $studentFee, [
+                                        'fee_end_date' => $feeEndDate,
+                                        'mark_after' => $cutoffAt->toDateTimeString(),
+                                    ]);
+                                    continue;
+                                }
+
+                                $this->markFeesDue($student, $studentFee, $feeEndDate, 'TODAY_NO_CLASS_CUTOFF_REACHED', $dryRun, [
+                                    'mark_after' => $cutoffAt->toDateTimeString(),
                                 ]);
+                                $marked++;
                                 continue;
                             }
 
@@ -160,6 +173,15 @@ class MarkFeesDueBySchedule extends Command
             })
             ->sort()
             ->last();
+    }
+
+    private function noClassCutoffAt(string $date, string $cutoff): Carbon
+    {
+        if (! preg_match('/^\d{2}:\d{2}$/', $cutoff)) {
+            $cutoff = '23:30';
+        }
+
+        return Carbon::parse($date . ' ' . $cutoff, 'Asia/Kolkata');
     }
 
     private function markFeesDue(Student $student, StudentFee $studentFee, string $feeEndDate, string $reason, bool $dryRun, array $context = []): void

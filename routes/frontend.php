@@ -15,6 +15,7 @@ Route::get('/refund/policy', [HomeController::class, 'refundPolicy'])->name('ref
 Route::get('/shipping/policy', [HomeController::class, 'shippingPolicy'])->name('shipping.policy');
 Route::get('/thankyou', [HomeController::class, 'thankyou'])->name('thankyou');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::get('/paynow', [HomeController::class, 'payNow'])->name('paynow');
 Route::post('/contact/submit', [HomeController::class, 'contactSubmit'])->name('contact.submit');
 Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
 Route::get('/event', [HomeController::class, 'event'])->name('event');

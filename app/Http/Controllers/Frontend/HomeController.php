@@ -123,6 +123,26 @@ class HomeController extends Controller
         return view('Frontend.Contact.contact');
     }
 
+    public function payNow()
+    {
+        $paymentLinks = [
+            'Canada' => 'https://rzp.io/rzp/emptypagescad',
+            'USA' => 'https://rzp.io/rzp/emptypagesusd',
+            'South Africa' => 'https://rzp.io/rzp/emptypagessar',
+            'Kuwait' => 'https://rzp.io/rzp/emptypageskd',
+            'Bahrain' => 'https://rzp.io/rzp/emptypagesbd',
+            'New Zealand' => 'https://rzp.io/rzp/emptypagesnzd',
+            'Singapore' => 'https://rzp.io/rzp/emptypagessgd',
+            'European Union' => 'https://rzp.io/rzp/emptypageseuro',
+            'UK' => 'https://rzp.io/rzp/emptypagesgbp',
+            'Australia' => 'https://rzp.io/rzp/emptypagesaud',
+            'UAE' => 'https://rzp.io/rzp/emptypagesaed',
+            'Qatar' => 'https://rzp.io/rzp/emptypagesqatar',
+        ];
+
+        return view('Frontend.paynow', compact('paymentLinks'));
+    }
+
     public function thankyou()
     {
         return view('Frontend.thankyou');

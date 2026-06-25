@@ -20,7 +20,7 @@ class MarkFeesDueBySchedule extends Command
     protected $signature = 'fees:mark-due-by-schedule
         {--dry-run : Show who would be marked without changing data}
         {--buffer=15 : Minutes to wait after the last scheduled class end time}
-        {--no-class-cutoff=23:30 : IST time to mark fee due when fee ends today but no class is scheduled}';
+        {--no-class-cutoff=12:00 : IST time to mark fee due when fee ends today but no class is scheduled}';
 
     protected $description = 'Mark fee-due students after their last scheduled class on fee end date, with backfill.';
 
@@ -178,7 +178,7 @@ class MarkFeesDueBySchedule extends Command
     private function noClassCutoffAt(string $date, string $cutoff): Carbon
     {
         if (! preg_match('/^\d{2}:\d{2}$/', $cutoff)) {
-            $cutoff = '23:30';
+            $cutoff = '12:00';
         }
 
         return Carbon::parse($date . ' ' . $cutoff, 'Asia/Kolkata');

@@ -66,6 +66,16 @@ class MarkBatchAttedance extends Command
                     continue;
                 }
 
+                // Get active students for that date
+                $studentBatches = StudentBatch::where('batch_id', $batch->id)
+                    ->eligibleOn($date)
+                    ->get();
+
+                if ($studentBatches->isEmpty()) {
+                    $this->line("No eligible students for batch ID {$batch->id} on {$date}, skipping coach attendance...");
+                    continue;
+                }
+
                 // Mark coach attendance
                 CoachAttendance::create([
                     'coach_id' => $batch->coach->id,
@@ -75,11 +85,6 @@ class MarkBatchAttedance extends Command
                     'time' => now()->format('H:i:s'),
                     'status' => 'COMPLETED'
                 ]);
-
-                // Get active students for that date
-                $studentBatches = StudentBatch::where('batch_id', $batch->id)
-                    ->eligibleOn($date)
-                    ->get();
 
                 foreach ($studentBatches as $studentBatch) {
                     StudentAttendance::create([

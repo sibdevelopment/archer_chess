@@ -182,6 +182,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('batchs/list', [BatchController::class, 'list'])->name('batchs.list');
         Route::post('batchs/masterclass_tounament/list', [BatchController::class, 'masterclassTounamentlist'])->name('batchs.masterclassTounamentlist');
         Route::post('batchs/change-status', [BatchController::class, 'changeStatus'])->name('batchs.change.status');
+        Route::post('batchs/available-coaches', [BatchController::class, 'checkSchedule'])->name('batchs.available.coaches');
         Route::get('batch/get/coaches', [BatchController::class, 'getCoaches'])->name('batch.get.coaches');
         Route::get('batch/get/students', [BatchController::class, 'getStudents'])->name('batch.get.students');
         Route::post('batches/check-name', [BatchController::class, 'checkName'])->name('batchs.check.name');

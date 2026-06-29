@@ -104,6 +104,7 @@
                                     aria-label=".form-select-sm example" @if ($isCoach) disabled @endif>
                                     <option value="">Select Status</option>
                                     <option value="ACTIVE" @if ($isCoach) selected @endif>Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
                                     <option value="INACTIVE">Inactive</option>
                                     <option value="STANDBY">Standby</option>
                                 </select>
@@ -222,6 +223,7 @@
                                 <select class="form-select" id="status" name="status">
                                     <option selected disabled hidden>select status ...</option>
                                     <option value="ACTIVE">Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
                                     <option value="INACTIVE">Inactive</option>
                                     <option value="STANDBY">StandBy</option>
                                 </select>

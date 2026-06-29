@@ -21,6 +21,7 @@ use App\Models\CoachAvailability;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
 
@@ -104,6 +105,10 @@ class BatchController extends Controller
         $batches->each(function ($batch) use ($now, $todayDate) {
             $batchId = $batch->id;
             $coachId = $batch->coach_id;
+
+            if ($batch->studentBatches->isEmpty()) {
+                return;
+            }
 
             // Fetch additional data for each batch
             $batchLevel      = optional($batch->studentBatches->first())->level;
@@ -195,7 +200,7 @@ class BatchController extends Controller
         return response()->json($coaches);
     }
 
-    public function changeCoaches(Request $request)
+    public function changeCoaches(Request $request, CoachAvailabilityService $availability)
     {
         $batchId = $request->batch_id;
 
@@ -216,53 +221,22 @@ class BatchController extends Controller
         if (now()->gt($fromTime->addMinutes(10))) {
             return response()->json(['error' => 'Coach change is not allowed after 10 minutes from batch start.'], 403);
         }
-        $coaches = Coach::where('status', 'ACTIVE')->get();
+        $availableCoaches = Coach::where('status', 'ACTIVE')
+            ->with('user')
+            ->get()
+            ->filter(function ($coach) use ($batch, $schedule, $availability) {
+                if ($coach->id == $batch->coach_id) {
+                    return false;
+                }
 
-
-
-        //Add Main Logic Here
-        $todayDay = Carbon::now()->format('l');
-        $from_time = $schedule->from_time;
-
-        // Get today's available coaches based on their availability and the batch schedule
-        $todays_available_coaches = CoachAvailability::where('day_of_week', $todayDay)
-            ->whereHas('periods', function ($query) use ($from_time) {
-                    $query->where('from_period', '<=', $from_time)
-                        ->where('to_period', '>=', $from_time);
-                })
-            ->where('status', 'ACTIVE')
-            ->pluck('coach_id')
-            ->toArray();
-
-        // Get coaches who are currently working in batches at the same time
-        $working_batches = BatchSchedule::where('weekday', $todayDay)
-            ->where('status', 'ACTIVE')
-            ->whereTime('from_time', '<=', $from_time)
-            ->whereTime('to_time', '>=', $from_time) 
-            ->pluck('batch_id');
-
-        // Get the coach IDs of those working batches
-        $working_batch_coaches = Batch::whereIn('id', $working_batches)
-            ->where('status', 'ACTIVE')
-            ->pluck('coach_id')
-            ->toArray();
-
-        $coverup_coach_ids = CoverupClass::whereDate('date', now()->toDateString())
-                            ->pluck('new_coach_id')
-                            ->filter() // remove nulls
-                            ->toArray();
-        
-        $unavailableCoachIds = array_unique(array_merge($working_batch_coaches, $coverup_coach_ids));
-        // find available coaches for the batch
-        // $availableCoaches = Coach::whereIn('id', $todays_available_coaches)
-        //     ->whereNotIn('id', $working_batch_coaches)
-        //     ->where('status', 'ACTIVE')
-        //     ->get();
-
-        $availableCoaches = Coach::whereIn('id', $todays_available_coaches)
-        ->whereNotIn('id', $unavailableCoachIds)
-        ->where('status', 'ACTIVE')
-        ->get();
+                return $availability->validateCoachForSingleEvent(
+                    $coach->id,
+                    Carbon::today()->toDateString(),
+                    $schedule->from_time,
+                    $schedule->to_time
+                )['ok'];
+            })
+            ->values();
 
         $currentCoachId = $batch->coach_id;
 
@@ -273,19 +247,34 @@ class BatchController extends Controller
         ]);
     }
 
-    public function changeCoach(Request $request){
+    public function changeCoach(Request $request, CoachAvailabilityService $availability){
         $coach = Coach::find($request->coach_id);
         $batch = Batch::find($request->batch_id);
-
-        $todayDay = Carbon::now()->format('l');
-        $batchSchedule = $batch->batchSchedules()->where('weekday', $todayDay)->first();
 
         if (!$coach || !$batch) {
             return response()->json(['error' => 'Coach or Batch not found.'], 404);
         } 
 
+        $todayDay = Carbon::now()->format('l');
+        $batchSchedule = $batch->batchSchedules()->where('weekday', $todayDay)->first();
+
+        if (!$batchSchedule) {
+            return response()->json(['error' => 'Batch is not scheduled for today.'], 403);
+        }
+
         if ($batch->coach_id == $coach->id) {
             return response()->json(['error' => 'You cannot assign the same coach to the batch.'], 403);
+        }
+
+        $coachValidation = $availability->validateCoachForSingleEvent(
+            (int) $coach->id,
+            Carbon::today()->toDateString(),
+            $batchSchedule->from_time,
+            $batchSchedule->to_time
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json(['error' => $coachValidation['message']], 422);
         }
 
         $coverupclass                   = new Coverupclass();
@@ -638,6 +627,9 @@ class BatchController extends Controller
                     case 'ACTIVE':
                         $badgeColor = 'success';
                         break;
+                    case 'UPCOMING':
+                        $badgeColor = 'info';
+                        break;
                     default:
                         $badgeColor = 'secondary';
                 }
@@ -798,7 +790,7 @@ class BatchController extends Controller
 
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CoachAvailabilityService $availability)
     {
         $request->validate([
             'name' => [
@@ -811,6 +803,26 @@ class BatchController extends Controller
 
         $request->validate($this->rules, $this->customMessages);
 
+        $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
+        $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
+        $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
+
+        $coachValidation = $availability->validateRawBatchCoach(
+            (int) $request->coach_id,
+            $request->input('country', []),
+            $schedules
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
         $batch = new Batch;
         $batch->fill($request->all());
         if ($request->has('country')) {
@@ -820,7 +832,7 @@ class BatchController extends Controller
         $batch->version = 1;
         $batch->save();
         $batch->parent_id = $batch->id;
-        $batch->status = 'ACTIVE';
+        $batch->status = 'UPCOMING';
         $batch->save();
 
 
@@ -851,17 +863,6 @@ class BatchController extends Controller
             $batch->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
             $batch->save();
         }
-
-        // Extract Request Data
-        $daysOfWeek = $request->input('weekday', []);
-        $fromTimes  = $request->input('from_time', []);
-        $toTimes    = $request->input('to_time', []);
-        // Ensure arrays are properly formatted
-        $daysOfWeek = is_array($daysOfWeek) ? $daysOfWeek : (array) $daysOfWeek;
-        $fromTimes  = is_array($fromTimes) ? $fromTimes : (array) $fromTimes;
-        $toTimes    = is_array($toTimes) ? $toTimes : (array) $toTimes;
-
-
 
         // Save Batch Schedule Data
         foreach ($daysOfWeek as $index => $day) {
@@ -898,11 +899,32 @@ class BatchController extends Controller
         return view('Admin.Batchs.scheduleform', compact('batch_schedule'));
     }
 
-    public function update(Request $request, Batch $batch)
+    public function update(Request $request, Batch $batch, CoachAvailabilityService $availability)
     {
         $this->rules['name']     = '';
         $this->rules['coach_id'] = '';
         $request->validate($this->rules, $this->customMessages);
+
+        $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
+        $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
+        $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
+        $countries  = $request->input('country', $batch->country ?? []);
+
+        $hasActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->exists();
+        $coachValidation = $hasActiveStudents && $batch->start_date && $batch->end_date
+            ? $availability->validateCoachForBatchAssignment((int) $batch->coach_id, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries)
+            : $availability->validateRawBatchCoach((int) $batch->coach_id, $countries, $schedules, $batch->id);
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
         $batch->fill($request->all());
         if ($request->has('country')) {
             $batch->country = $request->input('country');
@@ -939,14 +961,7 @@ class BatchController extends Controller
         // }
 
         // Extract Request Data
-        $daysOfWeek       = $request->input('weekday', []);
-        $fromTimes        = $request->input('from_time', []);
-        $toTimes          = $request->input('to_time', []);
         $deletedDaysInput = $request->input('deleted_days', []);
-        // Ensure arrays are properly formatted
-        $daysOfWeek  = is_array($daysOfWeek) ? $daysOfWeek : (array) $daysOfWeek;
-        $fromTimes   = is_array($fromTimes) ? $fromTimes : (array) $fromTimes;
-        $toTimes     = is_array($toTimes) ? $toTimes : (array) $toTimes;
         $deletedDays = is_array($deletedDaysInput) ? $deletedDaysInput : explode(',', $deletedDaysInput);
         // Update or Add Batch Schedules
         foreach ($daysOfWeek as $id => $day) {
@@ -1094,7 +1109,7 @@ class BatchController extends Controller
         return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit'));
     }
 
-    public function saveAssignedStudent(Request $request)
+    public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability)
     {
 
         // Validate the request data
@@ -1119,6 +1134,26 @@ class BatchController extends Controller
 
         ## Get All Data
         $batch             = Batch::find($batchId);
+        $schedules         = $batch->batchSchedules()
+            ->where('status', 'ACTIVE')
+            ->get()
+            ->map(fn ($schedule) => [
+                'weekday' => $schedule->weekday,
+                'from_time' => $schedule->from_time,
+                'to_time' => $schedule->to_time,
+            ])
+            ->all();
+
+        $coachValidation = $availability->validateCoachForBatchAssignment((int) $coachId, $schedules, $startDate, $endDate, $batch->id, $batch->country ?? []);
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
         $batch->status     = 'ACTIVE';
         $batch->level_id   = $levelId;
         $batch->coach_id   = $coachId;
@@ -1441,24 +1476,64 @@ class BatchController extends Controller
         $coach_attendances = CoachAttendance::where('batch_id', $request->id)->where('status','COMPLETED')->get();
         return view('Admin.Batchs.batchAttendance',compact('coach_attendances'));
     }
-    public function checkSchedule(Request $request)
+    public function checkSchedule(Request $request, CoachAvailabilityService $availability)
     {
+        if ($request->has('country') && is_array($request->input('weekday'))) {
+            $schedules = $availability->schedulesFromRequest(
+                $request->input('weekday', []),
+                $request->input('from_time', []),
+                $request->input('to_time', [])
+            );
+
+            if (empty($request->input('country', [])) || empty($schedules)) {
+                return response()->json([
+                    'status' => 'success',
+                    'coaches' => [],
+                ]);
+            }
+
+            $availableCoaches = $availability->availableCoachesForRawBatch(
+                $request->input('country', []),
+                $schedules,
+                $request->input('batch_id')
+            );
+
+            if ($request->filled('batch_id')) {
+                $batch = Batch::find($request->input('batch_id'));
+                if ($batch && $batch->coach_id && !$availableCoaches->contains('id', $batch->coach_id)) {
+                    $currentCoach = Coach::with('user')->find($batch->coach_id);
+                    if ($currentCoach) {
+                        $availableCoaches->prepend($currentCoach);
+                    }
+                }
+            }
+
+            $coaches = $availableCoaches->map(function ($coach) {
+                return [
+                    'id' => $coach->id,
+                    'name' => trim(optional($coach->user)->first_name . ' ' . optional($coach->user)->last_name),
+                ];
+            })->values();
+
+            return response()->json([
+                'status' => 'success',
+                'coaches' => $coaches,
+            ]);
+        }
+
         $coach_id = $request->coach_id;
-        $weekday  = $request->weekday;
-        $fromTime = $request->from_time;
-        $toTime   = $request->to_time;
+        $schedules = [[
+            'weekday' => $request->weekday,
+            'from_time' => $request->from_time,
+            'to_time' => $request->to_time,
+        ]];
 
-        $batchSchedule = BatchSchedule::whereHas('batch', function ($query) use ($coach_id) {
-            $query->where('coach_id', $coach_id)->where('status', '!=', 'INACTIVE');
-        })->where('weekday', $weekday)
-            ->where('from_time', $fromTime)
-            ->where('to_time', $toTime)
-            ->first();
+        $coachValidation = $availability->validateRawBatchCoach((int) $coach_id, $request->input('country', []), $schedules, $request->input('batch_id'));
 
-        if ($batchSchedule) {
+        if (!$coachValidation['ok']) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'The schedule already exists.',
+                'message' => $coachValidation['message'],
             ], 200);
         }
 

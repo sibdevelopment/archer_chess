@@ -15,6 +15,7 @@ use App\Models\DemoSession;
 use App\Models\LeaveRequest;
 use App\Models\Level;
 use App\Models\Role;
+use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Carbon\Carbon;
 use DataTables;
@@ -196,13 +197,14 @@ class DemoSessionsController extends Controller
         foreach ($coachAvailabilities as $coachAvailability) {
             $coachId = $coachAvailability->coach_id;
 
-            $batchSchedules = Batch::where('coach_id', $coachId)
-                ->whereHas('batchSchedules', function ($query) use ($dayOfWeek) {
-                    $query->where('weekday', $dayOfWeek);
+            $batchSchedules = BatchSchedule::where('weekday', $dayOfWeek)
+                ->whereHas('batch', function ($query) use ($coachId, $date) {
+                    $query->where('coach_id', $coachId)
+                        ->whereIn('status', ['ACTIVE', 'STANDBY'])
+                        ->whereHas('studentBatches', function ($q) use ($date) {
+                            $q->eligibleOn($date);
+                        });
                 })
-                ->with(['batchSchedules' => function ($query) use ($dayOfWeek) {
-                    $query->where('weekday', $dayOfWeek);
-                }])
                 ->get(); 
             
             $isInBatchSchedule = false;
@@ -348,12 +350,13 @@ class DemoSessionsController extends Controller
         })->all();
 
         $batches = Batch::where('coach_id', $coachId)
-            ->where('status', '!=', 'INACTIVE')
+            ->whereIn('status', ['ACTIVE', 'STANDBY'])
             ->whereHas('batchSchedules', function ($query) use ($dayName) {
                 $query->where('weekday', $dayName);
             })
-            ->whereDate('start_date', '<=', $date)
-            ->whereDate('end_date', '>=', $date)
+            ->whereHas('studentBatches', function ($query) use ($date) {
+                $query->eligibleOn($date);
+            })
             ->with(['batchSchedules' => function ($query) use ($dayName) {
                 $query->where('weekday', $dayName);
             }])
@@ -450,11 +453,39 @@ class DemoSessionsController extends Controller
         return view('Admin.DemoSessions.form', compact('demolead', 'coaches', 'coachAvailabilities', 'slots', 'levels', 'saved_coach_name', 'saved_slot'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CoachAvailabilityService $availability)
     {
         $request->validate($this->rules, $this->customMessages);
 
         $coach = Coach::find($request->coach_id);
+        $demolead = DemoLead::find($request->demolead_id);
+        $slot = $availability->parseSlot($request->slot);
+
+        if (!$slot) {
+            return response()->json([
+                'message' => 'Selected slot is invalid.',
+                'errors' => [
+                    'slot' => ['Please select a valid slot.'],
+                ],
+            ], 422);
+        }
+
+        $coachValidation = $availability->validateCoachForSingleEvent(
+            (int) $request->coach_id,
+            $request->date,
+            $slot[0],
+            $slot[1],
+            [$demolead?->country]
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
 
         $start_url = null;
         $join_url = null;
@@ -503,8 +534,6 @@ class DemoSessionsController extends Controller
             ], 422);
         }
 
-
-        $demolead = DemoLead::find($request->demolead_id);
         $demosessions = new DemoSession;
         $demosessions->demolead_id = $demolead->id;
         $demosessions->fill($request->all());
@@ -576,7 +605,7 @@ class DemoSessionsController extends Controller
         return view('Admin.DemoSessions.form', compact('demosessions', 'demoleads', 'demolead', 'coaches', 'slots', 'levels', 'saved_coach_name', 'saved_slot', 'saved_coach_id', 'saved_slot_normal'));
     }
 
-    public function update(DemoLead $demolead, Request $request, DemoSession $demosessions)
+    public function update(DemoLead $demolead, Request $request, DemoSession $demosessions, CoachAvailabilityService $availability)
     {
         $rules = [
             'demolead_id' => 'required',
@@ -586,6 +615,39 @@ class DemoSessionsController extends Controller
         ];
         $request->validate($rules, $customMessages);
         $fieldsToUpdate = $request->only(['demolead_id', 'date', 'time', 'level_id']);
+        $coachIdForValidation = $request->input('coach_id') ?: $request->input('saved_coach_id', $demosessions->coach_id);
+        $slotForValidation = $request->input('slot') ?: $request->input('saved_slot_normal', $demosessions->slot);
+        $dateForValidation = $request->input('date', $demosessions->date);
+        $slot = $availability->parseSlot($slotForValidation);
+
+        if (!$slot) {
+            return response()->json([
+                'message' => 'Selected slot is invalid.',
+                'errors' => [
+                    'slot' => ['Please select a valid slot.'],
+                ],
+            ], 422);
+        }
+
+        $coachValidation = $availability->validateCoachForSingleEvent(
+            (int) $coachIdForValidation,
+            $dateForValidation,
+            $slot[0],
+            $slot[1],
+            [$demolead?->country],
+            'demo',
+            $demosessions->id
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
         if (is_null($request->input('coach_id')) && is_null($request->input('slot'))) {
             $demosessions->coach_id = $request->input('saved_coach_id', $demosessions->coach_id);
             $demosessions->slot = $request->input('saved_slot_normal', $demosessions->slot);

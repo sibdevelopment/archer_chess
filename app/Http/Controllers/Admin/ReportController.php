@@ -919,9 +919,7 @@ class ReportController extends Controller
 
         // dd($activeBatches);
 
-        $statuses = ['INACTIVE', 'STANDBY'];
-
-        $inactiveStandbyBatches = Batch::with(['batchSchedules' => function ($query) use ($dayName) {
+        $standbyBatches = Batch::with(['batchSchedules' => function ($query) use ($dayName) {
             $query->where('weekday', $dayName);
         }])
             // ->whereHas('studentBatches', function ($query) use ($date, $statuses) {
@@ -932,12 +930,12 @@ class ReportController extends Controller
             ->where('start_date', '<=', $date)
                     ->where('end_date', '>=', $date)
             ->where('coach_id', $coachId)
-            ->whereIn('status', $statuses)
+            ->where('status', 'STANDBY')
             ->get();
 
-        // dd($inactiveStandbyBatches);
+        // dd($standbyBatches);
         // Merge the results
-        $batches      = $activeBatches->merge($inactiveStandbyBatches);
+        $batches      = $activeBatches->merge($standbyBatches);
         $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
@@ -1318,15 +1316,14 @@ class ReportController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        // Fetch batches with INACTIVE and STANDBY statuses
-        $statuses               = ['INACTIVE', 'STANDBY'];
-        $inactiveStandbyBatches = Batch::with(['batchSchedules', 'studentBatches'])
+        // Fetch batches with STANDBY status
+        $standbyBatches = Batch::with(['batchSchedules', 'studentBatches'])
             ->where('coach_id', $coachId)
-            ->whereIn('status', $statuses)
+            ->where('status', 'STANDBY')
             ->get();
 
         // Merge the results
-        $batches = $activeBatches->merge($inactiveStandbyBatches);
+        $batches = $activeBatches->merge($standbyBatches);
 
         // Fetch approved leave requests
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)

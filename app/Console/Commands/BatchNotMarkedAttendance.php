@@ -46,6 +46,10 @@ class BatchNotMarkedAttendance extends Command
         $batches->each(function ($batch) use ($now, $todayDate) {
             $batchId = $batch->id;
             $coachId = $batch->coach_id;
+
+            if ($batch->studentBatches->isEmpty()) {
+                return;
+            }
     
             // Fetch additional data for each batch
             $batchLevel = optional($batch->studentBatches->first())->level;

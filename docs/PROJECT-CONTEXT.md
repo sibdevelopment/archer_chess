@@ -221,6 +221,27 @@ status != CANCELLED
 
 The per-session attendance screen uses `StudentBatch::eligibleOn(date)` so mid-joiners are not submitted early.
 
+Fee start/date sync for new changes:
+
+```text
+Reports, late badges, dashboards, and attendance eligibility use student_batches.start_date/end_date.
+They do not read the student_fees date directly for every class/report calculation.
+
+When an ACTIVE fee is created or updated, active student_batches dates are synced to the fee-valid window:
+
+Start date is the later of:
+- batchs.start_date
+- student_fees.start_date
+
+End date is the earlier of:
+- batchs.end_date
+- student_fees.end_date
+
+This makes a student with fee start 10-Jul appear as late before 10-Jul and prevents early report/attendance counts.
+It also stops future calendar/schedule student counts after fee end date unless the next paid fee is saved and extends the active batch window.
+Existing wrong rows may need fee edit/resave or manual DB sync; old saved attendance rows are not rewritten.
+```
+
 Old historical report counts may remain as they were if old wrong `student_attendances` already exist.
 
 ## Coach Availability Rules
@@ -229,6 +250,42 @@ Core intent:
 
 ```text
 Only real teaching commitments should block coach availability.
+```
+
+1-1 batch rule:
+
+```text
+batchs.is_one_to_one marks a batch as a 1-1 Batch.
+1-1 batches use the same coach availability, country, schedule, demo, and coverup conflict rules as normal batches.
+Only one active student can be assigned to a 1-1 batch.
+Normal batch report counts exclude 1-1 batches; 1-1 classes have a separate coach report stat/details card.
+Coach calendar/schedule shows 1-1 batches with a distinct teal color/badge.
+Existing batches default to normal.
+```
+
+New Enrollment batch assignment rule:
+
+```text
+New Enrollment batch_id used to be only a showcase/reference.
+After mid-joiner/report eligibility changes, Confirm Enrollment can assign the student to the selected batch.
+
+If selected batch is ACTIVE/STANDBY:
+- create active fee
+- mark student active
+- create/update active student_batches row directly
+- clamp student_batches dates to paid fee window and batch window
+- block if student already has another active batch
+- block if 1-1 batch already has another active student
+
+If selected batch is UPCOMING/raw:
+- create active fee and mark student active
+- redirect to Batch Assign Students page
+- preselect the new enrollment student
+- prefill assignment start/end dates from New Enrollment
+- admin completes missing raw-batch details such as level/sessions before activation
+
+New Enrollment batch dropdown should include ACTIVE, STANDBY, and UPCOMING batches, excluding INACTIVE.
+Country filtering must handle batchs.country JSON arrays.
 ```
 
 Raw batch:
@@ -245,6 +302,18 @@ UPCOMING/raw = non-blocking
 INACTIVE = non-blocking
 ACTIVE = blocking
 STANDBY = blocking
+```
+
+Batch edit/status rules:
+
+```text
+UPCOMING = coach can be edited with raw-batch availability validation.
+ACTIVE = coach cannot be edited from normal batch edit.
+STANDBY = coach cannot be edited from normal batch edit.
+INACTIVE = coach cannot be edited from normal batch edit unless a separate business rule is added.
+UPCOMING can become ACTIVE only through Assign Students.
+UPCOMING cannot be manually changed to ACTIVE/STANDBY from Manage Batches status modal.
+UPCOMING can be manually changed to INACTIVE from Manage Batches.
 ```
 
 For raw batch creation:
@@ -286,6 +355,7 @@ Batch creation/edit:
 - Backend validates selected coach, not just frontend filtering.
 - Existing batch edit passes current batch id to avoid self-conflict.
 - Existing assigned coach is kept visible in edit mode if filtered list changes.
+- Batch edit allows coach change only while status is UPCOMING. For ACTIVE/STANDBY/INACTIVE, the edit UI keeps coach disabled and backend update ignores posted coach_id.
 - New batches are saved as UPCOMING.
 - Batch becomes ACTIVE when students are assigned.
 ```
@@ -297,6 +367,8 @@ Coach reports/calendar:
 - Calendar/daily schedule should exclude raw UPCOMING.
 - Calendar/daily schedule includes ACTIVE and STANDBY.
 - BATCH INACTIVE legend was removed from calendar UI.
+- Calendar date range should use batchs.start_date/end_date first, with student_batches dates only as fallback.
+- Calendar recurrence must start from the first scheduled weekday on or after batchs.start_date, not from the start of that week.
 ```
 
 Availability/dashboard areas:
@@ -340,6 +412,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Existing old raw batches with ACTIVE/STANDBY status and missing students should be reviewed if they incorrectly block availability.
 - Raw batches no longer reserve coach time until students are assigned; another real batch may take that slot.
 - Coach dropdown may become empty if no coach matches selected country and full schedule.
+- Demo Lead -> Convert To Student no longer collects Last Payment Level ID; new converted students may have lastpayment_level_id null.
+- Student create/edit no longer collects Fees Country separately; backend sets fees_country from country.
 - Full Laravel scheduler should not be enabled on development unless external side effects are reviewed.
 - Hardcoded credentials exist in parts of the app; do not print secrets and move to env/config in future security work.
 ```

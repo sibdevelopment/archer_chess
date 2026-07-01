@@ -39,18 +39,30 @@
                     </div>
                     <div class="card-body border-top">
                         <div class="row">
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-4">
                                 <label class="control-label col-form-label">Name <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <input type="text" class="form-control" placeholder="Name" id="name" name="name"
                                     value="{{ isset($batch) ? $batch->name : '' }}" />
                                 <div id="name-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-4">
                                 <label class="control-label col-form-label">Kids Zone Name</label>
                                 <input type="text" class="form-control" placeholder="Kids Zone Name"
                                     name="kids_zone_name" value="{{ isset($batch) ? $batch->kids_zone_name : '' }}" />
                                 <div id="kids-zone-name-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label class="control-label col-form-label">Batch Type</label>
+                                <select class="form-control" name="is_one_to_one" id="is_one_to_one">
+                                    <option value="0" {{ !isset($batch) || !$batch->is_one_to_one ? 'selected' : '' }}>
+                                        Normal
+                                    </option>
+                                    <option value="1" {{ isset($batch) && $batch->is_one_to_one ? 'selected' : '' }}>
+                                        1-1 Batch
+                                    </option>
+                                </select>
+                                <div id="is_one_to_one-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-6">
                                 <label class="control-label col-form-label">Coach <sup
@@ -69,7 +81,7 @@
                                     @endforeach
                                 </select>
                                 <div id="coach_id-error" style="color:red"></div>
-                                @if (isset($batch))
+                                @if (isset($batch) && $batch->status !== 'UPCOMING')
                                     <div class="text-secondary mt-2">You can't change the coach once it has been set.</div>
                                 @endif
                             </div>
@@ -325,7 +337,15 @@
     </script>
 
     <script>
+        const isBatchEdit = "{{ isset($batch) ? 'true' : 'false' }}" === 'true';
+        const canEditBatchCoach = "{{ isset($batch) && $batch->status === 'UPCOMING' ? 'true' : 'false' }}" === 'true';
+
         $(document).on('change', '.weekday, .from_time, .to_time, #country', function() {
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+                return;
+            }
+
             refreshAvailableCoaches();
         });
 
@@ -380,11 +400,16 @@
                 $('#coach_id').append('<option value="' + coach.id + '" ' + selected + '>' + coach.name + '</option>');
             });
 
-            $('#coach_id').prop('disabled', coaches.length === 0);
+            $('#coach_id').prop('disabled', (isBatchEdit && !canEditBatchCoach) || coaches.length === 0);
             $('#coach_id').trigger('change');
         }
 
         function refreshAvailableCoaches() {
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+                return;
+            }
+
             let schedules = collectSchedules();
             let countries = $('#country').val() || [];
 
@@ -416,7 +441,11 @@
         }
 
         $(document).ready(function() {
-            setTimeout(refreshAvailableCoaches, 500);
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+            } else {
+                setTimeout(refreshAvailableCoaches, 500);
+            }
         });
     </script>
 

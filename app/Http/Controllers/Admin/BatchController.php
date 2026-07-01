@@ -30,6 +30,7 @@ class BatchController extends Controller
 {
     private function joiningStartDateForStudent(Student $student, $fallbackDate = null): string
     {
+        $batchStartDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
         $latestActiveFee = StudentFee::where('student_id', $student->id)
             ->where('status', 'ACTIVE')
             ->whereNotNull('start_date')
@@ -38,10 +39,35 @@ class BatchController extends Controller
             ->first();
 
         if ($latestActiveFee) {
-            return Carbon::parse($latestActiveFee->start_date)->toDateString();
+            $feeStartDate = Carbon::parse($latestActiveFee->start_date)->toDateString();
+
+            return Carbon::parse($feeStartDate)->gt(Carbon::parse($batchStartDate))
+                ? $feeStartDate
+                : $batchStartDate;
         }
 
-        return Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
+        return $batchStartDate;
+    }
+
+    private function joiningEndDateForStudent(Student $student, $fallbackDate = null): string
+    {
+        $batchEndDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
+        $latestActiveFee = StudentFee::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->whereNotNull('end_date')
+            ->orderBy('end_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestActiveFee) {
+            $feeEndDate = Carbon::parse($latestActiveFee->end_date)->toDateString();
+
+            return Carbon::parse($feeEndDate)->lt(Carbon::parse($batchEndDate))
+                ? $feeEndDate
+                : $batchEndDate;
+        }
+
+        return $batchEndDate;
     }
 
     public function index()
@@ -561,7 +587,10 @@ class BatchController extends Controller
                 $levelName  = $batch->level_id ? $batch->level->name : '';
                 $levelBadge = $levelName ? '<span class="badge bg-primary fs-1"> (' . $levelName . ') </span>' : '';
 
-                $batchName = $batch->name;
+                $batchTypeBadge = $batch->is_one_to_one
+                    ? '<span class="badge bg-dark fs-1 ms-1">1-1</span>'
+                    : '<span class="badge bg-light-secondary text-secondary fs-1 ms-1">Normal</span>';
+                $batchName = $batch->name . ' ' . $batchTypeBadge;
 
                 return '<div class="d-flex justify-content-between">' . $batchName . ' &nbsp; ' .
                     '<div class="d-flex justify-content-end">' . $levelBadge . '&nbsp;&nbsp;' . $totalActiveStudentsBadge . '&nbsp;&nbsp;' . $lateJoinerBadge . '&nbsp;&nbsp;' . $feesDueStudentBadge . '</div>' . '</div>';
@@ -633,7 +662,7 @@ class BatchController extends Controller
                     default:
                         $badgeColor = 'secondary';
                 }
-                return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
+                return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '" data-status="' . $batch->status . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
             })
             ->addColumn('timeline', function ($batch) {
                 $latestCompletedSession = CoachAttendance::where('batch_id', $batch->id)
@@ -825,6 +854,7 @@ class BatchController extends Controller
 
         $batch = new Batch;
         $batch->fill($request->all());
+        $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
             $batch->country = $request->input('country');
         }
@@ -911,10 +941,14 @@ class BatchController extends Controller
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
         $countries  = $request->input('country', $batch->country ?? []);
 
-        $hasActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->exists();
-        $coachValidation = $hasActiveStudents && $batch->start_date && $batch->end_date
-            ? $availability->validateCoachForBatchAssignment((int) $batch->coach_id, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries)
-            : $availability->validateRawBatchCoach((int) $batch->coach_id, $countries, $schedules, $batch->id);
+        $canChangeCoach = $batch->status === 'UPCOMING';
+        $coachId = $canChangeCoach
+            ? (int) $request->input('coach_id', $batch->coach_id)
+            : (int) $batch->coach_id;
+
+        $coachValidation = $batch->status !== 'UPCOMING' && $batch->start_date && $batch->end_date
+            ? $availability->validateCoachForBatchAssignment($coachId, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries)
+            : $availability->validateRawBatchCoach($coachId, $countries, $schedules, $batch->id);
 
         if (!$coachValidation['ok']) {
             return response()->json([
@@ -925,7 +959,17 @@ class BatchController extends Controller
             ], 422);
         }
 
-        $batch->fill($request->all());
+        if ($request->boolean('is_one_to_one') && $batch->studentBatches()->where('status', 'ACTIVE')->distinct('student_id')->count('student_id') > 1) {
+            return response()->json([
+                'message' => 'This batch already has more than one active student, so it cannot be marked as 1-1.',
+                'errors' => [
+                    'is_one_to_one' => ['This batch already has more than one active student, so it cannot be marked as 1-1.'],
+                ],
+            ], 422);
+        }
+
+        $batch->fill($canChangeCoach ? $request->all() : $request->except('coach_id'));
+        $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
             $batch->country = $request->input('country');
         }
@@ -1081,6 +1125,20 @@ class BatchController extends Controller
 
         $levels  = Level::where('status', 'ACTIVE')->get();
         $coaches = Coach::where('status', 'ACTIVE')->get();
+        $preselectedStudentIds = array_filter((array) $request->input('student_id', []));
+        $prefillStartDate = null;
+        $prefillEndDate = null;
+
+        if ($request->filled('new_enrollment_id')) {
+            $newEnrollment = \App\Models\NewEnrollment::find($request->input('new_enrollment_id'));
+            if ($newEnrollment) {
+                $prefillStartDate = $newEnrollment->start_date;
+                $prefillEndDate = $newEnrollment->end_date;
+                $preselectedStudentIds[] = $newEnrollment->student_id;
+            }
+        }
+
+        $preselectedStudentIds = array_values(array_unique(array_filter($preselectedStudentIds)));
 
         $currentBatchStudentIds = StudentBatch::where('batch_id', $batch->id)
             ->where('status', 'ACTIVE')
@@ -1101,12 +1159,16 @@ class BatchController extends Controller
             ->whereIn('country', $batch->country ?? [])
             ->whereNotIn('id', $allExcludedStudentIds)
             ->get();
+        if (! empty($preselectedStudentIds)) {
+            $preselectedStudents = Student::whereIn('id', $preselectedStudentIds)->get();
+            $students = $students->merge($preselectedStudents)->unique('id')->values();
+        }
         // dd($students);
 
         $assignedStudents = StudentBatch::where('batch_id', $batch->id)->where('status', 'ACTIVE')->get();
         $batchSchedules   = $batch->batchSchedules()->get();
 
-        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit'));
+        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit', 'preselectedStudentIds', 'prefillStartDate', 'prefillEndDate'));
     }
 
     public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability)
@@ -1134,6 +1196,15 @@ class BatchController extends Controller
 
         ## Get All Data
         $batch             = Batch::find($batchId);
+        if ($batch->is_one_to_one && count(array_unique((array) $studentIds)) > 1) {
+            return response()->json([
+                'message' => 'Only one student can be assigned to a 1-1 batch.',
+                'errors' => [
+                    'student_ids' => ['Only one student can be assigned to a 1-1 batch.'],
+                ],
+            ], 422);
+        }
+
         $schedules         = $batch->batchSchedules()
             ->where('status', 'ACTIVE')
             ->get()
@@ -1172,6 +1243,7 @@ class BatchController extends Controller
 
         foreach ($requestStudents as $key => $student) {
             $studentStartDate = $this->joiningStartDateForStudent($student, $startDate);
+            $studentEndDate = $this->joiningEndDateForStudent($student, $endDate);
             $oldStudentBatch = StudentBatch::where('student_id', $student->id)->where('batch_id', $batchId)->orderBy('id', 'desc')->first();
             if ($oldStudentBatch) {
                 if ($oldStudentBatch->status == 'INACTIVE' && $oldStudentBatch->is_fees_due == '1') {
@@ -1181,7 +1253,7 @@ class BatchController extends Controller
                     $oldStudentBatch->level_id           = $levelId;
                     $oldStudentBatch->coach_id           = $coachId;
                     $oldStudentBatch->start_date         = $studentStartDate;
-                    $oldStudentBatch->end_date           = $batch->end_date;
+                    $oldStudentBatch->end_date           = $studentEndDate;
                     $oldStudentBatch->status             = 'ACTIVE';
                     $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
                     $oldStudentBatch->save();
@@ -1191,7 +1263,7 @@ class BatchController extends Controller
                         $oldStudentBatch->level_id           = $levelId;
                         $oldStudentBatch->coach_id           = $coachId;
                         $oldStudentBatch->start_date         = $studentStartDate;
-                        $oldStudentBatch->end_date           = $endDate;
+                        $oldStudentBatch->end_date           = $studentEndDate;
                         $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
                         $oldStudentBatch->save();
                     } else {
@@ -1203,7 +1275,7 @@ class BatchController extends Controller
                             $studentBatch->level_id           = $levelId;
                             $studentBatch->status             = 'ACTIVE';
                             $studentBatch->start_date         = $studentStartDate;
-                            $studentBatch->end_date           = $endDate;
+                            $studentBatch->end_date           = $studentEndDate;
                             $studentBatch->number_of_sessions = $request->number_of_sessions;
                             $studentBatch->save();
                         } else {
@@ -1214,7 +1286,7 @@ class BatchController extends Controller
                             $studentBatch->level_id           = $levelId;
                             $studentBatch->status             = 'ACTIVE';
                             $studentBatch->start_date         = $studentStartDate;
-                            $studentBatch->end_date           = $endDate;
+                            $studentBatch->end_date           = $studentEndDate;
                             $studentBatch->number_of_sessions = $request->number_of_sessions;
                             $studentBatch->save();
                         }
@@ -1229,7 +1301,7 @@ class BatchController extends Controller
                     $studentBatch->level_id           = $levelId;
                     $studentBatch->status             = 'ACTIVE';
                     $studentBatch->start_date         = $studentStartDate;
-                    $studentBatch->end_date           = $endDate;
+                    $studentBatch->end_date           = $studentEndDate;
                     $studentBatch->number_of_sessions = $request->number_of_sessions;
                     $studentBatch->save();
                 } else {
@@ -1240,7 +1312,7 @@ class BatchController extends Controller
                     $studentBatch->level_id           = $levelId;
                     $studentBatch->status             = 'ACTIVE';
                     $studentBatch->start_date         = $studentStartDate;
-                    $studentBatch->end_date           = $endDate;
+                    $studentBatch->end_date           = $studentEndDate;
                     $studentBatch->number_of_sessions = $request->number_of_sessions;
                     $studentBatch->save();
                 }
@@ -1412,6 +1484,20 @@ class BatchController extends Controller
         }
 
         $batch         = Batch::find($request->batch_id);
+        if (!$batch) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Batch not found.',
+            ], 404);
+        }
+
+        if ($batch->status === 'UPCOMING' && in_array($request->status, ['ACTIVE', 'STANDBY'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Upcoming batch can become active only after assigning students.',
+            ], 422);
+        }
+
         $batch->status = $request->status;
         $batch->save();
 

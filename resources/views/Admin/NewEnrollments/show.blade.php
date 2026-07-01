@@ -214,7 +214,7 @@
                         closeButton: true,
                     });
                     setTimeout(function() {
-                        window.location.href = "{{ route('admin.newenrollments.index') }}";
+                        window.location.href = data.redirect_url || "{{ route('admin.newenrollments.index') }}";
                     }, 100);
                 } else {
                     toastr.error('There is some error!!');

@@ -344,6 +344,45 @@
         </div>
     </div>
 
+    <div class="modal fade" id="OneToOneClassCompleteModal" tabindex="-1" role="dialog"
+        aria-labelledby="OneToOneClassCompleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-1">
+                    <h5 class="modal-title" id="OneToOneClassCompleteModalLabel">Total 1-1 Classes Completed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h5><span id="totalOneToOneClassCompletedCount" class="badge bg-primary"></span></h5>
+                    </div>
+                    <div class="table-responsive mb-4 rounded">
+                        <table class="table table-striped custom-table" id="oneToOneClassDataTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="text-align: center;">#</th>
+                                    <th style="text-align: center;">Name</th>
+                                    <th style="text-align: center;" width="3%">Reassign Times</th>
+                                    <th style="text-align: center;">Country</th>
+                                    <th style="text-align: center;" width="1%">Status</th>
+                                    <th style="text-align: center;" width="5%">Level</th>
+                                    <th style="text-align: center;">Timeline</th>
+                                    <th style="text-align: center;" width="3%">Completed Count</th>
+                                    <th style="text-align: center;" width="10%">Completed Dates</th>
+                                    <th style="text-align: center;" width="3%">Completed Times</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-1">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="DelayedBatchesModal" tabindex="-1" role="dialog"
         aria-labelledby="DelayedBatchesModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
@@ -727,6 +766,63 @@
                                 timeOut: 1500,
                                 closeButton: true,
                             });
+                    }
+                });
+            });
+
+            $(document).on('click', '#oneToOneClassTakenData', function(e) {
+                e.preventDefault();
+                var coachId = $(this).data('coach-id');
+                const selectedDate = $('#date_Range').data('daterangepicker');
+                const startDate = selectedDate.startDate.format('YYYY-MM-DD');
+                const endDate = selectedDate.endDate.format('YYYY-MM-DD');
+                $.ajax({
+                    type: "GET",
+                    url: '{{ route('admin.one-to-one-class.completed.data') }}',
+                    data: {
+                        coachId: coachId,
+                        startDate: startDate,
+                        endDate: endDate
+                    },
+                    success: function(data) {
+                        if (data.batchData) {
+                            $('#oneToOneClassDataTable tbody').empty();
+                            $('#totalOneToOneClassCompletedCount').text(
+                                `From ${data.startDate} to ${data.endDate}`);
+
+                            data.batchData.forEach(function(batch, index) {
+                                var row = '<tr>' +
+                                    '<td style="text-align: center;">' + (index + 1) + '</td>' +
+                                    '<td style="text-align: center;">' + batch.name + '</td>' +
+                                    '<td style="text-align: center;">' + batch.version + '</td>' +
+                                    '<td style="text-align: center;">' + batch.country + '</td>' +
+                                    '<td style="text-align: center;">' + batch.status + '</td>' +
+                                    '<td style="text-align: center;">' + batch.level_names + '</td>' +
+                                    '<td style="text-align: center;">' + batch.timeline + '</td>' +
+                                    '<td style="text-align: center;">' + batch.completed_count + '</td>' +
+                                    '<td style="text-align: center;">' + batch.completed_dates.join('<br>') + '</td>' +
+                                    '<td style="text-align: center;">' + batch.completed_times.join('<br>') + '</td>' +
+                                    '</tr>';
+                                $('#oneToOneClassDataTable tbody').append(row);
+                            });
+
+                            $('#OneToOneClassCompleteModal').modal('show');
+                        } else {
+                            toastr.error(data.message || 'There is some error!!', '', {
+                                showMethod: "slideDown",
+                                hideMethod: "slideUp",
+                                timeOut: 1500,
+                                closeButton: true,
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error('An unexpected error occurred. Please try again later.', '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 1500,
+                            closeButton: true,
+                        });
                     }
                 });
             });

@@ -138,6 +138,27 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-sm-6 col-xl-2 mt-2">
+                    <div class="card bg-light-danger shadow-none" style="margin-bottom: 0px !important;">
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center">
+                                <div class="round rounded d-flex align-items-center justify-content-center"
+                                    style="width: 30px; height: 30px; background-color: #0f766e;">
+                                    <i class="ti ti-user-check text-white fs-5"></i>
+                                </div>
+                                <div class="ms-auto text-info d-flex align-items-center">
+                                    <button type="submit" id="oneToOneClassTakenData" class="btn text-white"
+                                        data-coach-id="{{ $coachId }}" style="height: 30px; line-height: 15px; background-color: #0f766e;">
+                                        Details</button>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h5 class="mb-0 fw-semibold fs-3">1-1 Class</h5>
+                                <span class="fs-8 fw-bold" style="color: #0f766e;">{{ $oneToOneClassCount }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {{-- <div class="col-sm-6 col-xl-2 mt-2">
                     <div class="card bg-light-danger shadow-none" style="margin-bottom: 0px !important;">
                         <div class="card-body p-2">

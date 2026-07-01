@@ -18,6 +18,41 @@ use Illuminate\Support\Facades\Mail;
 
 class StudentFeeController extends Controller
 {
+    private function syncActiveStudentBatchFeeWindow(Student $student, StudentFee $studentFee): void
+    {
+        if ($studentFee->status !== 'ACTIVE' || ! $studentFee->start_date) {
+            return;
+        }
+
+        $feeStartDate = Carbon::parse($studentFee->start_date)->toDateString();
+        $feeEndDate = $studentFee->end_date
+            ? Carbon::parse($studentFee->end_date)->toDateString()
+            : null;
+
+        StudentBatch::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->with('batch')
+            ->get()
+            ->each(function (StudentBatch $studentBatch) use ($feeStartDate, $feeEndDate) {
+                $batchStartDate = $studentBatch->batch && $studentBatch->batch->start_date
+                    ? Carbon::parse($studentBatch->batch->start_date)->toDateString()
+                    : null;
+                $batchEndDate = $studentBatch->batch && $studentBatch->batch->end_date
+                    ? Carbon::parse($studentBatch->batch->end_date)->toDateString()
+                    : null;
+
+                $studentBatch->start_date = $batchStartDate && Carbon::parse($batchStartDate)->gt(Carbon::parse($feeStartDate))
+                    ? $batchStartDate
+                    : $feeStartDate;
+                if ($feeEndDate) {
+                    $studentBatch->end_date = $batchEndDate && Carbon::parse($batchEndDate)->lt(Carbon::parse($feeEndDate))
+                        ? $batchEndDate
+                        : $feeEndDate;
+                }
+                $studentBatch->save();
+            });
+    }
+
     public function index(Student $student)
     {
         // dd(extension_loaded('gd'));
@@ -259,6 +294,7 @@ class StudentFeeController extends Controller
 
 
         $student_fee->save();
+        $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         if ($student->user->email) {
             Mail::to($student->user->email)
@@ -331,6 +367,7 @@ class StudentFeeController extends Controller
             // }
         }
         $student_fee->save();
+        $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         return response()->json([
             'status' => 'success',

@@ -485,6 +485,10 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'fees_country' => $request->input('country'),
+        ]);
+
         // Custom validation for mobile with '+' sign
         $request->validate($this->rules, $this->customMessages);
         $request->validate([
@@ -547,6 +551,7 @@ class StudentController extends Controller
     {
         $request->merge([
             'mobile' => preg_replace('/[^0-9+]/', '', $request->mobile),
+            'fees_country' => $request->input('country'),
         ]);
         // Custom validation for mobile with '+' sign
         $request->validate([
@@ -940,7 +945,8 @@ class StudentController extends Controller
         //'address' => 'required',
         'student_id' => 'required|unique:students,student_id',
         'country'    => 'required', // Add rule for countries
-        'fees_country' => 'required',
+        // Fees Country follows Country and is no longer collected separately.
+        // 'fees_country' => 'required',
         'timezone'   => 'required',
     ];
 
@@ -952,7 +958,7 @@ class StudentController extends Controller
         'student_id.required' => 'Student ID is required.',
         'student_id.unique'   => 'Student ID must be unique.',
         'country.required'    => 'Please select the country', // Add cust
-        'fees_country' => 'Please select the Fees country',
+        // 'fees_country' => 'Please select the Fees country',
         'timezone.required'   => 'Please select the timezone',
     ];
 

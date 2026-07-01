@@ -27,6 +27,9 @@
                                         <i class="ti ti-id-badge-2 text-dark fs-6"></i>
                                         <h6 class="fs-4 fw-semibold mb-0">
                                             Name : {{ $batch->name }}
+                                            @if ($batch->is_one_to_one)
+                                                <span class="badge bg-dark ms-2">1-1 Batch</span>
+                                            @endif
                                         </h6>
                                     </li>
                                 @endif
@@ -145,11 +148,13 @@
                                                 <select class="form-control select2"
         name="student_ids[]" multiple="multiple"
         id="student_ids"
+        data-one-to-one="{{ $batch->is_one_to_one ? 'YES' : 'NO' }}"
         @if($batch->status == 'INACTIVE') data-readonly="true" @endif>
 
                                             @foreach ($students as $student)
                                                 <option value="{{ $student->id }}"
-                                                    @foreach ($assignedStudents as $assignedStudent) {{ $assignedStudent->student_id == $student->id ? 'selected' : '' }} @endforeach>
+                                                    @foreach ($assignedStudents as $assignedStudent) {{ $assignedStudent->student_id == $student->id ? 'selected' : '' }} @endforeach
+                                                    {{ in_array($student->id, $preselectedStudentIds ?? []) ? 'selected' : '' }}>
                                                     {{ $student->first_name }} {{ $student->last_name }}
                                                     @if (!is_null($student->student_id))
                                                         ({{ $student->student_id }})
@@ -230,7 +235,7 @@
                                             $readonly = (!$is_edit && $is_hide);
                                         @endphp
                                         <input type="date" class="form-control" name="start_date"
-                                            value="{{ isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '' }}"
+                                            value="{{ $prefillStartDate ? \Carbon\Carbon::parse($prefillStartDate)->format('Y-m-d') : (isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '') }}"
                                             @if ($readonly) readonly @endif
                                             >
                                         <div id="start_date-error" style="color:red"></div>
@@ -247,7 +252,7 @@
                                             type="date" 
                                             class="form-control" 
                                             name="end_date"
-                                            value="{{ isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '' }}"
+                                            value="{{ $prefillEndDate ? \Carbon\Carbon::parse($prefillEndDate)->format('Y-m-d') : (isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '') }}"
                                             @if ($readonly) readonly @endif
                                         >
 
@@ -350,7 +355,13 @@
 
         $('#student_ids').on('change', function() {
             var removedStudentIds = [];
-            var studentIds = $(this).val();
+            var studentIds = $(this).val() || [];
+            if ($(this).data('one-to-one') === 'YES' && studentIds.length > 1) {
+                var latestStudentId = studentIds[studentIds.length - 1];
+                $(this).val([latestStudentId]).trigger('change.select2');
+                studentIds = [latestStudentId];
+                toastr.error('Only one student can be assigned to a 1-1 batch.');
+            }
             var assignedStudentIds = {!! json_encode($assignedStudents->pluck('student_id')) !!};
 
             assignedStudentIds.forEach(function(assignedStudentId) {

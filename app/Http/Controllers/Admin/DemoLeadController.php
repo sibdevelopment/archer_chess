@@ -694,7 +694,8 @@ Archer Chess Academy";
         $student->mobile = !empty($demolead->mobile) ? $demolead->mobile : '';
         $student->city = !empty($demolead->city) ? $demolead->city : '';
         $student->country = !empty($demolead->country) ? $demolead->country : '';
-        $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
+        // Last Payment Level is no longer collected during demo lead conversion.
+        // $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
 
         $student->status = 'INACTIVE';
         if ($request->has('student_id') && !empty($request->student_id)) {

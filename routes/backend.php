@@ -239,6 +239,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('reports/{coachId}/batch-attendance', [ReportController::class, 'batchAttendance'])->name('reports.batchAttendance');
         Route::get('reports/batchstudent/countrydata', [ReportController::class, 'batchStudentCountryData'])->name('batchstudent.countrydata');
         Route::get('reports/batch/completed/data', [ReportController::class, 'batchCompletedData'])->name('batch.completed.data');
+        Route::get('reports/one-to-one-class/completed/data', [ReportController::class, 'oneToOneClassCompletedData'])->name('one-to-one-class.completed.data');
         Route::get('reports/delayed-batches/data', [ReportController::class, 'delayedBatchesReportData'])->name('reports.delayed.batches.data');
         Route::get('reports/coverupclass/completed/data', [ReportController::class, 'coverupclassCompletedData'])->name('coverupclass.completed.data');
         Route::get('reports/demo/completed/data', [ReportController::class, 'demoCompletedData'])->name('demo.completed.data');

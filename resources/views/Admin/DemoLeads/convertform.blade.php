@@ -146,6 +146,7 @@
                                         <div id="portal_password-error" style="color:red"></div>
                                     </div>
                                     <input type="hidden" name="demolead_id" value="{{ $demolead->id }}" />
+                                    {{-- Last Payment Level is no longer required during demo lead conversion.
                                     <div class="col-sm-12 col-md-4 ">
                                         <label for="lastpayment_level_id" class="control-label col-form-label">Last Payment
                                             Level
@@ -163,6 +164,7 @@
                                         </select>
                                         <div id="lastpayment_level_id-error" style="color:red"></div>
                                     </div>
+                                    --}}
                                     <input type="hidden" name="status" value="ACTIVE" />
                                 </div>
                             </div>

@@ -567,8 +567,17 @@
         $(document).on('click', '.batch-status-switch', function() {
             var id = $(this).data('id');
             var routeKey = $(this).data('routekey');
+            var currentStatus = $(this).data('status');
             $('#batchId').val(id);
             $('#routeKey').val(routeKey);
+            $('#status').val('');
+            $('#status option').show();
+
+            if (currentStatus === 'UPCOMING') {
+                $('#status option[value="ACTIVE"]').hide();
+                $('#status option[value="STANDBY"]').hide();
+                $('#status option[value="UPCOMING"]').hide();
+            }
         });
 
         $('#changeCoachForm').on('submit', function(e) {

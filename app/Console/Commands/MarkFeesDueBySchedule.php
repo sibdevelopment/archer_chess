@@ -208,12 +208,14 @@ class MarkFeesDueBySchedule extends Command
             return;
         }
 
-        DB::transaction(function () use ($student, $studentFee, $activeBatch, $feeEndDate) {
+        DB::transaction(function () use ($student, $activeBatch, $feeEndDate) {
             $student->status = 'FEESDUE';
             $student->save();
 
-            $studentFee->status = 'INACTIVE';
-            $studentFee->save();
+            StudentFee::where('student_id', $student->id)
+                ->where('status', 'ACTIVE')
+                ->whereDate('end_date', '<=', $feeEndDate)
+                ->update(['status' => 'INACTIVE']);
 
             if ($activeBatch) {
                 $activeBatch->status = 'INACTIVE';

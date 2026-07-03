@@ -150,6 +150,7 @@ Purpose:
 - Supports dry-run.
 - Uses buffer/no-class cutoff behavior.
 - Schedule lookup uses `StudentBatch::eligibleOn(fee_end_date)`, so mid-joiner/date-window rows do not incorrectly delay a no-class fee due backfill.
+- When marking a student fee due, the cron inactivates all active fee rows for that student with `end_date <= fee_end_date`, so duplicate/stale active fee rows do not remain active.
 ```
 
 Old region-wise commands were also hardened so one bad student/batch should not break the full command.

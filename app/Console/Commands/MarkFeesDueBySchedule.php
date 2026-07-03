@@ -43,10 +43,18 @@ class MarkFeesDueBySchedule extends Command
         $marked = 0;
         $skipped = 0;
         $errors = 0;
-        $staleFeesInactivated = 0;
+        $activeFeesInactivated = 0;
 
         try {
-            $staleFeesInactivated = $this->inactivateStaleActiveFees($today, $dryRun);
+            try {
+                $activeFeesInactivated = $this->inactivateInvalidActiveFees($today, $dryRun);
+            } catch (\Throwable $e) {
+                $errors++;
+                Log::error('Schedule based fees due invalid active fee cleanup failed', [
+                    'error' => $e->getMessage(),
+                ]);
+                $this->error("Invalid active fee cleanup failed: {$e->getMessage()}");
+            }
 
             Student::where('status', '!=', 'FEESDUE')
                 ->orderBy('id')
@@ -124,32 +132,28 @@ class MarkFeesDueBySchedule extends Command
             Cache::forget($lockKey);
         }
 
-        $this->info("Fee due schedule check finished. Marked: {$marked}, stale fees inactivated: {$staleFeesInactivated}, skipped: {$skipped}, errors: {$errors}");
+        $this->info("Fee due schedule check finished. Marked: {$marked}, invalid active fees inactivated: {$activeFeesInactivated}, skipped: {$skipped}, errors: {$errors}");
 
         return $errors > 0 ? self::FAILURE : self::SUCCESS;
     }
 
-    private function inactivateStaleActiveFees(string $today, bool $dryRun): int
+    private function inactivateInvalidActiveFees(string $today, bool $dryRun): int
     {
         $query = StudentFee::query()
             ->from('student_fees as sf')
             ->join('students as s', 's.id', '=', 'sf.student_id')
             ->where('sf.status', 'ACTIVE')
-            ->whereDate('sf.end_date', '<', $today)
-            ->where(function ($query) {
-                $query->where('s.status', 'FEESDUE')
+            ->where(function ($query) use ($today) {
+                $query->where(function ($feesDue) use ($today) {
+                    $feesDue->where('s.status', 'FEESDUE')
+                        ->whereDate('sf.end_date', '<', $today);
+                })
                     ->orWhereExists(function ($exists) {
                         $exists->selectRaw('1')
                             ->from('student_fees as newer_sf')
                             ->whereColumn('newer_sf.student_id', 'sf.student_id')
                             ->where('newer_sf.status', 'ACTIVE')
-                            ->where(function ($newer) {
-                                $newer->whereColumn('newer_sf.end_date', '>', 'sf.end_date')
-                                    ->orWhere(function ($sameEndDate) {
-                                        $sameEndDate->whereColumn('newer_sf.end_date', 'sf.end_date')
-                                            ->whereColumn('newer_sf.id', '>', 'sf.id');
-                                    });
-                            });
+                            ->whereColumn('newer_sf.id', '>', 'sf.id');
                     });
             });
 
@@ -160,11 +164,11 @@ class MarkFeesDueBySchedule extends Command
         }
 
         if ($dryRun) {
-            Log::info('Schedule based fees due stale active fee dry-run cleanup', [
+            Log::info('Schedule based fees due invalid active fee dry-run cleanup', [
                 'count' => $count,
-                'before_date' => $today,
+                'date' => $today,
             ]);
-            $this->line("[DRY RUN] STALE_ACTIVE_FEES: {$count} fee rows would be marked INACTIVE");
+            $this->line("[DRY RUN] INVALID_ACTIVE_FEES: {$count} fee rows would be marked INACTIVE");
             return $count;
         }
 
@@ -172,9 +176,9 @@ class MarkFeesDueBySchedule extends Command
 
         StudentFee::whereIn('id', $ids)->update(['status' => 'INACTIVE']);
 
-        Log::info('Schedule based fees due stale active fees inactivated', [
+        Log::info('Schedule based fees due invalid active fees inactivated', [
             'count' => $count,
-            'before_date' => $today,
+            'date' => $today,
         ]);
 
         return $count;
@@ -184,7 +188,6 @@ class MarkFeesDueBySchedule extends Command
     {
         return StudentFee::where('student_id', $student->id)
             ->where('status', 'ACTIVE')
-            ->orderBy('end_date', 'desc')
             ->orderBy('id', 'desc')
             ->first();
     }

@@ -139,6 +139,23 @@
                                 </div>
                             </div>
                             <div class="card-body border-top">
+                                @php
+                                    $shouldBlankAssignmentFields = $blankAssignmentFields ?? false;
+                                    $selectedLevelId = $shouldBlankAssignmentFields ? null : $batch->level_id;
+                                    $numberOfSessionsValue = $shouldBlankAssignmentFields ? '' : ($batch->number_of_sessions ?? 8);
+                                    $startDateValue = '';
+                                    if (! $shouldBlankAssignmentFields) {
+                                        $startDateValue = $prefillStartDate
+                                            ? \Carbon\Carbon::parse($prefillStartDate)->format('Y-m-d')
+                                            : (isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '');
+                                    }
+                                    $endDateValue = '';
+                                    if (! $shouldBlankAssignmentFields) {
+                                        $endDateValue = $prefillEndDate
+                                            ? \Carbon\Carbon::parse($prefillEndDate)->format('Y-m-d')
+                                            : (isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '');
+                                    }
+                                @endphp
                                 <div class="row">
                                     {{-- <h6 class="text-warning fs-4">Personal Info :</h6> --}}
                                     <!-- Roll No. (Portal ID) -->
@@ -190,7 +207,7 @@
                                             <option value="">Select Level</option>
                                             @foreach ($levels as $level)
                                                 <option value="{{ $level->id }}"
-                                                    @if ($batch->level_id == $level->id) selected @endif>
+                                                    @if ($selectedLevelId == $level->id) selected @endif>
                                                     {{ $level->name }}
                                                 </option>
                                             @endforeach
@@ -198,7 +215,7 @@
 
                                         <!-- Hidden input to store the selected value -->
                                         <input type="hidden" id="hidden_level_id" name="level_id"
-                                            value="{{ $batch->level_id }}">
+                                            value="{{ $selectedLevelId }}">
 
                                         <div id="level_id-error" style="color:red"></div>
                                     </div>
@@ -221,7 +238,7 @@
                                         <label class="control-label col-form-label">Number of Sessions <sup
                                                 class="tcul-star-restrict">*</sup></label>
                                         <input type="number" class="form-control" name="number_of_sessions"
-                                            value="{{ $batch->number_of_sessions ?? 8 }}" required
+                                            value="{{ $numberOfSessionsValue }}" required
                                             @if ($is_hide == 1) readonly @endif>
                                         <div id="number_of_sessions-error" style="color:red"></div>
                                     </div>
@@ -235,7 +252,7 @@
                                             $readonly = (!$is_edit && $is_hide);
                                         @endphp
                                         <input type="date" class="form-control" name="start_date"
-                                            value="{{ $prefillStartDate ? \Carbon\Carbon::parse($prefillStartDate)->format('Y-m-d') : (isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '') }}"
+                                            value="{{ $startDateValue }}"
                                             @if ($readonly) readonly @endif
                                             >
                                         <div id="start_date-error" style="color:red"></div>
@@ -252,7 +269,7 @@
                                             type="date" 
                                             class="form-control" 
                                             name="end_date"
-                                            value="{{ $prefillEndDate ? \Carbon\Carbon::parse($prefillEndDate)->format('Y-m-d') : (isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '') }}"
+                                            value="{{ $endDateValue }}"
                                             @if ($readonly) readonly @endif
                                         >
 

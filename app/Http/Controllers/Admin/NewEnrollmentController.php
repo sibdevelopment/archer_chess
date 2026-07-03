@@ -21,6 +21,23 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class NewEnrollmentController extends Controller
 {
+    private function applyBatchCountryFilter($query, ?string $country)
+    {
+        if (! $country) {
+            return $query;
+        }
+
+        return $query->whereNotNull('country')->where(function ($query) use ($country) {
+            $query->whereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($country)])
+                ->orWhere(function ($query) use ($country) {
+                    $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($country) {
+                        $query->where('country', $country)
+                            ->orWhereRaw('FIND_IN_SET(?, country)', [$country]);
+                    });
+                });
+        });
+    }
+
     private function batchContainsStudentCountry(Batch $batch, Student $student): bool
     {
         $countries = is_array($batch->country) ? $batch->country : json_decode($batch->country, true);
@@ -365,8 +382,10 @@ class NewEnrollmentController extends Controller
             }
         }
 
-        $batches = Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])
-            ->orderBy('name', 'asc')
+        $batches = $this->applyBatchCountryFilter(
+            Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
+            optional($new_enrollment->student)->country
+        )
             ->when($allowedCountries, function ($query, $allowedCountries) {
             $query->where(function ($q) use ($allowedCountries) {
                 foreach ($allowedCountries as $country) {

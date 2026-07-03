@@ -1128,12 +1128,16 @@ class BatchController extends Controller
         $preselectedStudentIds = array_filter((array) $request->input('student_id', []));
         $prefillStartDate = null;
         $prefillEndDate = null;
+        $blankAssignmentFields = false;
 
         if ($request->filled('new_enrollment_id')) {
             $newEnrollment = \App\Models\NewEnrollment::find($request->input('new_enrollment_id'));
             if ($newEnrollment) {
-                $prefillStartDate = $newEnrollment->start_date;
-                $prefillEndDate = $newEnrollment->end_date;
+                $blankAssignmentFields = $batch->status === 'UPCOMING';
+                if (! $blankAssignmentFields) {
+                    $prefillStartDate = $newEnrollment->start_date;
+                    $prefillEndDate = $newEnrollment->end_date;
+                }
                 $preselectedStudentIds[] = $newEnrollment->student_id;
             }
         }
@@ -1168,7 +1172,7 @@ class BatchController extends Controller
         $assignedStudents = StudentBatch::where('batch_id', $batch->id)->where('status', 'ACTIVE')->get();
         $batchSchedules   = $batch->batchSchedules()->get();
 
-        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit', 'preselectedStudentIds', 'prefillStartDate', 'prefillEndDate'));
+        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit', 'preselectedStudentIds', 'prefillStartDate', 'prefillEndDate', 'blankAssignmentFields'));
     }
 
     public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability)

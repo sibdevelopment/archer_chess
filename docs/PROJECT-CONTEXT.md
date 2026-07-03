@@ -169,6 +169,25 @@ A student can be assigned to a batch before joining,
 but must not be counted or allowed to join until the actual start date.
 ```
 
+## Demo Lead / New Enrollment Batch Selection
+
+Demo lead conversion batch dropdown and New Enrollment batch dropdown must be constrained to the student/demo lead country. Valid statuses for these selection lists are:
+
+```text
+ACTIVE
+STANDBY
+UPCOMING
+```
+
+When New Enrollment confirmation selects an `UPCOMING` batch, the flow redirects to the batch assign-student page with the student preselected. On that redirected raw-batch assignment page, these fields must be intentionally blank so the admin fills the activation details:
+
+```text
+Level
+Number of Sessions
+Start Date
+End Date
+```
+
 Eligibility rule:
 
 ```text

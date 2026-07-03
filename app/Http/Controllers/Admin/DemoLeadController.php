@@ -33,6 +33,37 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class DemoLeadController extends Controller
 {
+    private function batchCountryMatches(Batch $batch, ?string $country): bool
+    {
+        if (! $country) {
+            return true;
+        }
+
+        $countries = is_array($batch->country) ? $batch->country : json_decode($batch->country, true);
+        if (! is_array($countries)) {
+            $countries = array_filter(array_map('trim', explode(',', (string) $batch->country)));
+        }
+
+        return in_array($country, $countries, true);
+    }
+
+    private function applyBatchCountryFilter($query, ?string $country)
+    {
+        if (! $country) {
+            return $query;
+        }
+
+        return $query->whereNotNull('country')->where(function ($query) use ($country) {
+            $query->whereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($country)])
+                ->orWhere(function ($query) use ($country) {
+                    $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($country) {
+                        $query->where('country', $country)
+                            ->orWhereRaw('FIND_IN_SET(?, country)', [$country]);
+                    });
+                });
+        });
+    }
+
 
     public function index()
     {
@@ -616,7 +647,10 @@ Archer Chess Academy";
         $levels = Level::where('status', 'ACTIVE')->get();
         $lastpayment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
         $employees = Employee::get();
-        $batches = Batch::where('status', 'ACTIVE')->get();
+        $batches = $this->applyBatchCountryFilter(
+            Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
+            $demolead->country
+        )->get();
         return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'lastpayment_levels', 'employees', 'batches'));
     }
 
@@ -651,6 +685,19 @@ Archer Chess Academy";
                 'status' => 'error',
                 'message' => 'Demo lead not found.',
             ], 404);
+        }
+
+        if ($request->filled('batch_id')) {
+            $selectedBatch = Batch::find($request->batch_id);
+            if (! $selectedBatch || ! in_array($selectedBatch->status, ['ACTIVE', 'STANDBY', 'UPCOMING'], true) || ! $this->batchCountryMatches($selectedBatch, $demolead->country)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Selected batch does not match the demo lead country.',
+                    'errors' => [
+                        'batch_id' => ['Selected batch does not match the demo lead country.'],
+                    ],
+                ], 422);
+            }
         }
 
         $user = User::find($demolead->user_id);

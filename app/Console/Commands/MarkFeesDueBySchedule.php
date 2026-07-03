@@ -140,7 +140,7 @@ class MarkFeesDueBySchedule extends Command
         $weekday = Carbon::parse($date, 'Asia/Kolkata')->format('l');
 
         $activeBatchIds = StudentBatch::where('student_id', $student->id)
-            ->where('status', 'ACTIVE')
+            ->eligibleOn($date)
             ->pluck('batch_id')
             ->unique()
             ->values();

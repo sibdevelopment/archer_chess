@@ -149,6 +149,7 @@ Purpose:
 - Uses a lock to prevent overlapping runs.
 - Supports dry-run.
 - Uses buffer/no-class cutoff behavior.
+- Schedule lookup uses `StudentBatch::eligibleOn(fee_end_date)`, so mid-joiner/date-window rows do not incorrectly delay a no-class fee due backfill.
 ```
 
 Old region-wise commands were also hardened so one bad student/batch should not break the full command.

@@ -332,6 +332,7 @@
                 'Hawaii-Aleutian Time'
             ],
             'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
+            'NEW ZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
             'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide',
                 'Australia/Sydney'
             ],

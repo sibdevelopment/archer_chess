@@ -43,8 +43,11 @@ class MarkFeesDueBySchedule extends Command
         $marked = 0;
         $skipped = 0;
         $errors = 0;
+        $staleFeesInactivated = 0;
 
         try {
+            $staleFeesInactivated = $this->inactivateStaleActiveFees($today, $dryRun);
+
             Student::where('status', '!=', 'FEESDUE')
                 ->orderBy('id')
                 ->chunkById(100, function ($students) use ($dryRun, $bufferMinutes, $noClassCutoff, $now, $today, &$marked, &$skipped, &$errors) {
@@ -121,9 +124,60 @@ class MarkFeesDueBySchedule extends Command
             Cache::forget($lockKey);
         }
 
-        $this->info("Fee due schedule check finished. Marked: {$marked}, skipped: {$skipped}, errors: {$errors}");
+        $this->info("Fee due schedule check finished. Marked: {$marked}, stale fees inactivated: {$staleFeesInactivated}, skipped: {$skipped}, errors: {$errors}");
 
         return $errors > 0 ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function inactivateStaleActiveFees(string $today, bool $dryRun): int
+    {
+        $query = StudentFee::query()
+            ->from('student_fees as sf')
+            ->join('students as s', 's.id', '=', 'sf.student_id')
+            ->where('sf.status', 'ACTIVE')
+            ->whereDate('sf.end_date', '<', $today)
+            ->where(function ($query) {
+                $query->where('s.status', 'FEESDUE')
+                    ->orWhereExists(function ($exists) {
+                        $exists->selectRaw('1')
+                            ->from('student_fees as newer_sf')
+                            ->whereColumn('newer_sf.student_id', 'sf.student_id')
+                            ->where('newer_sf.status', 'ACTIVE')
+                            ->where(function ($newer) {
+                                $newer->whereColumn('newer_sf.end_date', '>', 'sf.end_date')
+                                    ->orWhere(function ($sameEndDate) {
+                                        $sameEndDate->whereColumn('newer_sf.end_date', 'sf.end_date')
+                                            ->whereColumn('newer_sf.id', '>', 'sf.id');
+                                    });
+                            });
+                    });
+            });
+
+        $count = (clone $query)->count('sf.id');
+
+        if ($count === 0) {
+            return 0;
+        }
+
+        if ($dryRun) {
+            Log::info('Schedule based fees due stale active fee dry-run cleanup', [
+                'count' => $count,
+                'before_date' => $today,
+            ]);
+            $this->line("[DRY RUN] STALE_ACTIVE_FEES: {$count} fee rows would be marked INACTIVE");
+            return $count;
+        }
+
+        $ids = (clone $query)->pluck('sf.id');
+
+        StudentFee::whereIn('id', $ids)->update(['status' => 'INACTIVE']);
+
+        Log::info('Schedule based fees due stale active fees inactivated', [
+            'count' => $count,
+            'before_date' => $today,
+        ]);
+
+        return $count;
     }
 
     private function latestActiveFee(Student $student): ?StudentFee

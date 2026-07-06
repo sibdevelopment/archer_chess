@@ -444,6 +444,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Hardcoded credentials exist in parts of the app; do not print secrets and move to env/config in future security work.
 ```
 
+## Coach Dashboard Report Sync Notes
+
+```text
+- Super Admin Coach Report and Coach role Coach Report share ReportController/Admin.CoachReports logic.
+- Coach dashboard monthly calendar intentionally remains coach-facing: future date schedule details are blocked and STANDBY batches are not shown.
+- Coach dashboard monthly calendar should still mirror report display for ACTIVE 1-1 batches: 1-1 uses teal #0f766e, normal batch uses red, demo uses blue, leave uses yellow.
+- Coach dashboard monthly calendar should use batch start_date/end_date first, with student-batch dates only as fallback, so batch date edits reflect like the report calendar.
+- Coach dashboard schedule student counts use ACTIVE student_batches where start_date <= class date <= end_date, matching mid-joiner/mid-leaver report logic.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

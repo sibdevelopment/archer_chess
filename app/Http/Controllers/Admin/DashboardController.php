@@ -491,6 +491,7 @@ class DashboardController extends Controller
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
+                    'is_one_to_one'    => $batch->is_one_to_one,
                 ];
 
                 if ($batch->name == 'Abhijeet-WTH4:30AM') {
@@ -772,6 +773,7 @@ class DashboardController extends Controller
                     'coverup' => $isCoverup ? 'Yes' : 'No',
                     'active_students' => $studentCount,
                     'start_url' => $coverup->start_url ?? $batch->start_url, // Use coverup start_url if exists, else batch start_url
+                    'is_one_to_one' => $batch->is_one_to_one,
                 ];
             }
         }
@@ -1778,17 +1780,25 @@ class DashboardController extends Controller
         $calendarData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                $startOfWeek  = Carbon::now()->startOfWeek();
-                $endDate      = Carbon::now()->addYear();
-                $studentBatch = $batch->studentBatches->first();
-                if ($studentBatch) {
-                    $startOfWeek = Carbon::parse($studentBatch->start_date)->startOfWeek();
-                    $endDate     = Carbon::parse($studentBatch->end_date);
+                $batchStartDate = $batch->start_date
+                    ? Carbon::parse($batch->start_date)
+                    : Carbon::now();
+                $batchEndDate = $batch->end_date
+                    ? Carbon::parse($batch->end_date)
+                    : Carbon::now()->addYear();
+
+                if ((! $batch->start_date || ! $batch->end_date) && $batch->studentBatches->isNotEmpty()) {
+                    $studentBatch   = $batch->studentBatches->first();
+                    $batchStartDate = Carbon::parse($studentBatch->start_date);
+                    $batchEndDate   = Carbon::parse($studentBatch->end_date);
                 }
-                $date = $startOfWeek->dayOfWeek === Carbon::parse($schedule->weekday)->dayOfWeek
-                ? $startOfWeek
-                : $startOfWeek->next($schedule->weekday);
-                while ($date <= $endDate) {
+
+                $date = $batchStartDate->copy();
+                if ($date->dayOfWeek !== Carbon::parse($schedule->weekday)->dayOfWeek) {
+                    $date = $date->next($schedule->weekday);
+                }
+
+                while ($date <= $batchEndDate) {
                     $fromTimeCarbon    = Carbon::createFromFormat('H:i:s', $schedule->from_time);
                     $toTimeCarbon      = Carbon::createFromFormat('H:i:s', $schedule->to_time);
                     $formattedFromTime = $fromTimeCarbon->format('g') . ($fromTimeCarbon->format('i') === '00' ? ' ' . $fromTimeCarbon->format('A') : ':' . $fromTimeCarbon->format('i A'));
@@ -1796,7 +1806,7 @@ class DashboardController extends Controller
                     $calendarData[]    = [
                         'title'     => $formattedFromTime . ' - ' . $formattedToTime,
                         'start'     => $date->format('Y-m-d'),
-                        'color'     => 'red',
+                        'color'     => $batch->is_one_to_one ? '#0f766e' : 'red',
                         'textColor' => 'white',
                     ];
                     $date->addWeek();

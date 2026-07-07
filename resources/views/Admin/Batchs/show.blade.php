@@ -21,7 +21,7 @@
                                     <h6 class="mb-0">Batch:</h6>
                                 </div>
                                 <div class="col-6">
-                                    <h6 class="mb-0">{{ $batch->name }} (#{{ $batch->id }})</h6>
+                                    <h6 class="mb-0">{{ $batch->name }}</h6>
                                 </div>
                             </div>
                         </div>
@@ -49,28 +49,6 @@
                                     <h6 class="mb-0">{{ ucwords(strtolower($batch->status)) }}</h6>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="border-top">
-                <div class="row gx-0">
-                    <div class="col-md-4 border-end">
-                        <div class="p-2 py-3">
-                            <b class="text-muted me-2">Batch Start:</b>
-                            <span class="text-dark">{{ $batch->start_date ? toIndianDate($batch->start_date) : 'NA' }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 border-end">
-                        <div class="p-2 py-3">
-                            <b class="text-muted me-2">Batch End:</b>
-                            <span class="text-dark">{{ $batch->end_date ? toIndianDate($batch->end_date) : 'NA' }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="p-2 py-3">
-                            <b class="text-muted me-2">Current View:</b>
-                            <span class="text-dark">{{ ucwords(strtolower($batch->status)) }} batch record</span>
                         </div>
                     </div>
                 </div>
@@ -177,8 +155,6 @@
             @php
                 $uniqueStudentCounts = $studentBatches->unique('student_id')->count();
                 $activeStudentCounts = $studentBatches->where('status', 'ACTIVE')->unique('student_id')->count();
-                $activeStudentBatches = $studentBatches->where('status', 'ACTIVE');
-                $historyStudentBatches = $studentBatches->where('status', '!=', 'ACTIVE');
             @endphp
             <div class="col-md-12 mt-2">
                 <div class="row">
@@ -187,7 +163,7 @@
                         <div class="card shadow-sm rounded-lg p-3">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="ti ti-calendar fs-5 text-primary me-2"></i>
-                                <h5 class="fw-semibold mb-0">Current Active Student Assignments</h5>
+                                <h5 class="fw-semibold mb-0">Active Student Batches Record</h5>
                             </div>
                             <div class="d-flex flex-wrap gap-4">
                                 <!-- Start Date -->
@@ -254,120 +230,68 @@
                     </div>
                 </div>
 
-                @if ($activeStudentBatches->isNotEmpty())
-                    <table
-                        class="table table-bordered m-t-30 table-hover contact-list footable footable-5 footable-paging footable-paging-center breakpoint-lg mt-2">
-                        <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Student </th>
-                                <th scope="col">Status </th>
-                                <th scope="col">Start Date</th>
-                                <th scope="col">End Date</th>
-                                <th scope="col">End Time</th>
-                                <th scope="col">Action</th>
-                                {{-- <th scope="col">Created At</th> --}}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($activeStudentBatches as $studentBatch)
-                                <tr id="attendance-row-{{ $studentBatch->id }}">
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $studentBatch->student->first_name }} {{ $studentBatch->student->last_name }}
-                                        ({{ $studentBatch->student->student_id }})
-                                        @if ($studentBatch->student->status == 'STANDBY')
-                                            <span class="badge badge-warning" style="color:orange;">(Standby)</span>
-                                        @elseif ($studentBatch->student->status == 'INACTIVE')
-                                            <span class="badge badge-danger" style="color:red;">(Inactive)</span>
-                                        @elseif ($studentBatch->student->status == 'ACTIVE')
-                                            <span class="badge badge-success" style="color:green;">(Active)</span>
-                                        @elseif ($studentBatch->student->status == 'FEESDUE')
-                                            <span class="badge badge-info" style="color:blue;">(Fees Due)</span>
-                                        @endif
-                                    </td>
-                                    <td>
+                <table
+                    class="table table-bordered m-t-30 table-hover contact-list footable footable-5 footable-paging footable-paging-center breakpoint-lg mt-2">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Student </th>
+                            <th scope="col">Status </th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col">End Time</th>
+                            <th scope="col">Action</th>
+                            {{-- <th scope="col">Created At</th> --}}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($studentBatches as $index => $studentBatch)
+                            <tr id="attendance-row-{{ $studentBatch->id }}">
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ $studentBatch->student->first_name }} {{ $studentBatch->student->last_name }}
+                                    ({{ $studentBatch->student->student_id }})
+                                    @if ($studentBatch->student->status == 'STANDBY')
+                                        <span class="badge badge-warning" style="color:orange;">(Standby)</span>
+                                    @elseif ($studentBatch->student->status == 'INACTIVE')
+                                        <span class="badge badge-danger" style="color:red;">(Inactive)</span>
+                                    @elseif ($studentBatch->student->status == 'ACTIVE')
+                                        <span class="badge badge-success" style="color:green;">(Active)</span>
+                                    @elseif ($studentBatch->student->status == 'FEESDUE')
+                                        <span class="badge badge-info" style="color:blue;">(Fees Due)</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($studentBatch->status == 'ACTIVE')
                                         <span class="badge badge-success" style="color:green;">Active</span>
-                                        @if ($studentBatch->is_fees_due == 1)
-                                            <span class="badge badge-danger" style="color:red;">(Fees Due)</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ \Carbon\Carbon::parse($studentBatch->start_date)->format('d-M-Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($studentBatch->end_date)->format('d-M-Y') }}</td>
-                                    <td>
-                                        @if ($studentBatch->end_time)
-                                            {{ \Carbon\Carbon::parse($studentBatch->end_time)->format('h:i A') }}
-                                        @else
-                                            <span class="badge badge-danger" style="color:red;">NA</span>
-                                        @endif
-                                    </td>
-                                    {{-- <td>{{ \Carbon\Carbon::parse($studentBatch->created_at)->format('d-M-Y') }}</td> --}}
-                                    <td>
-                                        <div class="action-btn">
-                                            <a href="#" data-id="{{ $studentBatch['id'] }}" class="text-dark delete ms-2">
-                                                <i class="ti ti-trash fs-5"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @else
-                    <div class="alert alert-light border mt-2 mb-0">No active student assignments found for this batch.</div>
-                @endif
+                                    @endif
+                                    @if ($studentBatch->status == 'INACTIVE')
+                                        <span class="badge badge-danger" style="color:red;">Inactive</span>
+                                    @endif
 
-                @if ($historyStudentBatches->isNotEmpty())
-                    <div class="mt-4">
-                        <h6 class="fw-semibold mb-2" style="color: #6c757d;">History / Inactive Assignments</h6>
-                        <table
-                            class="table table-bordered m-t-30 table-hover contact-list footable footable-5 footable-paging footable-paging-center breakpoint-lg mt-2">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Student </th>
-                                    <th scope="col">Status </th>
-                                    <th scope="col">Start Date</th>
-                                    <th scope="col">End Date</th>
-                                    <th scope="col">End Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($historyStudentBatches as $studentBatch)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $studentBatch->student->first_name }} {{ $studentBatch->student->last_name }}
-                                            ({{ $studentBatch->student->student_id }})
-                                            @if ($studentBatch->student->status == 'STANDBY')
-                                                <span class="badge badge-warning" style="color:orange;">(Standby)</span>
-                                            @elseif ($studentBatch->student->status == 'INACTIVE')
-                                                <span class="badge badge-danger" style="color:red;">(Inactive)</span>
-                                            @elseif ($studentBatch->student->status == 'ACTIVE')
-                                                <span class="badge badge-success" style="color:green;">(Active)</span>
-                                            @elseif ($studentBatch->student->status == 'FEESDUE')
-                                                <span class="badge badge-info" style="color:blue;">(Fees Due)</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge badge-danger" style="color:red;">Inactive</span>
-                                            @if ($studentBatch->is_fees_due == 1)
-                                                <span class="badge badge-danger" style="color:red;">(Fees Due)</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ \Carbon\Carbon::parse($studentBatch->start_date)->format('d-M-Y') }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($studentBatch->end_date)->format('d-M-Y') }}</td>
-                                        <td>
-                                            @if ($studentBatch->end_time)
-                                                {{ \Carbon\Carbon::parse($studentBatch->end_time)->format('h:i A') }}
-                                            @else
-                                                <span class="badge badge-danger" style="color:red;">NA</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+                                    @if ($studentBatch->is_fees_due == 1)
+                                        <span class="badge badge-danger" style="color:red;">(Fees Due)</span>
+                                    @endif
+                                </td>
+                                <td>{{ \Carbon\Carbon::parse($studentBatch->start_date)->format('d-M-Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($studentBatch->end_date)->format('d-M-Y') }}</td>
+                                <td>
+                                    @if ($studentBatch->end_time)
+                                        {{ \Carbon\Carbon::parse($studentBatch->end_time)->format('h:i A') }}
+                                    @else
+                                        <span class="badge badge-danger" style="color:red;">NA</span>
+                                    @endif
+                                {{-- <td>{{ \Carbon\Carbon::parse($studentBatch->created_at)->format('d-M-Y') }}</td> --}}
+                                <td>
+                                    <div class="action-btn">
+                                        <a href="#" data-id="{{ $studentBatch['id'] }}" class="text-dark delete ms-2">
+                                            <i class="ti ti-trash fs-5"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         @endif
     </div>
@@ -389,13 +313,9 @@
                             <div class="card shadow-sm rounded-lg p-3">
                                 <div class="d-flex align-items-center mb-3">
                                     <i class="ti ti-calendar fs-5 text-primary me-2"></i>
-                                    <h5 class="fw-semibold mb-0" style="color: blue;">Old Batch Record: {{ $batch->name }} (#{{ $batch->id }})</h5>
+                                    <h5 class="fw-semibold mb-0" style="color: blue;">Old Student Batches Record</h5>
                                 </div>
                                 <div class="d-flex flex-wrap gap-4">
-                                    <div class="d-flex align-items-center">
-                                        <b class="text-muted me-2">Status:</b>
-                                        <span class="text-dark">{{ ucwords(strtolower($batch->status)) }}</span>
-                                    </div>
                                     <!-- Start Date -->
                                     <div class="d-flex align-items-center">
                                         <b class="text-muted me-2">Start Date:</b>

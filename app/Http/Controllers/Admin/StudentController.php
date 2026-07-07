@@ -627,15 +627,13 @@ class StudentController extends Controller
         $studentFees = $student->studentFees()->orderBy('end_date', 'desc')->get();
         $studentStatuses = $student->studentStatuses()->get();
 
-        $uniqueBatchIds = StudentBatch::where('student_id', $student->id)
-            ->select('batch_id')
-            ->groupBy('batch_id')   
-            ->orderByRaw('MAX(id) DESC')
-            ->pluck('batch_id'); 
-
-        $studentBatches = Batch::whereIn('id', $uniqueBatchIds)
-            ->orderBy('id', 'desc')
+        $studentBatchRows = StudentBatch::with(['batch', 'coach.user', 'level'])
+            ->where('student_id', $student->id)
+            ->orderBy('start_date')
+            ->orderBy('id')
             ->get();
+
+        $studentBatches = $this->buildStudentBatchTimeline($studentBatchRows);
 
         $studentAttendances = $student->studentAttendances()
             ->with(['coach', 'batch', 'level'])
@@ -682,6 +680,67 @@ class StudentController extends Controller
 
         // Return the view with the data
         return view('Admin.Students.show', $data);
+    }
+
+    private function buildStudentBatchTimeline($studentBatchRows)
+    {
+        $visibleRows = $studentBatchRows->filter(function ($studentBatch) use ($studentBatchRows) {
+            if ((int) $studentBatch->is_fees_due !== 1) {
+                return true;
+            }
+
+            return ! $studentBatchRows->contains(function ($candidate) use ($studentBatch) {
+                if ((int) $candidate->is_fees_due === 1) {
+                    return false;
+                }
+
+                $sameAssignment = $candidate->batch_id === $studentBatch->batch_id
+                    && $candidate->coach_id === $studentBatch->coach_id
+                    && $candidate->level_id === $studentBatch->level_id;
+
+                if (! $sameAssignment) {
+                    return false;
+                }
+
+                return Carbon::parse($candidate->start_date)->lte(Carbon::parse($studentBatch->end_date))
+                    && Carbon::parse($candidate->end_date)->gte(Carbon::parse($studentBatch->start_date));
+            });
+        });
+
+        return $visibleRows
+            ->groupBy(function ($studentBatch) {
+                return implode('|', [
+                    $studentBatch->batch_id,
+                    $studentBatch->coach_id,
+                    $studentBatch->level_id,
+                ]);
+            })
+            ->flatMap(function ($group) {
+                $segments = collect();
+
+                foreach ($group->sortBy('start_date')->values() as $studentBatch) {
+                    $lastSegment = $segments->last();
+                    $overlapsLastSegment = $lastSegment
+                        && Carbon::parse($studentBatch->start_date)->lte(Carbon::parse($lastSegment->end_date));
+
+                    if (! $overlapsLastSegment) {
+                        $segments->push($studentBatch);
+                        continue;
+                    }
+
+                    if (
+                        Carbon::parse($studentBatch->end_date)->gt(Carbon::parse($lastSegment->end_date))
+                        || $studentBatch->id > $lastSegment->id
+                    ) {
+                        $segments->pop();
+                        $segments->push($studentBatch);
+                    }
+                }
+
+                return $segments;
+            })
+            ->sortBy('start_date')
+            ->values();
     }
 
     public function changeStatus(Request $request)

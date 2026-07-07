@@ -454,6 +454,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Coach dashboard schedule student counts use ACTIVE student_batches where start_date <= class date <= end_date, matching mid-joiner/mid-leaver report logic.
 ```
 
+## Student Details Batch History Notes
+
+```text
+- Issue name: Student Batch History Should Show Clean Assignment Timeline.
+- Student master -> Student Details popup should show student_batches assignment dates, not batchs start/end dates.
+- Raw technical rows from fee-due/change-batch handling are collapsed for display: overlapping fees-due rows are hidden when a valid non-fees-due row exists for the same batch/coach/level.
+- Overlapping duplicate assignment rows for the same batch/coach/level are represented by the final/latest valid assignment window.
+- No database cleanup is performed; this is only a popup display timeline.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -193,6 +193,13 @@ class NewEnrollmentController extends Controller
             });
         }
 
+        $enrollmentStatus = $request->input('enrollment_status', 'pending');
+        if ($enrollmentStatus === 'pending') {
+            $query->whereDoesntHave('student.studentFees');
+        } elseif ($enrollmentStatus === 'confirmed') {
+            $query->whereHas('student.studentFees');
+        }
+
         if ($request->start_date) {
             [$startDate, $endDate] = explode(' - ', $request->start_date);
             $startDate = Carbon::createFromFormat('m/d/Y', $startDate)->startOfDay();

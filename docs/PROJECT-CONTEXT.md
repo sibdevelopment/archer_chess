@@ -489,6 +489,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - If the target is UPCOMING/raw, the target batch is activated through the normal assignment save flow.
 ```
 
+## New Enrollment Listing Notes
+
+```text
+- New Enrollment listing defaults to Pending Only, where pending means the linked student has no student_fees rows yet.
+- Confirmed means the linked student has at least one student_fees row, matching the Confirm Enrollment flow that creates student_fees.
+- Users can switch the listing filter between Pending Only, All Enrollments, and Confirmed Only for daily/weekly/monthly conversion checks.
+- Student master remains unchanged and continues to list actual students independently.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -454,6 +454,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Coach dashboard schedule student counts use ACTIVE student_batches where start_date <= class date <= end_date, matching mid-joiner/mid-leaver report logic.
 ```
 
+## Batch Details Popup Notes
+
+```text
+- Issue name: Batch History Display Mixing With Current Assignments.
+- Batch details popup can have same-name old/new batches, so the popup now displays the batch id plus batch start/end/status context.
+- Current batch student rows are split into Current Active Student Assignments and History / Inactive Assignments.
+- Old same-parent batches remain visible as Old Batch Record sections with batch id/status, preserving audit history without mixing it into the current active table.
+- This is a display clarity fix only; no student_batches/student_fees cleanup or mutation is performed.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -484,6 +484,9 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - No students are detached from the source batch at redirect time; source rows become INACTIVE only after the target assignment save succeeds.
 - Transfer save skips coach schedule conflict validation because coach/schedule matching is intentionally not part of this transfer flow.
 - Student history remains in student_batches: old source assignment is cut off and target assignment starts from the transfer cutoff date.
+- After successful transfer, the source batch is marked INACTIVE and its schedules are marked INACTIVE once no active students remain, matching manual deactivation behavior for coach availability/report cleanup.
+- If the target is already ACTIVE, the target batch master dates/sessions/level/schedules are preserved; only transferred student assignment rows are added/updated.
+- If the target is UPCOMING/raw, the target batch is activated through the normal assignment save flow.
 ```
 
 Known route/test caveats from prior analysis:

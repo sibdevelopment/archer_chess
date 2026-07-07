@@ -1319,8 +1319,12 @@ class BatchController extends Controller
             'transfer_cutoff_date' => $request->cutoff_date,
             'start_date' => $request->cutoff_date,
             'end_date' => $request->end_date,
-            'number_of_sessions' => $request->number_of_sessions,
-            'level_id' => $batch->level_id,
+            'number_of_sessions' => $targetBatch->status === 'ACTIVE'
+                ? ($targetBatch->number_of_sessions ?: $request->number_of_sessions)
+                : $request->number_of_sessions,
+            'level_id' => $targetBatch->status === 'ACTIVE'
+                ? $targetBatch->level_id
+                : $batch->level_id,
         ]);
     }
 
@@ -1359,6 +1363,10 @@ class BatchController extends Controller
             ->all();
         $transferSourceBatch = null;
         $transferCutoffDate = $request->input('transfer_cutoff_date', $startDate);
+        $isTransferToActiveTarget = false;
+        $targetAssignmentLevelId = $levelId;
+        $targetAssignmentCoachId = $coachId;
+        $targetAssignmentSessions = $request->number_of_sessions;
 
         if ($isTransfer) {
             $transferSourceBatch = Batch::find($request->input('transfer_from_batch_id'));
@@ -1417,6 +1425,13 @@ class BatchController extends Controller
                     'errors' => ['student_ids' => ['One or more selected students are no longer active in the source batch.']],
                 ], 422);
             }
+
+            $isTransferToActiveTarget = $originalBatchStatus === 'ACTIVE';
+            if ($isTransferToActiveTarget) {
+                $targetAssignmentLevelId = $batch->level_id ?: $levelId;
+                $targetAssignmentCoachId = $batch->coach_id ?: $coachId;
+                $targetAssignmentSessions = $batch->number_of_sessions ?: $request->number_of_sessions;
+            }
         }
 
         if ($batch->is_one_to_one && count(array_unique((array) $studentIds)) > 1) {
@@ -1452,23 +1467,30 @@ class BatchController extends Controller
 
         DB::beginTransaction();
         try {
-        $batch->status     = 'ACTIVE';
-        $batch->level_id   = $levelId;
-        $batch->coach_id   = $coachId;
-        $batch->start_date = $startDate;
-        $batch->end_date   = $endDate;
-        $batch->save();
+        if (! $isTransferToActiveTarget) {
+            $batch->status     = 'ACTIVE';
+            $batch->level_id   = $levelId;
+            $batch->coach_id   = $coachId;
+            $batch->start_date = $startDate;
+            $batch->end_date   = $endDate;
+            $batch->save();
 
-        BatchSchedule::where('batch_id', $batchId)->update([
-            'start_date' => $startDate,
-            'end_date'   => $endDate,
-        ]);
+            BatchSchedule::where('batch_id', $batchId)->update([
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+                'status'     => 'ACTIVE',
+            ]);
+        }
 
         $requestStudents = Student::whereIn('id', $studentIds)->get();
         $level           = Level::find($levelId);
         $coach           = Coach::find($coachId);
 
         foreach ($requestStudents as $key => $student) {
+            if ($isTransferToActiveTarget && ! in_array((int) $student->id, $transferStudentIds)) {
+                continue;
+            }
+
             $studentStartDate = $this->joiningStartDateForStudent($student, $startDate);
             $studentEndDate = $this->joiningEndDateForStudent($student, $endDate);
             $oldStudentBatch = StudentBatch::where('student_id', $student->id)->where('batch_id', $batchId)->orderBy('id', 'desc')->first();
@@ -1477,44 +1499,44 @@ class BatchController extends Controller
                     $oldStudentBatch                     = new StudentBatch();
                     $oldStudentBatch->student_id         = $student->id;
                     $oldStudentBatch->batch_id           = $batchId;
-                    $oldStudentBatch->level_id           = $levelId;
-                    $oldStudentBatch->coach_id           = $coachId;
+                    $oldStudentBatch->level_id           = $targetAssignmentLevelId;
+                    $oldStudentBatch->coach_id           = $targetAssignmentCoachId;
                     $oldStudentBatch->start_date         = $studentStartDate;
                     $oldStudentBatch->end_date           = $studentEndDate;
                     $oldStudentBatch->status             = 'ACTIVE';
-                    $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
+                    $oldStudentBatch->number_of_sessions = $targetAssignmentSessions;
                     $oldStudentBatch->save();
                 } else {
                     if ($oldStudentBatch->status == 'ACTIVE') {
                         $oldStudentBatch->status             = 'ACTIVE';
-                        $oldStudentBatch->level_id           = $levelId;
-                        $oldStudentBatch->coach_id           = $coachId;
+                        $oldStudentBatch->level_id           = $targetAssignmentLevelId;
+                        $oldStudentBatch->coach_id           = $targetAssignmentCoachId;
                         $oldStudentBatch->start_date         = $studentStartDate;
                         $oldStudentBatch->end_date           = $studentEndDate;
-                        $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
+                        $oldStudentBatch->number_of_sessions = $targetAssignmentSessions;
                         $oldStudentBatch->save();
                     } else {
                         if ($oldStudentBatch->status == 'INACTIVE' && $oldStudentBatch->is_fees_due == '0') {
                             $studentBatch                     = new StudentBatch();
                             $studentBatch->student_id         = $student->id;
                             $studentBatch->batch_id           = $batchId;
-                            $studentBatch->coach_id           = $coachId;
-                            $studentBatch->level_id           = $levelId;
+                            $studentBatch->coach_id           = $targetAssignmentCoachId;
+                            $studentBatch->level_id           = $targetAssignmentLevelId;
                             $studentBatch->status             = 'ACTIVE';
                             $studentBatch->start_date         = $studentStartDate;
                             $studentBatch->end_date           = $studentEndDate;
-                            $studentBatch->number_of_sessions = $request->number_of_sessions;
+                            $studentBatch->number_of_sessions = $targetAssignmentSessions;
                             $studentBatch->save();
                         } else {
                             $studentBatch                     = new StudentBatch();
                             $studentBatch->student_id         = $student->id;
                             $studentBatch->batch_id           = $batchId;
-                            $studentBatch->coach_id           = $coachId;
-                            $studentBatch->level_id           = $levelId;
+                            $studentBatch->coach_id           = $targetAssignmentCoachId;
+                            $studentBatch->level_id           = $targetAssignmentLevelId;
                             $studentBatch->status             = 'ACTIVE';
                             $studentBatch->start_date         = $studentStartDate;
                             $studentBatch->end_date           = $studentEndDate;
-                            $studentBatch->number_of_sessions = $request->number_of_sessions;
+                            $studentBatch->number_of_sessions = $targetAssignmentSessions;
                             $studentBatch->save();
                         }
                     }
@@ -1524,30 +1546,38 @@ class BatchController extends Controller
                     $studentBatch                     = new StudentBatch();
                     $studentBatch->student_id         = $student->id;
                     $studentBatch->batch_id           = $batchId;
-                    $studentBatch->coach_id           = $coachId;
-                    $studentBatch->level_id           = $levelId;
+                    $studentBatch->coach_id           = $targetAssignmentCoachId;
+                    $studentBatch->level_id           = $targetAssignmentLevelId;
                     $studentBatch->status             = 'ACTIVE';
                     $studentBatch->start_date         = $studentStartDate;
                     $studentBatch->end_date           = $studentEndDate;
-                    $studentBatch->number_of_sessions = $request->number_of_sessions;
+                    $studentBatch->number_of_sessions = $targetAssignmentSessions;
                     $studentBatch->save();
                 } else {
                     $studentBatch                     = new StudentBatch();
                     $studentBatch->student_id         = $student->id;
                     $studentBatch->batch_id           = $batchId;
-                    $studentBatch->coach_id           = $coachId;
-                    $studentBatch->level_id           = $levelId;
+                    $studentBatch->coach_id           = $targetAssignmentCoachId;
+                    $studentBatch->level_id           = $targetAssignmentLevelId;
                     $studentBatch->status             = 'ACTIVE';
                     $studentBatch->start_date         = $studentStartDate;
                     $studentBatch->end_date           = $studentEndDate;
-                    $studentBatch->number_of_sessions = $request->number_of_sessions;
+                    $studentBatch->number_of_sessions = $targetAssignmentSessions;
                     $studentBatch->save();
                 }
             }
         }
         // }
 
-        $removeStudentIds = explode(',', $request->removed_student_ids);
+        $removeStudentIds = collect(explode(',', (string) $request->removed_student_ids))
+            ->filter(fn ($studentId) => is_numeric($studentId))
+            ->map(fn ($studentId) => (int) $studentId)
+            ->unique()
+            ->values()
+            ->all();
+        if ($isTransferToActiveTarget) {
+            $removeStudentIds = array_values(array_intersect($removeStudentIds, $transferStudentIds));
+        }
         if (count($removeStudentIds) > 0) {
             $removeStudentBatches = StudentBatch::where('batch_id', $batchId)->whereIn('student_id', $removeStudentIds)->where('status', 'ACTIVE')->get();
             foreach ($removeStudentBatches as $removeStudentBatch) {
@@ -1569,6 +1599,19 @@ class BatchController extends Controller
                 $sourceStudentBatch->end_date = Carbon::parse($transferCutoffDate)->toDateString();
                 $sourceStudentBatch->end_time = Carbon::now()->format('H:i:s');
                 $sourceStudentBatch->save();
+            }
+
+            $sourceStillHasActiveStudents = StudentBatch::where('batch_id', $transferSourceBatch->id)
+                ->where('status', 'ACTIVE')
+                ->exists();
+
+            if (! $sourceStillHasActiveStudents) {
+                $transferSourceBatch->status = 'INACTIVE';
+                $transferSourceBatch->save();
+
+                BatchSchedule::where('batch_id', $transferSourceBatch->id)->update([
+                    'status' => 'INACTIVE',
+                ]);
             }
         }
 
@@ -1603,16 +1646,25 @@ class BatchController extends Controller
         }
 
         $confirmReassign = $request->confirm_reassign === 'CANCEL' ? null : $request->confirm_reassign;
-        Batch::where('id', $request->batch_id)->update([
-            'start_date'                => $request->start_date,
-            'end_date'                  => $request->end_date,
-            'number_of_sessions'        => $request->number_of_sessions,
-            'level_id'                  => $request->level_id,
-            'status'                    => 'ACTIVE',
-            'confirm_reassign'          => $confirmReassign,
-            'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
-            'created_by'                => Auth::id(),
-        ]);
+        if ($isTransferToActiveTarget) {
+            Batch::where('id', $request->batch_id)->update([
+                'status'                    => 'ACTIVE',
+                'confirm_reassign'          => $confirmReassign,
+                'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
+                'created_by'                => Auth::id(),
+            ]);
+        } else {
+            Batch::where('id', $request->batch_id)->update([
+                'start_date'                => $request->start_date,
+                'end_date'                  => $request->end_date,
+                'number_of_sessions'        => $request->number_of_sessions,
+                'level_id'                  => $request->level_id,
+                'status'                    => 'ACTIVE',
+                'confirm_reassign'          => $confirmReassign,
+                'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
+                'created_by'                => Auth::id(),
+            ]);
+        }
 
         DB::commit();
         } catch (\Throwable $exception) {

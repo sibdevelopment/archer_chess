@@ -464,6 +464,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - No database cleanup is performed; this is only a popup display timeline.
 ```
 
+## Coach Deactivation Guard Notes
+
+```text
+- Coach master status switch must not deactivate a coach if the coach has assigned batches with status ACTIVE or STANDBY.
+- Backend validation lives in CoachController@changeStatus and returns blocking batch details instead of changing status.
+- Coach master UI should revert the switch and show a popup listing the active/standby batches that must be deactivated or reassigned first.
+- Activating an inactive coach remains unchanged.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

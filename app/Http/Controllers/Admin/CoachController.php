@@ -318,6 +318,23 @@ class CoachController extends Controller
     public function changeStatus(Request $request)
     {
         $coach = Coach::findByKey($request->route_key);
+
+        if ($request->status === 'INACTIVE') {
+            $blockingBatches = Batch::where('coach_id', $coach->id)
+                ->whereIn('status', ['ACTIVE', 'STANDBY'])
+                ->orderBy('status')
+                ->orderBy('name')
+                ->get(['id', 'name', 'kids_zone_name', 'status', 'start_date', 'end_date']);
+
+            if ($blockingBatches->isNotEmpty()) {
+                return response()->json([
+                    'status' => 'blocked',
+                    'message' => 'This coach has active or standby batches assigned. Please deactivate or reassign these batches first.',
+                    'batches' => $blockingBatches,
+                ], 422);
+            }
+        }
+
         $coach->status = $request->status;
         $coach->save();
 

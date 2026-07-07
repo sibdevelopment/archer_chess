@@ -141,8 +141,9 @@
                             <div class="card-body border-top">
                                 @php
                                     $shouldBlankAssignmentFields = $blankAssignmentFields ?? false;
-                                    $selectedLevelId = $shouldBlankAssignmentFields ? null : $batch->level_id;
-                                    $numberOfSessionsValue = $shouldBlankAssignmentFields ? '' : ($batch->number_of_sessions ?? 8);
+                                    $isTransferAssignment = !empty($transferFromBatchId ?? null) && !empty($transferStudentIds ?? null);
+                                    $selectedLevelId = $shouldBlankAssignmentFields ? null : (($prefillLevelId ?? null) ?: $batch->level_id);
+                                    $numberOfSessionsValue = $shouldBlankAssignmentFields ? '' : (($prefillNumberOfSessions ?? null) ?: ($batch->number_of_sessions ?? 8));
                                     $startDateValue = '';
                                     if (! $shouldBlankAssignmentFields) {
                                         $startDateValue = $prefillStartDate
@@ -156,6 +157,16 @@
                                             : (isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '');
                                     }
                                 @endphp
+                                @if ($isTransferAssignment)
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            Review the assignment details and click Save to complete this batch transfer.
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="transfer_from_batch_id" value="{{ $transferFromBatchId }}">
+                                    <input type="hidden" name="transfer_student_ids" value="{{ $transferStudentIds }}">
+                                    <input type="hidden" name="transfer_cutoff_date" value="{{ $transferCutoffDate ?? $prefillStartDate }}">
+                                @endif
                                 <div class="row">
                                     {{-- <h6 class="text-warning fs-4">Personal Info :</h6> --}}
                                     <!-- Roll No. (Portal ID) -->

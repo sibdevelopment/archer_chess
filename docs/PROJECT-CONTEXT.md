@@ -473,6 +473,19 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Activating an inactive coach remains unchanged.
 ```
 
+## Batch Student Transfer Notes
+
+```text
+- Issue/use case: when a coach leaves, admins can transfer all active students from a source batch to another country-matched batch.
+- Transfer target rules are country/region based only; target timing and schedule do not need to match the source batch.
+- Active target batches are allowed only when they are normal batches; active 1-1 batches are never listed as transfer targets.
+- Upcoming/raw target batches can be normal batches, or 1-1 batches only when exactly one student is being transferred.
+- Transfer opens the existing batch assignment page with students, cutoff/start date, end date, level, and remaining sessions prefilled.
+- No students are detached from the source batch at redirect time; source rows become INACTIVE only after the target assignment save succeeds.
+- Transfer save skips coach schedule conflict validation because coach/schedule matching is intentionally not part of this transfer flow.
+- Student history remains in student_batches: old source assignment is cut off and target assignment starts from the transfer cutoff date.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

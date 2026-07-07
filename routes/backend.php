@@ -193,6 +193,8 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         // Assign Batch Students ------------------------------
         Route::get('batchs/{batch}/assign/student', [BatchController::class, 'assignBatchToStudent'])->name('batchs.assign.student');
         Route::post('batchs/{batch}/assign/student/save', [BatchController::class, 'saveAssignedStudent'])->name('batchs.assigned.student.save');
+        Route::get('batchs/{batch}/transfer/student', [BatchController::class, 'transferStudentsModal'])->name('batchs.transfer.student');
+        Route::post('batchs/{batch}/transfer/student/redirect', [BatchController::class, 'redirectTransferStudents'])->name('batchs.transfer.student.redirect');
         Route::get('batchs/{batch}/reassign/student', [BatchController::class, 'reassignBatchToStudentModal'])->name('batchs.reassign.student');
         Route::post('batchs/{batch}/reassign/student/save', [BatchController::class, 'saveReassignedStudent'])->name('batchs.reassigned.student.save');
         Route::post('batchs/check/schedule', [BatchController::class, 'checkSchedule'])->name('batchs.check.schedule');

@@ -287,6 +287,14 @@
         </div>
     </div>
 
+    <div class="modal fade text-left" id="transferStudentsModal" tabindex="-1" role="dialog"
+        aria-labelledby="transferStudentsModalLabel" aria-hidden="true" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="transfer-students-modal-content">
+            </div>
+        </div>
+    </div>
+
     <script type="text/javascript">
         $(document).on('click', '.copy-link', function() {
             const url = $(this).data('url');
@@ -560,6 +568,31 @@
                             closeButton: true,
                         });
                     }
+                }
+            });
+        });
+
+        $(document).on('click', '.batch-transfer-btn', function(e) {
+            e.preventDefault();
+            let batchId = $(this).data('batch-id');
+
+            $.ajax({
+                url: '/admin/batchs/' + batchId + '/transfer/student',
+                type: 'GET',
+                success: function(response) {
+                    $('#transfer-students-modal-content').html(response);
+                    $('#transferStudentsModal').modal('show');
+                    $('#transferStudentsModal .select2').select2({
+                        dropdownParent: $('#transferStudentsModal')
+                    });
+                },
+                error: function() {
+                    toastr.error('Unable to load transfer details. Please try again.', '', {
+                        showMethod: "slideDown",
+                        hideMethod: "slideUp",
+                        timeOut: 1500,
+                        closeButton: true,
+                    });
                 }
             });
         });

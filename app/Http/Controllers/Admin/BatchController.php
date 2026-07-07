@@ -92,6 +92,15 @@ class BatchController extends Controller
         ));
     }
 
+    private function mergeBatchCountries(Batch $sourceBatch, Batch $targetBatch): array
+    {
+        return collect($this->normalizeCountries($targetBatch->country))
+            ->merge($this->normalizeCountries($sourceBatch->country))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function transferRemainingSessions(Batch $batch, $studentBatches = null): int
     {
         $studentBatches = $studentBatches ?: $batch->studentBatches()->where('status', 'ACTIVE')->get();
@@ -1287,7 +1296,7 @@ class BatchController extends Controller
         $transferCount = count($transferStudentIds);
 
         if (! $this->batchesShareCountry($batch, $targetBatch)) {
-            return back()->withErrors(['target_batch_id' => 'Target batch country must match the source batch country.']);
+            return back()->withErrors(['target_batch_id' => 'Target batch must share at least one country with the source batch.']);
         }
 
         if (! in_array($targetBatch->status, ['ACTIVE', 'UPCOMING'])) {
@@ -1386,8 +1395,8 @@ class BatchController extends Controller
 
             if (! $this->batchesShareCountry($transferSourceBatch, $batch)) {
                 return response()->json([
-                    'message' => 'Target batch country must match the source batch country.',
-                    'errors' => ['batch_id' => ['Target batch country must match the source batch country.']],
+                    'message' => 'Target batch must share at least one country with the source batch.',
+                    'errors' => ['batch_id' => ['Target batch must share at least one country with the source batch.']],
                 ], 422);
             }
 
@@ -1467,6 +1476,10 @@ class BatchController extends Controller
 
         DB::beginTransaction();
         try {
+        if ($isTransfer) {
+            $batch->country = $this->mergeBatchCountries($transferSourceBatch, $batch);
+        }
+
         if (! $isTransferToActiveTarget) {
             $batch->status     = 'ACTIVE';
             $batch->level_id   = $levelId;
@@ -1648,6 +1661,7 @@ class BatchController extends Controller
         $confirmReassign = $request->confirm_reassign === 'CANCEL' ? null : $request->confirm_reassign;
         if ($isTransferToActiveTarget) {
             Batch::where('id', $request->batch_id)->update([
+                'country'                   => $batch->country,
                 'status'                    => 'ACTIVE',
                 'confirm_reassign'          => $confirmReassign,
                 'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
@@ -1659,6 +1673,7 @@ class BatchController extends Controller
                 'end_date'                  => $request->end_date,
                 'number_of_sessions'        => $request->number_of_sessions,
                 'level_id'                  => $request->level_id,
+                'country'                   => $batch->country,
                 'status'                    => 'ACTIVE',
                 'confirm_reassign'          => $confirmReassign,
                 'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),

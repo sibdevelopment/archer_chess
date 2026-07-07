@@ -477,7 +477,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 
 ```text
 - Issue/use case: when a coach leaves, admins can transfer all active students from a source batch to another country-matched batch.
-- Transfer target rules are country/region based only; target timing and schedule do not need to match the source batch.
+- Transfer target rules are source/target country overlap based: at least one country must match; after successful transfer the target batch countries become the merged unique source + target country list.
 - Active target batches are allowed only when they are normal batches; active 1-1 batches are never listed as transfer targets.
 - Upcoming/raw target batches can be normal batches, or 1-1 batches only when exactly one student is being transferred.
 - Transfer opens the existing batch assignment page with students, cutoff/start date, end date, level, and remaining sessions prefilled.

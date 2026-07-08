@@ -1195,6 +1195,16 @@ class BatchController extends Controller
                 $preselectedStudentIds[] = $newEnrollment->student_id;
             }
         }
+        if ($request->filled('change_class_id')) {
+            $changeClass = \App\Models\Changeclass::find($request->input('change_class_id'));
+            if ($changeClass) {
+                if (! $prefillStartDate && ! $prefillEndDate) {
+                    $prefillStartDate = $changeClass->start_date;
+                    $prefillEndDate = $changeClass->end_date;
+                }
+                $preselectedStudentIds[] = $changeClass->student_id;
+            }
+        }
 
         $preselectedStudentIds = array_values(array_unique(array_filter($preselectedStudentIds)));
 

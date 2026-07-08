@@ -532,6 +532,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - The old all-history display remains available in detailed student history screens, not in the dashboard summary column.
 ```
 
+## Change Batch Confirmation Notes
+
+```text
+- Change Batch Confirm Enrollment now closes any existing ACTIVE student_fees rows for that student before creating the new ACTIVE fee row.
+- The selected target batch is now actually applied during confirmation: ACTIVE/STANDBY batches get a direct student_batches assignment, while UPCOMING/raw batches redirect to the batch assignment page with the student preselected.
+- Direct assignment follows the New Enrollment rules for country match, required coach/level/date data, 1-1 capacity, and fee/batch date clipping.
+- Direct assignment also inactivates any other active student_batch rows for that student so the student does not remain active in the old batch after confirmation.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

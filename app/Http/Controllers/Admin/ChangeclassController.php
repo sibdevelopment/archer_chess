@@ -4,17 +4,106 @@ namespace App\Http\Controllers\Admin;
 
 use auth;
 use DataTables;
+use Carbon\Carbon;
 use App\Models\Batch;
 use App\Models\Student;
 use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\Changeclass;
+use App\Models\StudentBatch;
 use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class ChangeclassController extends Controller
 {
+    private function batchContainsStudentCountry(Batch $batch, Student $student): bool
+    {
+        $countries = is_array($batch->country) ? $batch->country : json_decode($batch->country, true);
+        if (! is_array($countries)) {
+            $countries = array_filter(array_map('trim', explode(',', (string) $batch->country)));
+        }
+
+        return in_array($student->country, $countries);
+    }
+
+    private function directAssignChangeClassStudent(Student $student, Batch $batch, StudentFee $studentFee, Changeclass $changeClass): array
+    {
+        if ($batch->status === 'UPCOMING') {
+            return [
+                'ok' => false,
+                'redirect' => route('admin.batchs.assign.student', [
+                    'batch' => $batch->id,
+                    'student_id' => $student->id,
+                    'change_class_id' => $changeClass->id,
+                ]),
+                'message' => 'Raw batch needs assignment details before activation.',
+            ];
+        }
+
+        if (! in_array($batch->status, ['ACTIVE', 'STANDBY'])) {
+            return ['ok' => false, 'message' => 'Selected batch is not active/standby for direct assignment.'];
+        }
+
+        if (! $batch->coach_id || ! $batch->level_id || ! $batch->start_date || ! $batch->end_date) {
+            return ['ok' => false, 'message' => 'Selected batch is missing coach, level, start date, or end date.'];
+        }
+
+        if (! $this->batchContainsStudentCountry($batch, $student)) {
+            return ['ok' => false, 'message' => 'Student country does not match selected batch country.'];
+        }
+
+        $activeStudentsInBatch = StudentBatch::where('batch_id', $batch->id)
+            ->where('status', 'ACTIVE')
+            ->where('student_id', '!=', $student->id)
+            ->distinct('student_id')
+            ->count('student_id');
+
+        if ($batch->is_one_to_one && $activeStudentsInBatch >= 1) {
+            return ['ok' => false, 'message' => 'Only one student can be assigned to a 1-1 batch.'];
+        }
+
+        $feeStartDate = Carbon::parse($studentFee->start_date)->toDateString();
+        $feeEndDate = Carbon::parse($studentFee->end_date)->toDateString();
+        $batchStartDate = Carbon::parse($batch->start_date)->toDateString();
+        $batchEndDate = Carbon::parse($batch->end_date)->toDateString();
+
+        $studentBatchStartDate = Carbon::parse($feeStartDate)->gt(Carbon::parse($batchStartDate))
+            ? $feeStartDate
+            : $batchStartDate;
+        $studentBatchEndDate = Carbon::parse($feeEndDate)->lt(Carbon::parse($batchEndDate))
+            ? $feeEndDate
+            : $batchEndDate;
+
+        StudentBatch::where('student_id', $student->id)
+            ->where('batch_id', '!=', $batch->id)
+            ->where('status', 'ACTIVE')
+            ->update([
+                'status' => 'INACTIVE',
+                'end_date' => Carbon::parse($studentBatchStartDate)->subDay()->toDateString(),
+                'end_time' => Carbon::now()->format('H:i:s'),
+            ]);
+
+        StudentBatch::updateOrCreate(
+            [
+                'student_id' => $student->id,
+                'batch_id' => $batch->id,
+            ],
+            [
+                'coach_id' => $batch->coach_id,
+                'level_id' => $batch->level_id,
+                'status' => 'ACTIVE',
+                'start_date' => $studentBatchStartDate,
+                'end_date' => $studentBatchEndDate,
+                'number_of_sessions' => $batch->number_of_sessions,
+                'is_fees_due' => 0,
+            ]
+        );
+
+        return ['ok' => true, 'message' => 'Student assigned to selected batch successfully.'];
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -321,42 +410,68 @@ class ChangeclassController extends Controller
                 'currency.required'       => 'Please enter the currency.',
             ]);
 
-            // $change_class = Chna::with('student')->findOrFail($id);
+            DB::beginTransaction();
+            try {
+                $student = Student::findOrFail($request->student_id);
+                $batch = Batch::findOrFail($request->batch_id);
 
-            $change_class->employee_ids    = array_map('intval', $request->employee_ids);
-            $change_class->student_id    = $request->student_id;
-            // $change_class->employee_id   =  (int) $request->employee_id;
-            $change_class->batch_id      = $request->batch_id;
-            $change_class->remark        = $request->remark;
-            $change_class->start_date    = $request->start_date;
-            $change_class->end_date      = $request->end_date;
-            $change_class->receive_date = $request->receive_date;
-            $change_class->fees          = $request->fees;
-            $change_class->received_fees = $request->received_fees;
-            $change_class->currency      = $request->currency;
-            $change_class->is_submitted = 1;
-            $change_class->save();
+                $change_class->employee_ids  = array_map('intval', $request->employee_ids);
+                $change_class->student_id    = $request->student_id;
+                // $change_class->employee_id   =  (int) $request->employee_id;
+                $change_class->batch_id      = $request->batch_id;
+                $change_class->remark        = $request->remark;
+                $change_class->start_date    = $request->start_date;
+                $change_class->end_date      = $request->end_date;
+                $change_class->receive_date  = $request->receive_date;
+                $change_class->fees          = $request->fees;
+                $change_class->received_fees = $request->received_fees;
+                $change_class->currency      = $request->currency;
+                $change_class->is_submitted  = 1;
+                $change_class->save();
 
-            $student_fee                    = new StudentFee;
-            $student_fee->student_id        = $request->student_id;
-            $student_fee->start_date        = $request->start_date;
-            $student_fee->end_date          = $request->end_date;
-            $student_fee->receive_date      = $request->receive_date;
-            $student_fee->monthly_fees      = $request->fees;
-            $student_fee->total_amount_paid = $request->received_fees;
-            $student_fee->currency          = $request->currency;
-            $student_fee->status            = 'ACTIVE';
-            $student_fee->save();
+                StudentFee::where('student_id', $student->id)
+                    ->where('status', 'ACTIVE')
+                    ->update(['status' => 'INACTIVE']);
 
-            $student = Student::find($request->student_id);
-            $student->status = 'ACTIVE';
-            $student->save();
+                $student_fee                    = new StudentFee;
+                $student_fee->student_id        = $request->student_id;
+                $student_fee->start_date        = $request->start_date;
+                $student_fee->end_date          = $request->end_date;
+                $student_fee->receive_date      = $request->receive_date;
+                $student_fee->monthly_fees      = $request->fees;
+                $student_fee->total_amount_paid = $request->received_fees;
+                $student_fee->currency          = $request->currency;
+                $student_fee->status            = 'ACTIVE';
+                $student_fee->save();
 
-            return response()->json([
-                'status'      => 'success',
-                'message'     => 'New Enrollment Created Successfully',
-                'student_fee' => $student_fee,
-            ], 201);
+                $student->status = 'ACTIVE';
+                $student->save();
+
+                $assignmentResult = $this->directAssignChangeClassStudent($student, $batch, $student_fee, $change_class);
+
+                if (! $assignmentResult['ok'] && empty($assignmentResult['redirect'])) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => $assignmentResult['message'],
+                        'errors' => [
+                            'batch_id' => [$assignmentResult['message']],
+                        ],
+                    ], 422);
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'status'       => 'success',
+                    'message'      => $assignmentResult['message'] ?? 'Change Batch Confirmed Successfully',
+                    'student_fee'  => $student_fee,
+                    'redirect_url' => $assignmentResult['redirect'] ?? null,
+                ], 201);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                throw $e;
+            }
         }
     }
 

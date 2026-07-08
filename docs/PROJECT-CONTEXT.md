@@ -542,6 +542,26 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Direct assignment also inactivates any other active student_batch rows for that student so the student does not remain active in the old batch after confirmation.
 ```
 
+## Razorpay Payment Notes
+
+```text
+- Client confirmed Razorpay payments should credit a 30-day inclusive fee window: payment date as start_date plus the next 29 days as end_date.
+- Razorpay success now saves currency into both orders.currency and student_fees.currency.
+- Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.
+- Razorpay fee payment method rule: INDIA students can use normal Razorpay methods; non-India students should see card-only checkout and backend rejects non-card methods with order status REJECTED.
+- SuperAdmin dashboard Student Payments tab should show today's student payment orders across statuses/gateways.
+- SuperAdmin Payment Report tab should read from orders and support date/status filtering for operational review, including Razorpay and HDFC rows already stored in orders.
+- Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
+```
+
+## Student Listing Batch Display Notes
+
+```text
+- Student::latestBatch now resolves active student_batch rows first, then falls back to latest id.
+- Student Master batch name, level badge, and batch schedule should therefore show the transferred/current batch after batch transfer, not the old inactive batch.
+- This is display-side selection only; transfer save logic still controls the actual student_batches status history.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

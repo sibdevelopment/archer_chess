@@ -16,6 +16,7 @@ class Order extends BaseModel
         'razorpay_payment_id',
         'amount',
         'currency',
+        'status',
         'razorpay_data',
     ];
 
@@ -30,4 +31,3 @@ class Order extends BaseModel
         return $this->belongsTo(StudentFee::class);
     }
 }
-

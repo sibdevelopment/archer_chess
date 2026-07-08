@@ -156,7 +156,10 @@ class Student extends BaseModel
 
     public function latestBatch()
     {
-        return $this->hasOne(StudentBatch::class, 'student_id')->latest('created_at')->with('batch');
+        return $this->hasOne(StudentBatch::class, 'student_id')
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->with('batch');
     }
 
     // public function latestBatch()

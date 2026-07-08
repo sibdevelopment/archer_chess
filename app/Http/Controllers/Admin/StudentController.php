@@ -292,7 +292,7 @@ class StudentController extends Controller
                 return '';
             })
             ->editColumn('batch_schedule', function ($student) use ($isCoach) {
-                $student_latest_batch = StudentBatch::where('student_id', $student->id)->latest('created_at')->first();
+                $student_latest_batch = $student->latestBatch;
                 if ($student_latest_batch) {
                     $batch_schedule = BatchSchedule::where('batch_id', $student_latest_batch->batch_id)->get();
                     $scheduless     = '';

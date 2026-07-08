@@ -403,6 +403,36 @@ Route::post('/razorpay/verify', function (Request $request) {
     try {
         // 1. Fetch payment
         $payment = $api->payment->fetch($request->payment_id);
+        $student = Student::findOrFail($request->student_id);
+        $studentCountry = strtoupper(trim((string) $student->country));
+        $paymentMethod = strtolower((string) ($payment->method ?? ''));
+
+        if ($studentCountry !== 'INDIA' && $paymentMethod !== 'card') {
+            $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+            $order->student_id    = $student->id;
+            $order->amount        = $request->amount;
+            $order->currency      = $payment->currency ?? $request->currency;
+            $order->razorpay_data = json_encode([
+                'payment' => $payment->toArray(),
+                'rejection_reason' => 'Only card payments are allowed for non-India students.',
+                'student_country' => $student->country,
+                'payment_method' => $paymentMethod,
+            ]);
+            $order->status        = 'REJECTED';
+            $order->save();
+
+            Log::warning('Razorpay non-card payment rejected for non-India student', [
+                'payment_id' => $payment->id,
+                'student_id' => $student->id,
+                'student_country' => $student->country,
+                'method' => $paymentMethod,
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Only card payments are allowed for non-India students.',
+            ]);
+        }
 
         // 2. If it's only authorized, capture it
         if ($payment->status === 'authorized') {
@@ -419,6 +449,16 @@ Route::post('/razorpay/verify', function (Request $request) {
                 'status'     => $payment->status,
             ]);
 
+            if ($request->filled('student_id')) {
+                $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+                $order->student_id    = $request->student_id;
+                $order->amount        = $request->amount;
+                $order->currency      = $payment->currency ?? $request->currency;
+                $order->razorpay_data = json_encode($payment->toArray());
+                $order->status        = strtoupper($payment->status ?? 'FAILED');
+                $order->save();
+            }
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Payment is not captured yet. Please try again later.',
@@ -426,8 +466,6 @@ Route::post('/razorpay/verify', function (Request $request) {
         }
 
         // ---- From here, payment is definitely captured ----
-
-        $student = Student::findOrFail($request->student_id);
 
         $order = new Order();
         $order->student_id          = $student->id;
@@ -443,9 +481,10 @@ Route::post('/razorpay/verify', function (Request $request) {
         $studentfee = new StudentFee();
         $studentfee->student_id        = $student->id;
         $studentfee->start_date        = date('Y-m-d');
-        $studentfee->end_date          = date('Y-m-d', strtotime('+15 days'));
+        $studentfee->end_date          = date('Y-m-d', strtotime('+29 days'));
         $studentfee->monthly_fees      = $request->amount;
         $studentfee->total_amount_paid = $request->amount;
+        $studentfee->currency          = $payment->currency ?? $request->currency;
         $studentfee->receive_date      = date('Y-m-d');
         $studentfee->status            = 'ACTIVE';
         $studentfee->save();
@@ -552,6 +591,43 @@ Route::post('/razorpay/verify', function (Request $request) {
         return response()->json([
             'status'  => 'error',
             'message' => 'Something went wrong while verifying payment.',
+        ], 500);
+    }
+});
+
+Route::post('/razorpay/failure', function (Request $request) {
+    try {
+        $error = (array) $request->input('error', []);
+        $metadata = (array) ($error['metadata'] ?? []);
+        $paymentId = $metadata['payment_id'] ?? $request->input('payment_id');
+
+        $order = $paymentId
+            ? Order::firstOrNew(['razorpay_payment_id' => $paymentId])
+            : new Order();
+
+        $order->student_id = $request->student_id;
+        $order->amount = $request->amount;
+        $order->currency = $request->currency;
+        $order->razorpay_data = json_encode([
+            'error' => $error,
+            'source' => 'checkout_failure',
+        ]);
+        $order->status = 'FAILED';
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment failure recorded.',
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Razorpay failure record error', [
+            'message' => $e->getMessage(),
+            'student_id' => $request->student_id ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unable to record payment failure.',
         ], 500);
     }
 });

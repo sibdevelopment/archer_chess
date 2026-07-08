@@ -464,7 +464,27 @@
     <!-- Include Razorpay Script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
+        function recordRazorpayFailure(error, amount, currency, paymentLevelId) {
+            fetch('/razorpay/failure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    error: error,
+                    amount: amount,
+                    student_id: {{ isset($student) ? $student->id : 0 }},
+                    currency: currency,
+                    payment_level_id: paymentLevelId
+                })
+            }).catch(function(err) {
+                console.error("Payment failure record error:", err);
+            });
+        }
+
         function payWithRazorpay(amount, description, currency, paymentLevelId) {
+            const studentCountry = '{{ strtoupper(trim($student->country ?? '')) }}';
 
             const options = {
                 // key: "rzp_test_RLrov8eGceCpPt",
@@ -508,7 +528,7 @@
                             $('#paymentSuccessModal').modal('show'); // Show success modal
                         } else {
                             // Customize message for failure
-                            const message = "Payment Failed! Please try again later.";
+                            const message = data.message || "Payment Failed! Please try again later.";
                             document.getElementById('paymentStatusMessage').innerText = message;
                             $('#paymentSuccessModal').modal('show'); // Show failure modal
                         }
@@ -532,13 +552,39 @@
                         '{{ isset($student) ?  $student->last_name : ''}}',
                     Chesslang_ID: '{{ isset($student) ? $student->student_id : 0 }}'
                 },
+                modal: {
+                    ondismiss: function() {
+                        console.log("Razorpay checkout closed by user.");
+                    }
+                },
                 theme: {
                     color: "#28a745"
                 }
             };
 
+            if (studentCountry !== 'INDIA') {
+                options.method = {
+                    card: true,
+                    netbanking: false,
+                    wallet: false,
+                    upi: false,
+                    emi: false,
+                    paylater: false
+                };
+            }
+
             // Open Razorpay Checkout
             const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                console.error("Payment Failed!", response.error);
+                recordRazorpayFailure(response.error, amount, currency, paymentLevelId);
+
+                const message = response.error && response.error.description
+                    ? response.error.description
+                    : "Payment Failed! Please try again later.";
+                document.getElementById('paymentStatusMessage').innerText = message;
+                $('#paymentSuccessModal').modal('show');
+            });
             rzp.open();
         }
     </script>

@@ -87,9 +87,10 @@ class CheckPayment extends Command
                 $studentfee = new StudentFee();
                 $studentfee->student_id = $student->id;
                 $studentfee->start_date = date('Y-m-d');
-                $studentfee->end_date = date('Y-m-d', strtotime('+15 days'));
+                $studentfee->end_date = date('Y-m-d', strtotime('+29 days'));
                 $studentfee->monthly_fees = $order->amount;
                 $studentfee->total_amount_paid = $order->amount;
+                $studentfee->currency = $payment['currency'] ?? $order->currency;
                 $studentfee->receive_date = date('Y-m-d');
                 $studentfee->status = 'ACTIVE';
                 $studentfee->save();

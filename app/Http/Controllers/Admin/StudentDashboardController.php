@@ -25,6 +25,11 @@ use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
 {
+    private function canViewStudentEvents(?Student $student): bool
+    {
+        return $student && $student->status === 'ACTIVE';
+    }
+
     private function eligibleStudentBatch($studentId, $batchId, ?string $date = null)
     {
         $date = $date ?: Carbon::today()->toDateString();
@@ -295,49 +300,35 @@ class StudentDashboardController extends Controller
             }
             // dd($latestBatchLevel, $latestBatch, $latestStduentBatch);
 
-            $country     = $student->country;
-            $recentBatch = $student->studentBatches()
-                ->whereHas('student', function ($query) {
-                    $query->where('status', '!=', 'INACTIVE');
-                })
-                ->orderBy('id', 'desc')
-                ->first();
+            if ($this->canViewStudentEvents($student)) {
+                $country     = $student->country;
+                $recentBatch = $student->studentBatches()
+                    ->whereHas('student', function ($query) {
+                        $query->where('status', 'ACTIVE');
+                    })
+                    ->orderBy('id', 'desc')
+                    ->first();
 
-            $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-            $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
+                $batchId   = $recentBatch ? [strval($recentBatch->batch_id)] : [];
+                $levelId   = $recentBatch ? [strval($recentBatch->batch->level_id)] : [];
+                $currentDate = Carbon::now()->toDateString();
 
-            $batchId   = array_map('strval', $batchId);
-            $levelId   = array_map('strval', $levelId);
-            $studentId = (string) $student->id;
+                $tournamentData = Tournament::where('status', 'ACTIVE')
+                    ->whereDate('date', '>=', $currentDate)
+                    ->whereJsonContains('country', $country)
+                    ->whereJsonContains('level_ids', $levelId)
+                    ->orderBy('date', 'asc')
+                    ->take(3)
+                    ->get();
 
-            $currentDate = Carbon::now()->toDateString();
-            $currentTime = Carbon::now();
-
-            $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-            $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
-
-            $batchId   = array_map('strval', $batchId); // Convert to strings
-            $levelId   = array_map('strval', $levelId);
-            $studentId = (string) $student->id;
-
-            $currentDate = Carbon::now()->toDateString();
-            $currentTime = Carbon::now();
-
-            $tournamentData = Tournament::where('status', 'ACTIVE')
-                ->whereDate('date', '>=', $currentDate)
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('level_ids', $levelId) // 🔥 Filter by level ID!
-                ->orderBy('date', 'asc')
-                ->take(3)
-                ->get();
-
-            $masterclassedata = Masterclass::where('status', 'ACTIVE')
-                ->whereDate('date', '>=', $currentDate)
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('level_ids', $levelId) // 🔥 Filter by level ID!
-                ->orderBy('date', 'asc')
-                ->take(3)
-                ->get();
+                $masterclassedata = Masterclass::where('status', 'ACTIVE')
+                    ->whereDate('date', '>=', $currentDate)
+                    ->whereJsonContains('country', $country)
+                    ->whereJsonContains('level_ids', $levelId)
+                    ->orderBy('date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
 
             // dd($levelId, $masterclassedata->map->getAttributes());
 
@@ -728,7 +719,7 @@ class StudentDashboardController extends Controller
         $user      = Auth::user();
         $student   = Student::where('user_id', $user->id)->first();
         // dd($student);
-        if (empty($student)) {
+        if (! $this->canViewStudentEvents($student)) {
             $tournamentDatas = [];
             return view('Admin.StudentDashboard.tournaments', compact('tournamentDatas', 'student'));
         }
@@ -781,7 +772,7 @@ class StudentDashboardController extends Controller
         $user    = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
         // dd($student);
-        if (empty($student)) {
+        if (! $this->canViewStudentEvents($student)) {
             $masterclassDatas = [];
             return view('Admin.StudentDashboard.masterclass', compact('masterclassDatas', 'student'));
         }
@@ -790,7 +781,7 @@ class StudentDashboardController extends Controller
         // dd($country);
         $recentBatch = $student->studentBatches()
             ->whereHas('student', function ($query) {
-                $query->where('status', '!=', 'INACTIVE');
+                $query->where('status', 'ACTIVE');
             })
             ->orderBy('id', 'desc')
             ->first();

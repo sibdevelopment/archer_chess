@@ -498,6 +498,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Student master remains unchanged and continues to list actual students independently.
 ```
 
+## Student Dashboard Event Visibility Notes
+
+```text
+- Upcoming tournaments and upcoming masterclasses on the student dashboard are visible only when the logged-in student status is ACTIVE.
+- FEESDUE and INACTIVE students should not receive upcoming tournament/masterclass data on the dashboard cards.
+- The separate student tournament and student masterclass pages follow the same ACTIVE-only student rule.
+- The existing fees-due modal/payment reminder remains unchanged.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

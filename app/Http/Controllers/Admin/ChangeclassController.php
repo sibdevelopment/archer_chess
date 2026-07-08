@@ -28,6 +28,23 @@ class ChangeclassController extends Controller
         return in_array($student->country, $countries);
     }
 
+    private function applyBatchCountryFilter($query, ?string $country)
+    {
+        if (! $country) {
+            return $query;
+        }
+
+        return $query->whereNotNull('country')->where(function ($query) use ($country) {
+            $query->whereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($country)])
+                ->orWhere(function ($query) use ($country) {
+                    $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($country) {
+                        $query->where('country', $country)
+                            ->orWhereRaw('FIND_IN_SET(?, country)', [$country]);
+                    });
+                });
+        });
+    }
+
     private function directAssignChangeClassStudent(Student $student, Batch $batch, StudentFee $studentFee, Changeclass $changeClass): array
     {
         if ($batch->status === 'UPCOMING') {
@@ -302,7 +319,10 @@ class ChangeclassController extends Controller
     public function show(Changeclass $changeclass)
     {
         $employees = Employee::all();
-        $batches   = Batch::where('status','!=','INACTIVE')->get();
+        $batches   = $this->applyBatchCountryFilter(
+            Batch::where('status','!=','INACTIVE'),
+            $changeclass->student->country ?? null
+        )->get();
 
         
         return view('Admin.ChangeClass.show', compact('changeclass', 'employees', 'batches'));

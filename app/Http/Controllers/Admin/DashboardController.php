@@ -39,6 +39,28 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DashboardController extends Controller
 {
+    private function dashboardStudentBatchLabel(Student $student, bool $activeOnlyForCoach = false): string
+    {
+        $query = $student->studentBatches()->with('batch');
+
+        if ($activeOnlyForCoach) {
+            $query->where('status', 'ACTIVE');
+        }
+
+        $studentBatch = $query
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$studentBatch || !$studentBatch->batch) {
+            return '';
+        }
+
+        $statusBadge = $studentBatch->status === 'ACTIVE' ? ' (Present)' : ' (Previous Batch)';
+
+        return $studentBatch->batch->name . $statusBadge;
+    }
+
     public function index1(Request $request): View
     {  
         return view('Admin.Dashboard.SuperAdmin.dashboard-index');
@@ -1968,21 +1990,7 @@ class DashboardController extends Controller
                 // return $student->student_id;
             })
             ->editColumn('batch', function ($student) use ($isCoach) {
-                $attendedBatches = $student->studentBatches()->with('batch')->get();
-                if ($isCoach) {
-                    $attendedBatches = $attendedBatches->filter(function ($studentBatch) {
-                        return $studentBatch->status === 'ACTIVE';
-                    });
-                }
-                $sortedBatches = $attendedBatches->sortByDesc(function ($studentBatch) {
-                    return $studentBatch->status === 'ACTIVE';
-                });
-                $attendedBatchNames = $sortedBatches->map(function ($studentBatch) {
-                    $batchName   = $studentBatch->batch->name;
-                    $statusBadge = $studentBatch->status === 'ACTIVE' ? ' (Present)' : ' (Previous Batch)';
-                    return $batchName . $statusBadge;
-                })->implode(', ');
-                return $attendedBatchNames;
+                return $this->dashboardStudentBatchLabel($student, $isCoach);
             })
             ->addColumn('student_fees', function ($student) {
                 return '<a href="/admin/students/' . $student->id . '/student_fees" class="badge bg-success fs-1"><i class="ti ti-box-multiple"></i> &nbsp; Student Fees  </a>';
@@ -2186,11 +2194,7 @@ class DashboardController extends Controller
                     . '<div class="d-flex justify-content-end">' . $whatsappLink . '</div></div>';
             })
             ->editColumn('batch', function ($student) use ($isCoach) {
-                $attendedBatches = $student->studentBatches()->with('batch')->get();
-                if ($isCoach) {
-                    $attendedBatches = $attendedBatches->filter(fn($b) => $b->status === 'ACTIVE');
-                }
-                return $attendedBatches->pluck('batch.name')->implode(', ');
+                return $this->dashboardStudentBatchLabel($student, $isCoach);
             })
             ->editColumn('status', function ($student) use ($isCoach) {
                  switch ($student->status) {

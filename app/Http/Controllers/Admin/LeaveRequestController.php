@@ -16,12 +16,12 @@ use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
 use Illuminate\Support\Carbon;
 use App\Models\CoachAttendance;
-use App\Models\CoachAvailability;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
+use App\Services\CoachAvailabilityService;
 
 class LeaveRequestController extends Controller
 {
@@ -195,7 +195,7 @@ class LeaveRequestController extends Controller
         ], 201);
     }
 
-    public function changeStatus(Request $request)
+    public function changeStatus(Request $request, CoachAvailabilityService $availability)
     {
         $leaverequest         = LeaveRequest::find($request->leaverequest_id);
         $leaverequest->status = $request->status;
@@ -205,6 +205,38 @@ class LeaveRequestController extends Controller
                 $batch          = Batch::find($data['batch_id']);
                 $batch_coach_id = $batch->coach_id;
                 if ($data['coach_id']) {
+                    $schedule = BatchSchedule::find($data['schedule_id']);
+                    if (!$schedule) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Coverup schedule not found.',
+                        ], 422);
+                    }
+
+                    $coach = Coach::find($data['coach_id']);
+                    if ($coach && $this->checkCoachLeave($coach, $leaverequest->from_date)) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'Selected coach is on approved leave for the coverup date.',
+                        ], 422);
+                    }
+
+                    $coachValidation = $availability->validateCoachForSingleEvent(
+                        (int) $data['coach_id'],
+                        $leaverequest->from_date,
+                        $schedule->from_time,
+                        $schedule->to_time,
+                        $batch->country ?? [],
+                        'coverup'
+                    );
+
+                    if (!$coachValidation['ok']) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => $coachValidation['message'],
+                        ], 422);
+                    }
+
                     $coverupclass                   = new Coverupclass();
                     $coverupclass->batch_id         = $data['batch_id'];
                     $coverupclass->batchschedule_id = $data['schedule_id'];
@@ -593,7 +625,7 @@ class LeaveRequestController extends Controller
                             }
                             if (! isset($affectedBatchesAfterLeave[$batch->id]['schedules'][$scheduleWeekday])) {
 
-                                $coaches = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id);
+                                $coaches = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id, $batch->country ?? []);
                                 // dd($coaches);
                                 $affectedBatchesAfterLeave[$batch->id]['schedules'][$scheduleWeekday] = [
                                     'id'             => $schedule->id,
@@ -638,7 +670,7 @@ class LeaveRequestController extends Controller
                         }
                         // Initialize schedule in affectedBatches if not already set
                         if (! isset($affectedBatchesDuringLeave[$batch->id]['schedules'][$scheduleWeekday])) {
-                            $coaches                                                               = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id);
+                            $coaches                                                               = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id, $batch->country ?? []);
                             $affectedBatchesDuringLeave[$batch->id]['schedules'][$scheduleWeekday] = [
                                 'id'             => $schedule->id,
                                 'weekday'        => $scheduleWeekday,
@@ -683,81 +715,34 @@ class LeaveRequestController extends Controller
         // $this->adjustBatchesEndDateAndStudentFees($combinedAffectedBatches, $leaveDaysCount);
     }
 
-    public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id)
+    public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id, array $countries = [])
     {
+        $availability = app(CoachAvailabilityService::class);
         $coach          = Coach::where('id', $coach_id)->with('user')->first();
-        $coachCountries = is_array($coach->country) ? $coach->country : explode(',', $coach->country);
-
-        $dayOfWeek                   = Carbon::parse($date)->dayName;
-        $coachAvailabilitiesCoachIds = CoachAvailability::where('day_of_week', $dayOfWeek)
-            ->whereHas('periods', function ($query) use ($from_time, $to_time) {
-                $query->where('from_period', '<=', $from_time)
-                    ->where('to_period', '>=', $to_time);
-            })
-            ->where('status', 'ACTIVE')
-            ->whereHas('coach', function ($query) use ($coachCountries) {
-                // $query->where('status', 'ACTIVE');
-                $query->where('status', 'ACTIVE')->where(function ($query) use ($coachCountries) {
-                    if (isset($coachCountries) && !empty($coachCountries)) {
-                        $query->where(function ($query) use ($coachCountries) {
-                            foreach ($coachCountries as $country) {
-                                $query->orWhereJsonContains('country', $country);
-                            }
-                        });
-                    }
-                });
-            })
-            ->with('coach.user')
-            ->pluck('coach_id')
-            ->toArray();
-
-        // dd($coachAvailabilitiesCoachIds);
-
-        // dd($coachCountries);
-        // dd is
-        // array:2 [ // app/Http/Controllers/Admin/LeaveRequestController.php:486
-        //     0 => "USA"
-        //     1 => "CANADA"
-        //   ]
-
-        $coaches = Coach::whereIn('id', $coachAvailabilitiesCoachIds)->get();
-        // dd($coaches);
-        // dd($coaches);
+        if (empty($countries) && $coach) {
+            $countries = is_array($coach->country) ? $coach->country : explode(',', $coach->country);
+        }
 
         $availableCoachIds = [];
-        foreach ($coaches as $coach) {
-            // if ($coach->id == '55') {
-                // dd($coach);
-                $isLeave = $this->checkCoachLeave($coach, $date);
-                if ($isLeave == 0) {
-                    $isBatchSchedule = $this->checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time);
-                    // dd($isBatchSchedule);
-                    if ($isBatchSchedule == 0) {
-                        $isDemoAssign = $this->checkDemoAssign($coach, $date, $weekday, $from_time, $to_time);
-                        if ($isDemoAssign == 0) {
-                            $isCoverupClassAssign = Coverupclass::where('new_coach_id', $coach->id)
-                                ->whereDate('date', '=', $date)
-                                ->whereHas('batch', function ($query) use ($from_time, $to_time, $weekday) {
-                                    $query->whereHas('batchSchedules', function ($q) use ($from_time, $to_time, $weekday) {
-                                        $q->where('weekday', $weekday)
-                                            ->where(function ($subQuery) use ($from_time, $to_time) {
-                                                $subQuery->where(function ($sq) use ($from_time, $to_time) {
-                                                    $sq->where('from_time', '<', $to_time)
-                                                        ->where('to_time', '>', $from_time);
-                                                });
-                                            });
-                                    })->where('status', 'ACTIVE');
-                                })
-                                ->first();
-                            if (!$isCoverupClassAssign) {
-                                $availableCoachIds[] = $coach->id;
-                            }
+        foreach (Coach::where('status', 'ACTIVE')->get() as $coach) {
+            if ($this->checkCoachLeave($coach, $date)) {
+                continue;
+            }
 
-                        }
-                    }
-                }
-            // }
+            $validation = $availability->validateCoachForSingleEvent(
+                $coach->id,
+                $date,
+                $from_time,
+                $to_time,
+                $countries,
+                'coverup'
+            );
+
+            if ($validation['ok']) {
+                $availableCoachIds[] = $coach->id;
+            }
         }
+
         $coaches = Coach::whereIn('id', $availableCoachIds)->with('user')->get();
         return $coaches;
     }

@@ -507,6 +507,31 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - The existing fees-due modal/payment reminder remains unchanged.
 ```
 
+## Masterclass Targeting Notes
+
+```text
+- Masterclass add/edit should allow the same flexible targeting UX as tournaments for country-based batch and individual student selection.
+- Selecting a batch should not disable the individual student dropdown; admins can add a complete batch plus extra individual students.
+- Backend student targeting already merges selected students from direct student, batch, level, and country sources and de-duplicates by student id.
+```
+
+## Coverup Coach Availability Notes
+
+```text
+- Coverup coach assignment from leave approval and coverup listing change-coach should use CoachAvailabilityService::validateCoachForSingleEvent.
+- Both flows should follow the same country, base availability, real batch, demo, and coverup conflict rules.
+- Leave approval also keeps the extra guard that the selected replacement coach must not be on approved leave for the coverup date.
+- Leave approval revalidates the selected coach again while saving, not only while building the dropdown.
+```
+
+## SuperAdmin Dashboard Student Batch Column Notes
+
+```text
+- SuperAdmin dashboard Students section should show only one batch in the Batch column.
+- Selection priority is the current ACTIVE student-batch first; if none exists, show the latest/last student-batch.
+- The old all-history display remains available in detailed student history screens, not in the dashboard summary column.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

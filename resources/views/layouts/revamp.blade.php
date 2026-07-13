@@ -1651,6 +1651,15 @@
     <script src="/frontend1/assets/js/jquery-3.7.1.min.js"></script>
     <script>
         (function () {
+            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+            if (csrfToken) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+            }
+
             const timezonesByCountry = {
                 'USA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
                 'Canada': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
@@ -1732,7 +1741,7 @@
                 $.ajax({
                     url: $form.attr('action'),
                     method: 'POST',
-                    data: $form.serialize(),
+                    data: $form.serialize() + (csrfToken ? '&_token=' + encodeURIComponent(csrfToken) : ''),
                     success: function (response) {
                         if (response.status === 'success') {
                             setMessage($form, '.revamp-form-message', response.message || 'Trial class booked successfully.', false);
@@ -1762,7 +1771,7 @@
                 $.ajax({
                     url: $form.attr('action'),
                     method: 'POST',
-                    data: $form.serialize(),
+                    data: $form.serialize() + (csrfToken ? '&_token=' + encodeURIComponent(csrfToken) : ''),
                     success: function (response) {
                         setMessage($form, '.revamp-contact-message', response.message || 'Your enquiry has been submitted successfully.', false);
                         $form[0].reset();

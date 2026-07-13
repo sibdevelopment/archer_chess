@@ -315,6 +315,8 @@
                                                                 <option value="QATAR">QATAR</option>
                                                                 <option value="BAHRAIN">BAHRAIN</option>
                                                                 <option value="KUWAIT">KUWAIT</option>
+                                                            @elseif($country_slug === 'uae')
+                                                                <option value="UAE">UAE</option>
                                                                 <option value="OMAN">OMAN</option>
                                                             @else
                                                                 <option value="{{ $country }}">{{ $country }}</option>
@@ -1557,6 +1559,8 @@
                                                     <option value="QATAR">QATAR</option>
                                                     <option value="BAHRAIN">BAHRAIN</option>
                                                     <option value="KUWAIT">KUWAIT</option>
+                                                @elseif($country_slug === 'uae')
+                                                    <option value="UAE">UAE</option>
                                                     <option value="OMAN">OMAN</option>
                                                 @else
                                                     <option value="{{ $country }}">{{ $country }}</option>

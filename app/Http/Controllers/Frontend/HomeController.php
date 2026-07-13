@@ -51,12 +51,16 @@ class HomeController extends Controller
         $meetourkids = MeetOurKid::where('status', 'ACTIVE')->get();
         $meetourtutors = MeetOurTutor::where('status', 'ACTIVE')->orderBy('id', 'desc')->get();
 
-        return view('Frontend.home', compact('country', 'blogs', 'meetourkids', 'meetourtutors'));
+        return view('Frontend.Design.home', compact('country', 'blogs', 'meetourkids', 'meetourtutors'));
     }
 
     public function newHome()
     {
-        return view('Frontend.Design.home');
+        $blogs = Blog::where('home_featured', 'ACTIVE')->take(6)->orderBy('date', 'desc')->get();
+        $meetourkids = MeetOurKid::where('status', 'ACTIVE')->get();
+        $meetourtutors = MeetOurTutor::where('status', 'ACTIVE')->orderBy('id', 'desc')->get();
+
+        return view('Frontend.Design.home', compact('blogs', 'meetourkids', 'meetourtutors'));
     }
     public function newAbout()
     {
@@ -77,11 +81,19 @@ class HomeController extends Controller
     // Blogs
     public function newBlogs()
     {
-        return view('Frontend.Design.blogs');
+        $blogs = Blog::where('status', 'ACTIVE')->orderBy('date', 'desc')->get();
+        return view('Frontend.Design.blogs', compact('blogs'));
     }
     public function newBlogDetails()
     {
-        return view('Frontend.Design.blog_details');
+        $blog = Blog::where('status', 'ACTIVE')->orderBy('date', 'desc')->firstOrFail();
+        $similarBlogs = Blog::where('status', 'ACTIVE')
+            ->where('id', '!=', $blog->id)
+            ->orderBy('date', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('Frontend.Design.blog_details', compact('blog', 'similarBlogs'));
     }
     // Policy pages
     public function newPrivacy()
@@ -120,7 +132,7 @@ class HomeController extends Controller
 
     public function contact()
     {
-        return view('Frontend.Contact.contact');
+        return view('Frontend.Design.contact');
     }
 
     public function payNow()
@@ -150,27 +162,27 @@ class HomeController extends Controller
 
     public function about()
     {
-        return view('Frontend.about');
+        return view('Frontend.Design.about');
     }
 
     public function privacy()
     {
-        return view('Frontend.privacy');
+        return view('Frontend.Design.Policy.privacy');
     }
 
     public function terms()
     {
-        return view('Frontend.terms');
+        return view('Frontend.Design.Policy.terms');
     }
 
     public function refundPolicy()
     {
-        return view('Frontend.refundpolicy');
+        return view('Frontend.Design.Policy.refund');
     }
 
     public function shippingPolicy()
     {
-        return view('Frontend.shippingpolicy');
+        return view('Frontend.Design.Policy.shipping');
     }
  
     public function blog()
@@ -180,16 +192,20 @@ class HomeController extends Controller
             $blog->date = \Carbon\Carbon::parse($blog->date)->format('d-m-Y');
             return $blog;
         });
-        return view('Frontend.blogs', compact('blogs'));
+        return view('Frontend.Design.blogs', compact('blogs'));
     }
  
     public function blogDetails($slug)
     {
         $blog = Blog::where('slug', $slug)->firstOrFail();
         $blog->date = \Carbon\Carbon::parse($blog->date)->format('d-m-Y');
-        $similarBlogs = Blog::where('status', 'ACTIVE')->orderBy('date', 'desc')->take(10)->get();
+        $similarBlogs = Blog::where('status', 'ACTIVE')
+            ->where('id', '!=', $blog->id)
+            ->orderBy('date', 'desc')
+            ->take(5)
+            ->get();
 
-        return view('Frontend.BlogDetails.details', compact('blog','similarBlogs'));
+        return view('Frontend.Design.blog_details', compact('blog','similarBlogs'));
     }
 
     public function gallery(Request $request)
@@ -199,13 +215,13 @@ class HomeController extends Controller
                 $query->where('status', 'ACTIVE');
             }])
             ->get();
-        return view('Frontend.gallery', compact('galleries'));
+        return view('Frontend.Design.gallery', compact('galleries'));
     }
 
     public function event(Request $request)
     {
         $events = Event::where('status', 'ACTIVE')->get();
-        return view('Frontend.event', compact('events'));
+        return view('Frontend.Design.event', compact('events'));
     }
 
     /**

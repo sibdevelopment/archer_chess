@@ -562,6 +562,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - This is display-side selection only; transfer save logic still controls the actual student_batches status history.
 ```
 
+## Frontend Revamp Live Mapping Notes
+
+```text
+- Replaceable public website routes now render the new revamp views: home, about, contact, gallery, event, policy pages, and course pages.
+- Missing replacement pages stay on the old/live flow: country landing pages, paynow, thank-you/payment pages, standalone trial booking page, and AJAX/backend submit routes.
+- New blog list and blog detail pages are dynamic now; /blog reads ACTIVE blogs and /blog/{slug} renders the selected blog with recent blog links.
+- Revamp trial forms use the existing confirm.trial.class backend route with country/timezone mapping, CSRF, AJAX submit, and old thank-you redirect behavior.
+- Revamp contact page form uses the existing contact.submit route and keeps old backend handling.
+- Revamp layout links point to live routes instead of /design preview URLs where those routes have replacements.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

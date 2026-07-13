@@ -34,7 +34,7 @@
                         <div>
                             <h3 class="text-center tw-mb-6 text-neutral-950"> Contact Us</h3>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
-                                <li><a href="/design/home" class="text-main-600 hover-text-main-700 tw-text-405"> <i
+                                <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
                                 <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
                                 <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Contact Us </span> </li>
@@ -105,41 +105,54 @@
                     </div>
                 </div>
                 <div class="col-lg-7">
-                    <form action="#">
+                    <form class="revamp-contact-form" method="POST" action="{{ route('contact.submit') }}">
+                        @csrf
                         <div class="row gy-4">
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                                <input type="text"
+                                <input type="text" name="name" required
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600"
                                     placeholder="Name">
                             </div>
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                                <input type="email"
+                                <input type="email" name="email"
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600"
                                     placeholder="Email">
                             </div>
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                                <input type="number"
+                                <input type="number" name="mobile" required
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600"
                                     placeholder="Phone">
                             </div>
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                                <select
+                                <select name="country" required
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600">
-                                    <option value="" disabled selected>Select Country</option>
+                                    <option value="">Select Country</option>
                                     <option value="India">India</option>
+                                    <option value="USA">USA</option>
                                     <option value="Canada">Canada</option>
                                     <option value="Australia">Australia</option>
+                                    <option value="New Zealand">New Zealand</option>
+                                    <option value="UAE">UAE</option>
+                                    <option value="UK">UK</option>
+                                    <option value="Singapore">Singapore</option>
+                                    <option value="South Africa">South Africa</option>
+                                    <option value="Qatar">Qatar</option>
+                                    <option value="Bahrain">Bahrain</option>
+                                    <option value="Kuwait">Kuwait</option>
                                 </select>
                             </div>
                             <div class="col-sm-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                                <input type="text"
+                                <input type="text" name="subject"
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600"
                                     placeholder="Subject">
                             </div>
                             <div class="col-sm-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
-                                <textarea
+                                <textarea name="description"
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600 tw-h-170-px"
                                     placeholder="Your message"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="revamp-contact-message small"></div>
                             </div>
                         </div>
                         <button type="submit"

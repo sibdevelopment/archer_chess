@@ -569,6 +569,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Missing replacement pages stay on the old/live flow: country landing pages, paynow, thank-you/payment pages, standalone trial booking page, and AJAX/backend submit routes.
 - New blog list and blog detail pages are dynamic now; /blog reads ACTIVE blogs and /blog/{slug} renders the selected blog with recent blog links.
 - Revamp trial forms use the existing confirm.trial.class backend route with country/timezone mapping, CSRF, AJAX submit, and old thank-you redirect behavior.
+- Revamp trial forms must send duration=25_minutes like the old website; HomeController also defaults missing duration safely to avoid Undefined array key errors.
 - Revamp contact page form uses the existing contact.submit route and keeps old backend handling.
 - Revamp layout links point to live routes instead of /design preview URLs where those routes have replacements.
 ```

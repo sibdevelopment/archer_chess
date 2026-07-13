@@ -1082,6 +1082,7 @@
                     <form class="revamp-trial-form" method="POST" action="{{ route('confirm.trial.class') }}">
                         @csrf
                         <input type="hidden" name="country_code" class="revamp-country-code" value="+91">
+                        <input type="hidden" name="duration" value="25_minutes">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Country*</label>

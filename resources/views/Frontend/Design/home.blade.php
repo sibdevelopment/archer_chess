@@ -1651,6 +1651,7 @@
                             data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
                             @csrf
                             <input type="hidden" name="country_code" class="revamp-country-code" value="+91">
+                            <input type="hidden" name="duration" value="25_minutes">
                             <div class="row gy-4">
                                 <!-- Country -->
                                 <div class="col-md-6">

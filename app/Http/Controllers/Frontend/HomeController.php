@@ -377,7 +377,7 @@ class HomeController extends Controller
         $normalizedTz = $tzAliases[$data['timezone']] ?? $data['timezone'];
 
         // Defaults & computed fields
-        $data['duration']     = $data['duration'] ?: '25_minutes';
+        $data['duration']     = $data['duration'] ?? '25_minutes';
         $data['status']       = 'ACTIVE';
         $data['lead_status']  = 'ACTIVE';
         $data['email_otp']    = random_int(1000, 9999);

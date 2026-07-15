@@ -545,6 +545,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 ## Razorpay Payment Notes
 
 ```text
+- Razorpay credentials are environment-configurable through RAZORPAY_KEY and RAZORPAY_SECRET, exposed via config/services.php as services.razorpay.
+- Student checkout JS, /razorpay/verify, and check:payment now read Razorpay credentials from config instead of hardcoded live/test values.
 - Client confirmed Razorpay payments should credit a 30-day inclusive fee window: payment date as start_date plus the next 29 days as end_date.
 - Razorpay success now saves currency into both orders.currency and student_fees.currency.
 - Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.

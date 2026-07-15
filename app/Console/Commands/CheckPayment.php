@@ -204,11 +204,8 @@ class CheckPayment extends Command
      */
     protected function checkPaymentApi(string $paymentId)
     {
-        $key = 'rzp_live_eckVmG8LHU5uhu';
-        $secret = 'yN3zXf5cmDKzcgcYn8fWoEoC'; 
-        
-        // $key = 'rzp_test_RLrov8eGceCpPt';
-        // $secret = 'tWqTNh7WveDI7oSqKFeoj446'; 
+        $key = config('services.razorpay.key');
+        $secret = config('services.razorpay.secret');
 
         if (empty($key) || empty($secret)) {
             Log::error('Razorpay keys not configured');

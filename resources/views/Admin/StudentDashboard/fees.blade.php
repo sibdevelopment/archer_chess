@@ -487,8 +487,7 @@
             const studentCountry = '{{ strtoupper(trim($student->country ?? '')) }}';
 
             const options = {
-                // key: "rzp_test_RLrov8eGceCpPt",
-                key: "rzp_live_eckVmG8LHU5uhu",
+                key: "{{ config('services.razorpay.key') }}",
                 amount: amount * 100,
                 currency: currency,
                 name: "Archer Kids",

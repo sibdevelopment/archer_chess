@@ -396,9 +396,18 @@ Route::middleware(['auth', 'preventBackHistory'])->group(function () {
 
 
 Route::post('/razorpay/verify', function (Request $request) {
-    // Use config instead of hardcoding ideally
-    $api = new Api('rzp_live_eckVmG8LHU5uhu', 'yN3zXf5cmDKzcgcYn8fWoEoC');
-    // $api = new Api('rzp_test_RLrov8eGceCpPt', 'tWqTNh7WveDI7oSqKFeoj446');
+    $razorpayKey = config('services.razorpay.key');
+    $razorpaySecret = config('services.razorpay.secret');
+
+    if (empty($razorpayKey) || empty($razorpaySecret)) {
+        Log::error('Razorpay keys not configured');
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Payment gateway is not configured.',
+        ], 500);
+    }
+
+    $api = new Api($razorpayKey, $razorpaySecret);
 
     try {
         // 1. Fetch payment

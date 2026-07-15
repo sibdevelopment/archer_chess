@@ -550,6 +550,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Student dashboard Razorpay fee page uses a shared country-to-fee-column/currency map so OMAN and other configured countries calculate both single-level and next-3-level payment amounts safely.
 - Payment Level master now includes kuwait_fees; Kuwait students map to kuwait_fees and KWD for next fee calculations.
 - Student dashboard disables Razorpay payment buttons when the mapped country fee amount is missing/zero, and shows an admin-facing configuration message instead of attempting Pay 0.
+- Razorpay checkout amount conversion uses 1000 subunits for three-decimal currencies BHD/KWD/OMR; other configured currencies still use 100 subunits.
 - Client confirmed Razorpay payments should credit a 30-day inclusive fee window: payment date as start_date plus the next 29 days as end_date.
 - Razorpay success now saves currency into both orders.currency and student_fees.currency.
 - Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.

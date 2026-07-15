@@ -127,19 +127,19 @@
                                             {{ isset($student) && $student->country == 'SOUTH AFRICA' ? 'selected' : '' }}>
                                             SOUTH AFRICA</option>
                                         <option value="QATAR"
-                                            {{ isset($student) && in_array('QATAR', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'QATAR' ? 'selected' : '' }}>
                                             QATAR</option>
                                         <option value="BAHRAIN"
-                                            {{ isset($student) && in_array('BAHRAIN', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'BAHRAIN' ? 'selected' : '' }}>
                                             BAHRAIN</option>
                                         <option value="KUWAIT"
-                                            {{ isset($student) && in_array('KUWAIT', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'KUWAIT' ? 'selected' : '' }}>
                                             KUWAIT</option>
                                         <option value="EUROPEAN UNION"
                                             {{ isset($student) && $student->country == 'EUROPEAN UNION' ? 'selected' : '' }}>
                                             EUROPEAN UNION</option>
                                             <option value="OMAN"
-                                            {{ isset($student) && in_array('OMAN', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'OMAN' ? 'selected' : '' }}>
                                             OMAN</option>
                                     @else
                                         @foreach ($allowedCountries as $country)

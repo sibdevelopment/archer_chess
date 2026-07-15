@@ -443,9 +443,12 @@
                 return;
             }
 
+            const threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
+            const amountInSubunits = Math.round(amount * (threeDecimalCurrencies.includes(currency) ? 1000 : 100));
+
             const options = {
                 key: "{{ config('services.razorpay.key') }}",
-                amount: amount * 100,
+                amount: amountInSubunits,
                 currency: currency,
                 name: "Archer Kids",
                 description: description,

@@ -674,7 +674,7 @@ class HomeController extends Controller
     public function bookTrialClassThankYou(Request $request)
     {
         $user = User::find($request->user_id);
-        return view('Frontend.BookTrialClass.thankyou', compact('user'));
+        return view('Frontend.Design.thankyou', compact('user'));
     }
 
     /**

@@ -519,7 +519,7 @@
                                 <i class="ph-fill ph-user"></i>
                             </span>
                             <div class="d-flex align-items-center tw-gap-1">
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                                <a href="{{ route('login') }}"
                                     class="fw-normal tw-text-305 text-black hover-text-main-600">
                                     Login
                                 </a>

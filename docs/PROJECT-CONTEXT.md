@@ -580,6 +580,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp trial forms must send duration=25_minutes like the old website; HomeController also defaults missing duration safely to avoid Undefined array key errors.
 - Revamp contact page form uses the existing contact.submit route and keeps old backend handling.
 - Revamp layout links point to live routes instead of /design preview URLs where those routes have replacements.
+- Revamp header Login links to the old login page; Register and trial CTAs still open the lead registration popup.
+- Trial booking thank-you route now renders a revamp-style page while keeping the old student login context/functionality.
 ```
 
 Known route/test caveats from prior analysis:

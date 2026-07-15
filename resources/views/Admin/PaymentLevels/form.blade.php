@@ -141,6 +141,20 @@
                                     value="{{ old('kuwait_fees', isset($paymentlevel) ? $paymentlevel->kuwait_fees : '') }}" />
                                 <div id="kuwait_fees-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">BAHRAIN (BHD)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees" name="bahrain_fees"
+                                    id="bahrain_fees"
+                                    value="{{ old('bahrain_fees', isset($paymentlevel) ? $paymentlevel->bahrain_fees : '') }}" />
+                                <div id="bahrain_fees-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">SOUTH AFRICA (ZAR)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees" name="south_africa_fees"
+                                    id="south_africa_fees"
+                                    value="{{ old('south_africa_fees', isset($paymentlevel) ? $paymentlevel->south_africa_fees : '') }}" />
+                                <div id="south_africa_fees-error" style="color:red"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">

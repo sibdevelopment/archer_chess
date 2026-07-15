@@ -130,9 +130,11 @@
                 'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
                 'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
                 'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
+                'SOUTH AFRICA' => ['column' => 'south_africa_fees', 'currency' => 'ZAR'],
                 'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
                 'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
                 'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
+                'BAHRAIN' => ['column' => 'bahrain_fees', 'currency' => 'BHD'],
             ];
             $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];

@@ -60,6 +60,8 @@
                                         <th width="5%">EU</th>
                                         <th width="5%">OMN</th>
                                         <th width="5%">KWT</th>
+                                        <th width="5%">BHR</th>
+                                        <th width="5%">SA</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -172,6 +174,16 @@
                     {
                         data: 'kuwait_fees',
                         name: 'kuwait_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'bahrain_fees',
+                        name: 'bahrain_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'south_africa_fees',
+                        name: 'south_africa_fees',
                         orderable: false
                     }
                 ],

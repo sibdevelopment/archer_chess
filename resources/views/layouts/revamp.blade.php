@@ -1663,32 +1663,32 @@
 
             const timezonesByCountry = {
                 'USA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
-                'Canada': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
-                'Australia': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide', 'Australia/Sydney'],
-                'New Zealand': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-                'India': ['Indian Standard Time'],
+                'CANADA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
+                'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide', 'Australia/Sydney'],
+                'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
+                'INDIA': ['Indian Standard Time'],
                 'UAE': ['Gulf Standard Time'],
                 'UK': ['British Summer Time', 'Greenwich Mean Time'],
-                'Singapore': ['Singapore Standard Time'],
-                'South Africa': ['South Africa Standard Time'],
-                'Qatar': ['Arabian Standard Time'],
-                'Bahrain': ['Arabian Standard Time'],
-                'Kuwait': ['Arabian Standard Time']
+                'SINGAPORE': ['Singapore Standard Time'],
+                'SOUTH AFRICA': ['South Africa Standard Time'],
+                'QATAR': ['Arabian Standard Time'],
+                'BAHRAIN': ['Arabian Standard Time'],
+                'KUWAIT': ['Arabian Standard Time']
             };
 
             const dialCodeByCountry = {
                 'USA': '+1',
-                'Canada': '+1',
-                'Australia': '+61',
-                'New Zealand': '+64',
-                'India': '+91',
+                'CANADA': '+1',
+                'AUSTRALIA': '+61',
+                'NEWZEALAND': '+64',
+                'INDIA': '+91',
                 'UAE': '+971',
                 'UK': '+44',
-                'Singapore': '+65',
-                'South Africa': '+27',
-                'Qatar': '+974',
-                'Bahrain': '+973',
-                'Kuwait': '+965'
+                'SINGAPORE': '+65',
+                'SOUTH AFRICA': '+27',
+                'QATAR': '+974',
+                'BAHRAIN': '+973',
+                'KUWAIT': '+965'
             };
 
             function setMessage($form, selector, message, isError) {

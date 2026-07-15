@@ -111,7 +111,7 @@ class StudentController extends Controller
         }
         
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
         if ($request->batch) {
             $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
@@ -451,7 +451,11 @@ class StudentController extends Controller
         // where('status', 'ACTIVE')
         //     ->
             when(! empty($request->countries), function ($query) use ($request) {
-                return $query->whereIn('country', $request->countries);
+                return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
+                    ->flatMap(fn ($country) => countryComparisonValues($country))
+                    ->unique()
+                    ->values()
+                    ->all());
             })
             ->get();
         // dd($students);
@@ -466,7 +470,11 @@ class StudentController extends Controller
         // where('status', '!=', 'INACTIVE')
         //     ->
             when(! empty($request->countries), function ($query) use ($request) {
-                return $query->whereIn('country', $request->countries);
+                return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
+                    ->flatMap(fn ($country) => countryComparisonValues($country))
+                    ->unique()
+                    ->values()
+                    ->all());
             })
             ->get();
 
@@ -486,7 +494,8 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $request->merge([
-            'fees_country' => $request->input('country'),
+            'country' => normalizeCountryValue($request->input('country')),
+            'fees_country' => normalizeCountryValue($request->input('country')),
         ]);
 
         // Custom validation for mobile with '+' sign
@@ -551,7 +560,8 @@ class StudentController extends Controller
     {
         $request->merge([
             'mobile' => preg_replace('/[^0-9+]/', '', $request->mobile),
-            'fees_country' => $request->input('country'),
+            'country' => normalizeCountryValue($request->input('country')),
+            'fees_country' => normalizeCountryValue($request->input('country')),
         ]);
         // Custom validation for mobile with '+' sign
         $request->validate([
@@ -922,7 +932,7 @@ class StudentController extends Controller
         }
 
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
 
         if ($request->batch) {

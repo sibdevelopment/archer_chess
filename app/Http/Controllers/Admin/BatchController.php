@@ -72,16 +72,7 @@ class BatchController extends Controller
 
     private function normalizeCountries($countries): array
     {
-        if (is_string($countries)) {
-            $decoded = json_decode($countries, true);
-            $countries = json_last_error() === JSON_ERROR_NONE ? $decoded : [$countries];
-        }
-
-        return collect((array) $countries)
-            ->filter()
-            ->map(fn ($country) => strtoupper(trim((string) $country)))
-            ->values()
-            ->all();
+        return normalizeCountryValues($countries);
     }
 
     private function batchesShareCountry(Batch $sourceBatch, Batch $targetBatch): bool
@@ -478,24 +469,28 @@ class BatchController extends Controller
         }
 
         if ($request->country) {
-            $country = $request->country;
+            $countryValues = countryComparisonValues($request->country);
             #we are using below code instead of wherejsoncontains
             // First, check if the `country` column contains valid JSON for this batch
-            $query->whereNotNull('country')->where(function ($query) use ($country) {
-                $query->whereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $country . '"]'])
-                    ->orWhere(function ($query) use ($country) {
-                        $query->whereRaw('NOT json_valid(country)')->where('country', $country);
-                    });
+            $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+                foreach ($countryValues as $countryValue) {
+                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                        ->orWhere(function ($query) use ($countryValue) {
+                            $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                        });
+                }
             });
         }
         // Filter by allowed countries for non-admin/superadmin users
         if (! $isAdminOrSuperAdmin && ! empty($allowedCountries)) {
             $query->where(function ($query) use ($allowedCountries) {
-                foreach ($allowedCountries as $allowedCountry) {
-                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $allowedCountry . '"]'])
-                        ->orWhere(function ($query) use ($allowedCountry) {
-                            $query->whereRaw('NOT json_valid(country)')->where('country', $allowedCountry);
-                        });
+                foreach (normalizeCountryValues($allowedCountries) as $allowedCountry) {
+                    foreach (countryComparisonValues($allowedCountry) as $countryValue) {
+                        $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                            ->orWhere(function ($query) use ($countryValue) {
+                                $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                            });
+                    }
                 }
             });
         }
@@ -819,11 +814,13 @@ class BatchController extends Controller
 
     public function list(Request $request)
     {
-        $countries = $request->input('countries', []);
+        $countries = normalizeCountryValues($request->input('countries', []));
         $batches   = Batch::where('status', 'ACTIVE')
             ->where(function ($query) use ($countries) {
                 foreach ($countries as $country) {
-                    $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($country)]);
+                    foreach (countryComparisonValues($country) as $countryValue) {
+                        $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($countryValue)]);
+                    }
                 }
             })
             ->get();
@@ -836,11 +833,13 @@ class BatchController extends Controller
 
     public function masterclassTounamentlist(Request $request)
     {
-        $countries = $request->input('countries', []);
+        $countries = normalizeCountryValues($request->input('countries', []));
         $batches   = Batch::where('status', '!=', 'INACTIVE')
             ->where(function ($query) use ($countries) {
                 foreach ($countries as $country) {
-                    $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($country)]);
+                    foreach (countryComparisonValues($country) as $countryValue) {
+                        $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($countryValue)]);
+                    }
                 }
             })
             ->get();
@@ -885,7 +884,7 @@ class BatchController extends Controller
 
         $coachValidation = $availability->validateRawBatchCoach(
             (int) $request->coach_id,
-            $request->input('country', []),
+            normalizeCountryValues($request->input('country', [])),
             $schedules
         );
 
@@ -902,7 +901,7 @@ class BatchController extends Controller
         $batch->fill($request->all());
         $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
-            $batch->country = $request->input('country');
+            $batch->country = normalizeCountryValues($request->input('country'));
         }
 
         $batch->version = 1;
@@ -985,7 +984,7 @@ class BatchController extends Controller
         $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
         $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
-        $countries  = $request->input('country', $batch->country ?? []);
+        $countries  = normalizeCountryValues($request->input('country', $batch->country ?? []));
 
         $canChangeCoach = $batch->status === 'UPCOMING';
         $coachId = $canChangeCoach
@@ -1017,7 +1016,7 @@ class BatchController extends Controller
         $batch->fill($canChangeCoach ? $request->all() : $request->except('coach_id'));
         $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
-            $batch->country = $request->input('country');
+            $batch->country = $countries;
         }
         $batch->save();
 
@@ -1903,7 +1902,7 @@ class BatchController extends Controller
             }
 
             $availableCoaches = $availability->availableCoachesForRawBatch(
-                $request->input('country', []),
+                normalizeCountryValues($request->input('country', [])),
                 $schedules,
                 $request->input('batch_id')
             );
@@ -1938,7 +1937,7 @@ class BatchController extends Controller
             'to_time' => $request->to_time,
         ]];
 
-        $coachValidation = $availability->validateRawBatchCoach((int) $coach_id, $request->input('country', []), $schedules, $request->input('batch_id'));
+        $coachValidation = $availability->validateRawBatchCoach((int) $coach_id, normalizeCountryValues($request->input('country', [])), $schedules, $request->input('batch_id'));
 
         if (!$coachValidation['ok']) {
             return response()->json([

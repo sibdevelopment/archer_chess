@@ -347,6 +347,7 @@ class HomeController extends Controller
 
        
         $data = $request->validate($rules, $messages);
+        $data['country'] = normalizeCountryValue($data['country']);
 
         $lengthRules = [
             '+61'  => 9,
@@ -581,6 +582,7 @@ class HomeController extends Controller
             'date.before_or_equal' => 'The date must be a date before or equal to ' . $maxDate->format('d M, Y') . '.',
         ];
         $data = $request->validate($rules, $messages);
+        $data['country'] = normalizeCountryValue($data['country']);
          // Country-specific number lengths
         
          $lengthRules = [

@@ -546,6 +546,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 
 ```text
 - Razorpay credentials are environment-configurable through RAZORPAY_KEY and RAZORPAY_SECRET, exposed via config/services.php as services.razorpay.
+- Country normalization is now centralized through helpers so frontend lead country, demo lead, new enrollment, student, batch country matching, coach availability, and payment-level lookup use canonical ERP country values.
 - Student checkout JS, /razorpay/verify, and check:payment now read Razorpay credentials from config instead of hardcoded live/test values.
 - Student dashboard Razorpay fee page uses a shared country-to-fee-column/currency map so OMAN and other configured countries calculate both single-level and next-3-level payment amounts safely.
 - Payment Level master now includes kuwait_fees; Kuwait students map to kuwait_fees and KWD for next fee calculations.

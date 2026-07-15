@@ -124,23 +124,23 @@
                                             SINGAPORE
                                         </option>
                                         <option value="QATAR"
-                                            {{ isset($batch) && in_array('QATAR', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('QATAR', $batch->country ?? []) ? 'selected' : '' }}>
                                             QATAR
                                         </option>
                                         <option value="BAHRAIN"
-                                            {{ isset($batch) && in_array('BAHRAIN', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('BAHRAIN', $batch->country ?? []) ? 'selected' : '' }}>
                                             BAHRAIN
                                         </option>
                                         <option value="KUWAIT"
-                                            {{ isset($batch) && in_array('KUWAIT', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('KUWAIT', $batch->country ?? []) ? 'selected' : '' }}>
                                             KUWAIT
                                         </option>
                                         <option value="EUROPEAN UNION"
-                                            {{ isset($batch) && in_array('EUROPEAN UNION', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('EUROPEAN UNION', $batch->country ?? []) ? 'selected' : '' }}>
                                             EUROPEAN UNION
                                         </option>
                                         <option value="OMAN"
-                                            {{ isset($batch) && in_array('OMAN', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('OMAN', $batch->country ?? []) ? 'selected' : '' }}>
                                             OMAN
                                         </option>
                                     @else

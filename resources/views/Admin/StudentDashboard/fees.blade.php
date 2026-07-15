@@ -118,7 +118,7 @@
     @endphp
     @if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
         @php
-            $student_country = strtoupper(trim((string) $student->country));
+            $student_country = normalizeCountryValue($student->country);
             $paymentCountryMap = [
                 'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
                 'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],

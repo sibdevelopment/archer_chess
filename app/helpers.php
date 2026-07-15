@@ -558,6 +558,86 @@ function getCourcePricing()
     ];
 }
 
+function normalizeCountryValue($country): string
+{
+    $country = trim((string) $country);
+
+    if ($country === '') {
+        return '';
+    }
+
+    $key = preg_replace('/[^A-Z0-9]/', '', strtoupper($country));
+
+    $aliases = [
+        'USA' => 'USA',
+        'UNITEDSTATES' => 'USA',
+        'UNITEDSTATESOFAMERICA' => 'USA',
+        'CANADA' => 'CANADA',
+        'AUSTRALIA' => 'AUSTRALIA',
+        'NEWZEALAND' => 'NEWZEALAND',
+        'INDIA' => 'INDIA',
+        'UAE' => 'UAE',
+        'UNITEDARABEMIRATES' => 'UAE',
+        'UK' => 'UK',
+        'UNITEDKINGDOM' => 'UK',
+        'SINGAPORE' => 'SINGAPORE',
+        'SOUTHAFRICA' => 'SOUTH AFRICA',
+        'QATAR' => 'QATAR',
+        'BAHRAIN' => 'BAHRAIN',
+        'KUWAIT' => 'KUWAIT',
+        'EUROPEANUNION' => 'EUROPEAN UNION',
+        'OMAN' => 'OMAN',
+    ];
+
+    return $aliases[$key] ?? preg_replace('/\s+/', ' ', strtoupper($country));
+}
+
+function normalizeCountryValues($countries): array
+{
+    if (is_string($countries)) {
+        $decoded = json_decode($countries, true);
+        $countries = json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+            ? $decoded
+            : explode(',', $countries);
+    }
+
+    if (! is_array($countries)) {
+        $countries = [$countries];
+    }
+
+    return collect($countries)
+        ->map(fn ($country) => normalizeCountryValue($country))
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+}
+
+function countryComparisonValues($country): array
+{
+    $canonical = normalizeCountryValue($country);
+    $values = [$canonical];
+
+    $aliases = [
+        'NEWZEALAND' => ['NEW ZEALAND', 'New Zealand'],
+        'SOUTH AFRICA' => ['SOUTHAFRICA', 'South Africa'],
+        'EUROPEAN UNION' => ['EUROPEANUNION', 'European Union'],
+    ];
+
+    return collect(array_merge($values, $aliases[$canonical] ?? []))
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
+}
+
+function countryDisplayName($country): string
+{
+    $country = normalizeCountryValue($country);
+
+    return $country === 'NEWZEALAND' ? 'NEW ZEALAND' : $country;
+}
+
 function getTimezones()
 {
     return [
@@ -616,6 +696,9 @@ function getTimezones()
 
         'QATAR'   => [
             'Arabian Standard Time' => 'Arabian Standard Time',
+        ],
+        'SOUTH AFRICA' => [
+            'South Africa Standard Time' => 'South Africa Standard Time',
         ],
         'SOUTHAFRICA' => [
             'South Africa Standard Time' => 'South Africa Standard Time',

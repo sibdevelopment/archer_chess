@@ -27,25 +27,26 @@ class NewEnrollmentController extends Controller
             return $query;
         }
 
-        return $query->whereNotNull('country')->where(function ($query) use ($country) {
-            $query->whereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($country)])
-                ->orWhere(function ($query) use ($country) {
-                    $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($country) {
-                        $query->where('country', $country)
-                            ->orWhereRaw('FIND_IN_SET(?, country)', [$country]);
+        $countryValues = countryComparisonValues($country);
+
+        return $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+            foreach ($countryValues as $countryValue) {
+                $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                    ->orWhere(function ($query) use ($countryValue) {
+                        $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($countryValue) {
+                            $query->where('country', $countryValue)
+                                ->orWhereRaw('FIND_IN_SET(?, country)', [$countryValue]);
+                        });
                     });
-                });
+            }
         });
     }
 
     private function batchContainsStudentCountry(Batch $batch, Student $student): bool
     {
-        $countries = is_array($batch->country) ? $batch->country : json_decode($batch->country, true);
-        if (! is_array($countries)) {
-            $countries = array_filter(array_map('trim', explode(',', (string) $batch->country)));
-        }
+        $countries = normalizeCountryValues($batch->country);
 
-        return in_array($student->country, $countries);
+        return in_array(normalizeCountryValue($student->country), $countries, true);
     }
 
     private function directAssignStudentToRealBatch(Student $student, Batch $batch, StudentFee $studentFee): array
@@ -179,7 +180,7 @@ class NewEnrollmentController extends Controller
 
         if ($request->filled('country')) {
             $query->whereHas('student', function ($q) use ($request) {
-                $q->where('country', $request->country);
+                $q->whereIn('country', countryComparisonValues($request->country));
             });
         }
 

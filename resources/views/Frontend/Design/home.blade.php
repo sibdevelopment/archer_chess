@@ -1659,17 +1659,17 @@
                                     <select name="country" class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600 revamp-country" required>
                                         <option value="">Select Country</option>
                                         <option value="USA">USA</option>
-                                        <option value="Canada">Canada</option>
-                                        <option value="Australia">Australia</option>
-                                        <option value="New Zealand">New Zealand</option>
-                                        <option value="India">India</option>
+                                        <option value="CANADA">Canada</option>
+                                        <option value="AUSTRALIA">Australia</option>
+                                        <option value="NEWZEALAND">New Zealand</option>
+                                        <option value="INDIA">India</option>
                                         <option value="UAE">UAE</option>
                                         <option value="UK">UK</option>
-                                        <option value="Singapore">Singapore</option>
-                                        <option value="South Africa">South Africa</option>
-                                        <option value="Qatar">Qatar</option>
-                                        <option value="Bahrain">Bahrain</option>
-                                        <option value="Kuwait">Kuwait</option>
+                                        <option value="SINGAPORE">Singapore</option>
+                                        <option value="SOUTH AFRICA">South Africa</option>
+                                        <option value="QATAR">Qatar</option>
+                                        <option value="BAHRAIN">Bahrain</option>
+                                        <option value="KUWAIT">Kuwait</option>
                                     </select>
                                 </div>
 

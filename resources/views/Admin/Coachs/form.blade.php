@@ -47,11 +47,11 @@ Coach
                                 <option value="UAE" {{ (isset($coach) && in_array('UAE', $coach->country ?? [])) ? 'selected' : '' }}>UAE</option>
                                 <option value="UK" {{ (isset($coach) && in_array('UK', $coach->country ?? [])) ? 'selected' : '' }}>UK</option>
                                 <option value="SINGAPORE" {{ (isset($coach) && in_array('SINGAPORE', $coach->country ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
-                                <option value="QATAR" {{ (isset($coach) && in_array('QATAR', $coach->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
-                                <option value="BAHRAIN" {{ (isset($coach) && in_array('BAHRAIN', $coach->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
-                                <option value="KUWAIT" {{ (isset($coach) && in_array('KUWAIT', $coach->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>
-                                <option value="EUROPEAN UNION" {{ (isset($coach) && in_array('EUROPEAN UNION', $coach->countries ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
-                                <option value="OMAN" {{ (isset($coach) && in_array('OMAN', $coach->countries ?? [])) ? 'selected' : '' }}>OMAN</option>
+                                <option value="QATAR" {{ (isset($coach) && in_array('QATAR', $coach->country ?? [])) ? 'selected' : '' }}>QATAR</option>
+                                <option value="BAHRAIN" {{ (isset($coach) && in_array('BAHRAIN', $coach->country ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
+                                <option value="KUWAIT" {{ (isset($coach) && in_array('KUWAIT', $coach->country ?? [])) ? 'selected' : '' }}>KUWAIT</option>
+                                <option value="EUROPEAN UNION" {{ (isset($coach) && in_array('EUROPEAN UNION', $coach->country ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
+                                <option value="OMAN" {{ (isset($coach) && in_array('OMAN', $coach->country ?? [])) ? 'selected' : '' }}>OMAN</option>
                             </select>
                             <div id="country-error" style="color:red"></div>
                         </div>

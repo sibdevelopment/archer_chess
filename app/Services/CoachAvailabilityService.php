@@ -216,21 +216,7 @@ class CoachAvailabilityService
 
     public function normalizeCountries($countries): array
     {
-        if (is_string($countries)) {
-            $decoded = json_decode($countries, true);
-            $countries = is_array($decoded) ? $decoded : explode(',', $countries);
-        }
-
-        if (!is_array($countries)) {
-            return [];
-        }
-
-        return collect($countries)
-            ->filter()
-            ->map(fn ($country) => strtoupper(trim($country)))
-            ->unique()
-            ->values()
-            ->all();
+        return normalizeCountryValues($countries);
     }
 
     private function realBatchConflictByWeekday(

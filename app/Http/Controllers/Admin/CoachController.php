@@ -54,12 +54,14 @@ class CoachController extends Controller
         }
 
         if ($request->country) {
-            $country = $request->country;
-            $query->whereNotNull('country')->where(function ($query) use ($country) {
-                $query->whereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $country . '"]'])
-                    ->orWhere(function ($query) use ($country) {
-                        $query->whereRaw('NOT json_valid(country)')->where('country', $country);
-                    });
+            $countryValues = countryComparisonValues($request->country);
+            $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+                foreach ($countryValues as $countryValue) {
+                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                        ->orWhere(function ($query) use ($countryValue) {
+                            $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                        });
+                }
             });
         }
 
@@ -249,6 +251,9 @@ class CoachController extends Controller
     {
         // dd($request->all());
         $request->validate($this->rules, $this->customMessages);
+        $request->merge([
+            'country' => normalizeCountryValues($request->input('country', [])),
+        ]);
 
         // New User ::
         $user = new User;
@@ -294,6 +299,9 @@ class CoachController extends Controller
         $this->rules['portal_id'] = 'sometimes|nullable|unique:coachs,portal_id,' . $coach->id;
 
         $request->validate($this->rules, $this->customMessages);
+        $request->merge([
+            'country' => normalizeCountryValues($request->input('country', [])),
+        ]);
         $user = User::find($coach->user_id);
         $user->fill($request->all());
         if ($request->password) {

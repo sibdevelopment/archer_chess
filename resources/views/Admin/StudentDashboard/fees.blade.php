@@ -138,6 +138,7 @@
             $feeColumn = $paymentCountry['column'];
             $currency = $paymentCountry['currency'];
             $nextPaymentLevelAmount = $feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0;
+            $canPayNextPaymentLevel = $currency && (float) $nextPaymentLevelAmount > 0;
 
         @endphp
         <div class="container-fluid mt-4">
@@ -157,11 +158,17 @@
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
                         </button> --}}
 
-                        {{-- Razorpay Payment Button --}}
-                        <button class="btn btn-success pay-now-btn"
-                            onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
-                        </button> 
+                        @if ($canPayNextPaymentLevel)
+                            {{-- Razorpay Payment Button --}}
+                            <button class="btn btn-success pay-now-btn"
+                                onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
+                                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                            </button>
+                        @else
+                            <div class="text-danger text-end">
+                                Payment amount is not configured for {{ $student->country }}.
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -170,6 +177,7 @@
             @php
                 $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
                 $nextThreePaymentLevelsAmount = $feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0;
+                $canPayNextThreePaymentLevels = $currency && (float) $nextThreePaymentLevelsAmount > 0;
             @endphp
             <div class="card shadow-lg border-0 rounded-lg">
                 <div class="card-body">
@@ -181,11 +189,17 @@
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
                             {{ $currency }}
                         </button> --}}
-                        <button class="btn btn-primary pay-now-btn"
-                            onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
-                            {{ $currency }}
-                        </button>
+                        @if ($canPayNextThreePaymentLevels)
+                            <button class="btn btn-primary pay-now-btn"
+                                onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+                                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                                {{ $currency }}
+                            </button>
+                        @else
+                            <div class="text-danger text-end">
+                                Payment amount is not configured for {{ $student->country }}.
+                            </div>
+                        @endif
                         {{-- <button class="btn btn-primary pay-now-btn hdfc-btn" data-amount="{{ $nextThreePaymentLevelsAmount }}">
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
                             {{ $currency }}
@@ -422,6 +436,12 @@
 
         function payWithRazorpay(amount, description, currency, paymentLevelId) {
             const studentCountry = '{{ strtoupper(trim($student->country ?? '')) }}';
+            amount = Number(amount);
+
+            if (!currency || !amount || amount <= 0) {
+                alert('Payment amount is not configured. Please contact admin.');
+                return;
+            }
 
             const options = {
                 key: "{{ config('services.razorpay.key') }}",

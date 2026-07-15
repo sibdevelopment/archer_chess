@@ -541,11 +541,17 @@
                             <ul
                                 class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
                                 <li class="position-relative">
-                                    <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                        href="/admin/students/{{ $student_payment->student_id }}/student_fees"
-                                        target="_blank">
-                                        <span class="text-center w-100"> Check Fees Details</span>
-                                    </a>
+                                    @if ($student_payment->studentFee)
+                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
+                                            href="/admin/students/{{ $student_payment->student_id }}/student_fees"
+                                            target="_blank">
+                                            <span class="text-center w-100"> Check Fees Details</span>
+                                        </a>
+                                    @else
+                                        <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
+                                            No fee created
+                                        </span>
+                                    @endif
                                 </li>
                             </ul>
                         </div>

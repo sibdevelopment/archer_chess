@@ -118,44 +118,25 @@
     @endphp
     @if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
         @php
-            $student_country = $student->country;
-            $nextPaymentLevelAmount = '0';
-            $currency = '';
-            if ($student_country == 'USA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->usa_fees;
-                $currency = 'USD';
-            } elseif ($student_country == 'CANADA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->canada_fees;
-                $currency = 'CAD';
-            } elseif ($student_country == 'AUSTRALIA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->australia_fees;
-                $currency = 'AUD';
-            } elseif ($student_country == 'NEW ZEALAND') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->newzealand_fees;
-                $currency = '';
-            } elseif ($student_country == 'INDIA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->india_fees;
-                $currency = 'INR';
-            } elseif ($student_country == 'UAE') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->uae_fees;
-                $currency = 'AED';
-            } elseif ($student_country == 'UK') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->uk_fees;
-                $currency = 'GBP';
-            }elseif ($student_country == 'QATAR') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->qatar_fees;
-                $currency = 'QAR';
-            }elseif ($student_country == 'SINGAPORE') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->singapore_fees;
-                $currency = 'SGD';
-            }elseif ($student_country == 'EUROPEAN UNION') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->european_union_fees;
-                $currency = 'EUR';
-            }elseif ($student_country == 'OMAN') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->oman_fees;
-                $currency = 'OMR';
-            }
-            // $currency = 'INR';
+            $student_country = strtoupper(trim((string) $student->country));
+            $paymentCountryMap = [
+                'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
+                'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],
+                'AUSTRALIA' => ['column' => 'australia_fees', 'currency' => 'AUD'],
+                'NEW ZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
+                'NEWZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
+                'INDIA' => ['column' => 'india_fees', 'currency' => 'INR'],
+                'UAE' => ['column' => 'uae_fees', 'currency' => 'AED'],
+                'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
+                'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
+                'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
+                'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
+                'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
+            ];
+            $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
+            $feeColumn = $paymentCountry['column'];
+            $currency = $paymentCountry['currency'];
+            $nextPaymentLevelAmount = $feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0;
 
         @endphp
         <div class="container-fluid mt-4">
@@ -187,28 +168,7 @@
             <!-- Next 3 Payment Levels Section -->
             @php
                 $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
-                if ($student_country == 'USA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('usa_fees');
-                } elseif ($student_country == 'CANADA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('canada_fees');
-                } elseif ($student_country == 'AUSTRALIA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('australia_fees');
-                } elseif ($student_country == 'NEW ZEALAND') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('newzealand_fees');
-                } elseif ($student_country == 'INDIA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('india_fees');
-                } elseif ($student_country == 'UAE') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uae_fees');
-                } elseif ($student_country == 'UK') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uk_fees');
-                } elseif ($student_country == 'QATAR') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('qatar_fees');
-                } elseif ($student_country == 'SINGAPORE') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('singapore_fees');
-                } elseif ($student_country == 'EUROPEAN UNION') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('european_union_fees');
-                } elseif ($student_country == 'OMAN') {
-                } 
+                $nextThreePaymentLevelsAmount = $feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0;
             @endphp
             <div class="card shadow-lg border-0 rounded-lg">
                 <div class="card-body">
@@ -233,31 +193,7 @@
                     <ul class="list-group list-group-flush">
                         @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
                             @php
-                                if ($student_country == 'USA') {
-                                    $amount = $nextThreePaymentLevel->usa_fees;
-                                } elseif ($student_country == 'CANADA') {
-                                    $amount = $nextThreePaymentLevel->canada_fees;
-                                } elseif ($student_country == 'AUSTRALIA') {
-                                    $amount = $nextThreePaymentLevel->australia_fees;
-                                } elseif ($student_country == 'NEW ZEALAND') {
-                                    $amount = $nextThreePaymentLevel->newzealand_fees;
-                                } elseif ($student_country == 'INDIA') {
-                                    $amount = $nextThreePaymentLevel->india_fees;
-                                } elseif ($student_country == 'UAE') {
-                                    $amount = $nextThreePaymentLevel->uae_fees;
-                                } elseif ($student_country == 'UK') {
-                                    $amount = $nextThreePaymentLevel->uk_fees;
-                                } elseif ($student_country == 'UK') {
-                                    $amount = $nextThreePaymentLevel->uk_fees;
-                                } elseif ($student_country == 'QATAR') {
-                                    $amount = $nextThreePaymentLevel->qatar_fees;
-                                } elseif ($student_country == 'SINGAPORE') {
-                                    $amount = $nextThreePaymentLevel->singapore_fees;
-                                } elseif ($student_country == 'EUROPEAN UNION') {
-                                    $amount = $nextThreePaymentLevel->european_union_fees;
-                                } elseif ($student_country == 'OMAN') {
-                                    $amount = $nextThreePaymentLevel->oman_fees;
-                                } 
+                                $amount = $feeColumn ? ($nextThreePaymentLevel->{$feeColumn} ?? 0) : 0;
                             @endphp
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>

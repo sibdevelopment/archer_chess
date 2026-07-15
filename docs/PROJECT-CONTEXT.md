@@ -548,6 +548,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Razorpay credentials are environment-configurable through RAZORPAY_KEY and RAZORPAY_SECRET, exposed via config/services.php as services.razorpay.
 - Student checkout JS, /razorpay/verify, and check:payment now read Razorpay credentials from config instead of hardcoded live/test values.
 - Student dashboard Razorpay fee page uses a shared country-to-fee-column/currency map so OMAN and other configured countries calculate both single-level and next-3-level payment amounts safely.
+- Payment Level master now includes kuwait_fees; Kuwait students map to kuwait_fees and KWD for next fee calculations.
 - Client confirmed Razorpay payments should credit a 30-day inclusive fee window: payment date as start_date plus the next 29 days as end_date.
 - Razorpay success now saves currency into both orders.currency and student_fees.currency.
 - Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.

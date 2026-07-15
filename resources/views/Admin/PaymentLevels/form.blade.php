@@ -134,6 +134,13 @@
                                     value="{{ old('oman_fees', isset($paymentlevel) ? $paymentlevel->oman_fees : '') }}" />
                                 <div id="oman_fees-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">KUWAIT (KWD)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees" name="kuwait_fees"
+                                    id="kuwait_fees"
+                                    value="{{ old('kuwait_fees', isset($paymentlevel) ? $paymentlevel->kuwait_fees : '') }}" />
+                                <div id="kuwait_fees-error" style="color:red"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">

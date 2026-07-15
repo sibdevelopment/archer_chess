@@ -59,6 +59,7 @@
                                         <th width="5%">SGP</th>
                                         <th width="5%">EU</th>
                                         <th width="5%">OMN</th>
+                                        <th width="5%">KWT</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -166,6 +167,11 @@
                     {
                         data: 'oman_fees',
                         name: 'oman_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'kuwait_fees',
+                        name: 'kuwait_fees',
                         orderable: false
                     }
                 ],

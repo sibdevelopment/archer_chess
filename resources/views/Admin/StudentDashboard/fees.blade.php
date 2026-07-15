@@ -132,6 +132,7 @@
                 'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
                 'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
                 'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
+                'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
             ];
             $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];

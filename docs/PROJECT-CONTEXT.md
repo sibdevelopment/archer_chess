@@ -587,7 +587,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp contact AJAX success now redirects to the old thank-you route to preserve thank-you URL based tracking.
 - Revamp trial thank-you page now fires only the CompleteRegistration event on top of the layout's base Pixel PageView, avoiding duplicate Pixel bootstrap/PageView code.
 - Revamp editor-rendered HTML uses a common .cms-content wrapper to restore normal paragraphs/lists/links/tables/images and neutralize sticky/fixed classes inside admin-authored content.
-- Blog details description is rendered inside .cms-content so Summernote/admin-designed HTML is not distorted by revamp parent styles.
+- Blog details description is rendered inside an auto-height iframe sourced from a template, so admin-authored blog HTML/CSS stays isolated from the revamp page header/sidebar while keeping the blog's own design.
 - Revamp header/nav JS uses .js-revamp-site-header as its scope so page-wide header/nav scripts do not mutate editor-rendered blog content.
 ```
 

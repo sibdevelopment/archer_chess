@@ -39,12 +39,14 @@
         $image = $blog->main_img ?: $blog->cover_img;
         $imageUrl = $image ? asset(Storage::url($image)) : '/frontend1/tcul-img/img/blog2.png';
         $blogDate = $blog->date ? \Carbon\Carbon::parse($blog->date)->format('d F, Y') : '';
+        $descriptionFrameId = 'blog-description-frame-' . $blog->id;
+        $descriptionTemplateId = 'blog-description-template-' . $blog->id;
     @endphp
 
     <div class="py-110">
         <div class="container-fluid px-4 px-xl-5">
             <div class="row gy-5 gx-xl-5 justify-content-between">
-                <div class="col-xl-9 col-lg-8">
+                <div class="col-xl-8 col-lg-8">
                     <div>
                         <img src="{{ $imageUrl }}" alt="{{ $blog->title }}" class="bg-img tw-mb-10">
                         <div class="d-flex align-items-center tw-gap-3 flex-wrap tw-mb-6">
@@ -64,9 +66,60 @@
                         <h4 class="fw-bold text-neutral-950 tw-text-44-px tw-mb-6">
                             {{ $blog->title }}
                         </h4>
-                        <div class="cms-content revamp-blog-description fw-normal tw-text-405 text-paragraph-500 tw-mb-7">
+                        <template id="{{ $descriptionTemplateId }}">
                             {!! $blog->description !!}
-                        </div>
+                        </template>
+                        <iframe id="{{ $descriptionFrameId }}" class="revamp-blog-description-frame tw-mb-7"
+                            title="{{ $blog->title }} content" loading="lazy"
+                            style="width: 100%; min-height: 240px; border: 0; display: block; overflow: hidden;"></iframe>
+                        <script>
+                            (function() {
+                                var frame = document.getElementById(@json($descriptionFrameId));
+                                var template = document.getElementById(@json($descriptionTemplateId));
+
+                                if (!frame || !template) {
+                                    return;
+                                }
+
+                                var frameDoc = '<!doctype html><html><head>' +
+                                    '<meta charset="utf-8">' +
+                                    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+                                    '<base target="_top">' +
+                                    '<style>' +
+                                    'html,body{margin:0;padding:0;overflow:hidden;background:transparent;}' +
+                                    'body{font-family:Arial,sans-serif;color:#1f2937;line-height:1.6;}' +
+                                    '*,*::before,*::after{box-sizing:border-box;}' +
+                                    'img,video,iframe{max-width:100%;height:auto;}' +
+                                    'table{width:100%;max-width:100%;border-collapse:collapse;}' +
+                                    '</style>' +
+                                    '</head><body>' +
+                                    template.innerHTML +
+                                    '<script>' +
+                                    '(function(){' +
+                                    'function sendHeight(){' +
+                                    'var body=document.body,html=document.documentElement;' +
+                                    'var height=Math.max(body.scrollHeight,body.offsetHeight,html.clientHeight,html.scrollHeight,html.offsetHeight);' +
+                                    'parent.postMessage({type:"revamp-blog-description-height",id:' + JSON.stringify(frame.id) + ',height:height},"*");' +
+                                    '}' +
+                                    'window.addEventListener("load",sendHeight);' +
+                                    'if("ResizeObserver" in window){new ResizeObserver(sendHeight).observe(document.body);}' +
+                                    'setTimeout(sendHeight,300);setTimeout(sendHeight,1000);' +
+                                    '})();' +
+                                    '<\/script>' +
+                                    '</body></html>';
+
+                                window.addEventListener('message', function(event) {
+                                    if (!event.data || event.data.type !== 'revamp-blog-description-height' || event.data.id !== frame.id) {
+                                        return;
+                                    }
+
+                                    var height = parseInt(event.data.height, 10);
+                                    frame.style.height = Math.max(height || 0, 240) + 'px';
+                                });
+
+                                frame.srcdoc = frameDoc;
+                            })();
+                        </script>
                     </div>
                 </div>
                 <div class="col-xl-3 col-lg-4 ms-xl-auto">

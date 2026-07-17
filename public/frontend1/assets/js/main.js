@@ -5,10 +5,12 @@
   //      Start Document Ready function
   // ==========================================
   $(document).ready(function () {
+    var $siteHeader = $(".js-revamp-site-header");
     // ============== Mobile Nav Menu Dropdown Js Start =======================
     function toggleSubMenu() {
+      var $headerSubmenus = $siteHeader.find(".has-submenu");
       if ($(window).width() <= 991) {
-        $(".has-submenu")
+        $headerSubmenus
           .off("click")
           .on("click", function () {
             $(this)
@@ -20,7 +22,7 @@
             $(this).find(".nav-submenu").stop(true, true).slideToggle(300);
           });
       } else {
-        $(".has-submenu").off("click");
+        $headerSubmenus.off("click");
       }
     }
 
@@ -94,8 +96,9 @@
       }
     }
 
-    if ($("ul").length) {
-      dynamicActiveMenuClass($("ul"));
+    var $siteNavMenus = $siteHeader.find(".nav-menu");
+    if ($siteNavMenus.length) {
+      dynamicActiveMenuClass($siteNavMenus);
     }
     // ========================== add active class to navbar menu current page Js End =====================
 
@@ -584,9 +587,9 @@
   // ========================= Header Sticky Js Start ==============
   $(window).on("scroll", function () {
     if ($(window).scrollTop() >= 260) {
-      $(".header").addClass("fixed-header");
+      $(".js-revamp-site-header").addClass("fixed-header");
     } else {
-      $(".header").removeClass("fixed-header");
+      $(".js-revamp-site-header").removeClass("fixed-header");
     }
   });
   // ========================= Header Sticky Js End===================

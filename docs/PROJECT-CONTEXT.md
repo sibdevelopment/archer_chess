@@ -588,6 +588,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp trial thank-you page now fires only the CompleteRegistration event on top of the layout's base Pixel PageView, avoiding duplicate Pixel bootstrap/PageView code.
 - Revamp editor-rendered HTML uses a common .cms-content wrapper to restore normal paragraphs/lists/links/tables/images and neutralize sticky/fixed classes inside admin-authored content.
 - Blog details description is rendered inside .cms-content so Summernote/admin-designed HTML is not distorted by revamp parent styles.
+- Revamp header/nav JS uses .js-revamp-site-header as its scope so page-wide header/nav scripts do not mutate editor-rendered blog content.
 ```
 
 Known route/test caveats from prior analysis:

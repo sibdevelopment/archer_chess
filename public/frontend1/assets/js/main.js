@@ -583,11 +583,10 @@
 
   // ========================= Header Sticky Js Start ==============
   $(window).on("scroll", function () {
-    var $siteHeader = $("#revampSiteHeader");
     if ($(window).scrollTop() >= 260) {
-      $siteHeader.addClass("fixed-header");
+      $(".header").addClass("fixed-header");
     } else {
-      $siteHeader.removeClass("fixed-header");
+      $(".header").removeClass("fixed-header");
     }
   });
   // ========================= Header Sticky Js End===================

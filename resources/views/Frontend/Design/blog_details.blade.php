@@ -6,24 +6,6 @@
         <meta name="description" content="{{ $blog->meta_description ?: $blog->short_description }}" />
     @endpush
 
-    @section('head')
-        <style>
-            .revamp-blog-description .header,
-            .revamp-blog-description .header.fixed-header,
-            .revamp-blog-description .header-fixed,
-            .revamp-blog-description .fixed-header,
-            .revamp-blog-description .sticky,
-            .revamp-blog-description .sticky-top,
-            .revamp-blog-description .sticky-lg-top {
-                position: static !important;
-                top: auto !important;
-                inset-block-start: auto !important;
-                z-index: auto !important;
-                animation: none !important;
-            }
-        </style>
-    @endsection
-
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
         <img src="/frontend1/assets/images/shape/banner-shape2.png" alt="shape"
             class="position-absolute bottom-0 tw-start-0 w-100">
@@ -82,7 +64,7 @@
                         <h4 class="fw-bold text-neutral-950 tw-text-44-px tw-mb-6">
                             {{ $blog->title }}
                         </h4>
-                        <div class="revamp-blog-description fw-normal tw-text-405 text-paragraph-500 tw-mb-7">
+                        <div class="cms-content revamp-blog-description fw-normal tw-text-405 text-paragraph-500 tw-mb-7">
                             {!! $blog->description !!}
                         </div>
                     </div>

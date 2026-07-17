@@ -359,6 +359,80 @@
                 left: 120px !important;
             }
         }
+
+        .cms-content {
+            color: inherit;
+            line-height: 1.6;
+        }
+
+        .cms-content p {
+            margin: 0 0 1rem;
+        }
+
+        .cms-content ul {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 0 0 1rem;
+        }
+
+        .cms-content ol {
+            list-style: decimal;
+            padding-left: 1.5rem;
+            margin: 0 0 1rem;
+        }
+
+        .cms-content li {
+            margin-bottom: 0.35rem;
+        }
+
+        .cms-content a {
+            display: inline;
+            text-decoration: underline;
+        }
+
+        .cms-content span {
+            display: inline;
+        }
+
+        .cms-content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .cms-content table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .cms-content th,
+        .cms-content td {
+            border: 1px solid #dee2e6;
+            padding: 0.5rem;
+        }
+
+        .cms-content blockquote {
+            margin: 0 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid #dee2e6;
+        }
+
+        .cms-content .header,
+        .cms-content .header.fixed-header,
+        .cms-content .header-fixed,
+        .cms-content .fixed-header,
+        .cms-content .sticky,
+        .cms-content .sticky-top,
+        .cms-content .sticky-lg-top,
+        .cms-content .position-fixed,
+        .cms-content .position-sticky {
+            position: static !important;
+            top: auto !important;
+            inset-block-start: auto !important;
+            z-index: auto !important;
+            animation: none !important;
+        }
     </style>
 </head>
 
@@ -687,7 +761,7 @@
 
 
     <!-- ==================== Header Start Here ==================== -->
-    <header id="revampSiteHeader" class="header bg-main-two-200 tw-transition-all tw-z-99">
+    <header class="header bg-main-two-200 tw-transition-all tw-z-99">
         <div class="container container-two">
             <nav
                 class="d-flex align-items-center justify-content-between position-relative bg-white tw-p-4 tw-rounded-bottom-16-px mobile-center mobile-logo-space">

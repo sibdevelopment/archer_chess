@@ -42,9 +42,9 @@
     @endphp
 
     <div class="py-110">
-        <div class="container">
+        <div class="container-fluid px-4 px-xl-5">
             <div class="row gy-5 gx-xl-5 justify-content-between">
-                <div class="col-xl-8 col-lg-7">
+                <div class="col-xl-8 col-lg-8">
                     <div>
                         <img src="{{ $imageUrl }}" alt="{{ $blog->title }}" class="bg-img tw-mb-10">
                         <div class="d-flex align-items-center tw-gap-3 flex-wrap tw-mb-6">
@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-lg-4 offset-xl-1">
+                <div class="col-xl-3 col-lg-4 ms-xl-auto">
                     <div class="tw-py-705 tw-ps-705 tw-pe-6 border tw-rounded-xl tw-mb-10 sticky-lg-top" style="top: 120px;">
                         <h5 class="fw-bold text-neutral-950 tw-mb-6">Recent Blogs</h5>
                         @forelse ($similarBlogs as $similarBlog)

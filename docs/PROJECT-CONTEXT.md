@@ -582,6 +582,10 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp layout links point to live routes instead of /design preview URLs where those routes have replacements.
 - Revamp header Login links to the old login page; Register and trial CTAs still open the lead registration popup.
 - Trial booking thank-you route now renders a revamp-style page while keeping the old student login context/functionality.
+- Revamp layout now carries the same GTM/Meta Pixel base tags as the old website and yields page-specific head code, so thank-you conversion tags can render.
+- Revamp register popup country option values are normalized to the same keys used by the timezone/dial-code maps, fixing country/timezone mismatch in the popup.
+- Revamp contact AJAX success now redirects to the old thank-you route to preserve thank-you URL based tracking.
+- Revamp trial thank-you page now fires only the CompleteRegistration event on top of the layout's base Pixel PageView, avoiding duplicate Pixel bootstrap/PageView code.
 ```
 
 Known route/test caveats from prior analysis:

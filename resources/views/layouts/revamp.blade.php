@@ -13,7 +13,53 @@
     <meta name="robots" content="index, follow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Title -->
-    <title>{{ config('app.name') }}</title>
+    <title>@yield('title', config('app.name'))</title>
+    <!-- Google Tag Manager -->
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s),
+                dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-PZ3VKNXF');
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Meta Pixel Code -->
+    <script>
+        ! function(f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function() {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '777952784455654');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=777952784455654&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
+    @yield('head')
     <!-- Favicon -->
     <link rel="icon" href="/frontend/tcul_img/home/archer_favicon.png" type="image/png">
     <!-- Bootstrap -->
@@ -317,6 +363,10 @@
 </head>
 
 <body style="overflow-x: hidden;">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PZ3VKNXF" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
     <div class="tcul-floating_btn_contact" style="right: 130px;">
         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal">
@@ -1089,17 +1139,17 @@
                                 <select name="country" class="form-control border-0 tw-py-3 revamp-country" required>
                                     <option value="">Select Country</option>
                                     <option value="USA">USA</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="Australia">Australia</option>
-                                    <option value="New Zealand">New Zealand</option>
-                                    <option value="India">India</option>
+                                    <option value="CANADA">Canada</option>
+                                    <option value="AUSTRALIA">Australia</option>
+                                    <option value="NEWZEALAND">New Zealand</option>
+                                    <option value="INDIA">India</option>
                                     <option value="UAE">UAE</option>
                                     <option value="UK">UK</option>
-                                    <option value="Singapore">Singapore</option>
-                                    <option value="South Africa">South Africa</option>
-                                    <option value="Qatar">Qatar</option>
-                                    <option value="Bahrain">Bahrain</option>
-                                    <option value="Kuwait">Kuwait</option>
+                                    <option value="SINGAPORE">Singapore</option>
+                                    <option value="SOUTH AFRICA">South Africa</option>
+                                    <option value="QATAR">Qatar</option>
+                                    <option value="BAHRAIN">Bahrain</option>
+                                    <option value="KUWAIT">Kuwait</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -1775,7 +1825,7 @@
                     data: $form.serialize() + (csrfToken ? '&_token=' + encodeURIComponent(csrfToken) : ''),
                     success: function (response) {
                         setMessage($form, '.revamp-contact-message', response.message || 'Your enquiry has been submitted successfully.', false);
-                        $form[0].reset();
+                        window.location.href = "{{ route('thankyou') }}";
                     },
                     error: function (xhr) {
                         const message = firstErrorMessage(xhr.responseJSON && xhr.responseJSON.errors, 'Unable to submit enquiry. Please check the details and try again.');

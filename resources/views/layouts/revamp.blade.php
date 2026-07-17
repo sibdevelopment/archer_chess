@@ -687,7 +687,7 @@
 
 
     <!-- ==================== Header Start Here ==================== -->
-    <header class="header bg-main-two-200 tw-transition-all tw-z-99">
+    <header id="revampSiteHeader" class="header bg-main-two-200 tw-transition-all tw-z-99">
         <div class="container container-two">
             <nav
                 class="d-flex align-items-center justify-content-between position-relative bg-white tw-p-4 tw-rounded-bottom-16-px mobile-center mobile-logo-space">

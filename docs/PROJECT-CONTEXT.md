@@ -586,6 +586,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp register popup country option values are normalized to the same keys used by the timezone/dial-code maps, fixing country/timezone mismatch in the popup.
 - Revamp contact AJAX success now redirects to the old thank-you route to preserve thank-you URL based tracking.
 - Revamp trial thank-you page now fires only the CompleteRegistration event on top of the layout's base Pixel PageView, avoiding duplicate Pixel bootstrap/PageView code.
+- Revamp sticky header behavior is scoped to #revampSiteHeader instead of all .header elements, preventing embedded blog/header HTML from becoming sticky inside blog content.
 ```
 
 Known route/test caveats from prior analysis:

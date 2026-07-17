@@ -94,6 +94,13 @@
                                     '</style>' +
                                     '</head><body>' +
                                     template.innerHTML +
+                                    '<style>' +
+                                    '.hero{min-height:auto!important;padding:56px 6% 44px!important;}' +
+                                    '.hero-left{padding-bottom:0!important;}' +
+                                    '.hero-inner{align-items:center!important;gap:32px!important;}' +
+                                    '.hero-right img{height:min(300px,42vw)!important;}' +
+                                    '@media(max-width:767px){.hero{padding:40px 5% 32px!important;}.hero-inner{gap:24px!important;}.hero-right img{height:240px!important;}}' +
+                                    '</style>' +
                                     '<script>' +
                                     '(function(){' +
                                     'function sendHeight(){' +

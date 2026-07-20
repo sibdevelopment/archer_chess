@@ -417,11 +417,12 @@
     <!-- Include Razorpay Script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-        function recordRazorpayFailure(error, amount, currency, paymentLevelId) {
+        function recordRazorpayFailure(error, amount, currency, paymentLevelId, localOrderId) {
             fetch('/razorpay/failure', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
@@ -429,7 +430,8 @@
                     amount: amount,
                     student_id: {{ isset($student) ? $student->id : 0 }},
                     currency: currency,
-                    payment_level_id: paymentLevelId
+                    payment_level_id: paymentLevelId,
+                    local_order_id: localOrderId
                 })
             }).catch(function(err) {
                 console.error("Payment failure record error:", err);
@@ -448,7 +450,28 @@
             const threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
             const amountInSubunits = Math.round(amount * (threeDecimalCurrencies.includes(currency) ? 1000 : 100));
 
-            const options = {
+            fetch('/razorpay/initiate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    currency: currency,
+                    student_id: {{ isset($student) ? $student->id : 0 }},
+                    payment_level_id: paymentLevelId
+                })
+            }).then(res => res.json()).then(initiateData => {
+                if (initiateData.status !== 'success') {
+                    alert(initiateData.message || 'Unable to start payment. Please try again.');
+                    return;
+                }
+
+                const localOrderId = initiateData.order_id;
+
+                const options = {
                 key: "{{ config('services.razorpay.key') }}",
                 amount: amountInSubunits,
                 currency: currency,
@@ -466,6 +489,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}' // For Laravel CSRF protection
                         },
                         body: JSON.stringify({
@@ -473,7 +497,8 @@
                             amount: amount,
                             student_id: {{ isset($student) ? $student->id : 0 }},
                             currency: currency,
-                            payment_level_id: paymentLevelId
+                            payment_level_id: paymentLevelId,
+                            local_order_id: localOrderId
                         })
                     }).then(res => res.json()).then(data => {
                         console.log("Payment Verification Response:", data);
@@ -538,7 +563,7 @@
             const rzp = new Razorpay(options);
             rzp.on('payment.failed', function(response) {
                 console.error("Payment Failed!", response.error);
-                recordRazorpayFailure(response.error, amount, currency, paymentLevelId);
+                recordRazorpayFailure(response.error, amount, currency, paymentLevelId, localOrderId);
 
                 const message = response.error && response.error.description
                     ? response.error.description
@@ -547,6 +572,10 @@
                 $('#paymentSuccessModal').modal('show');
             });
             rzp.open();
+            }).catch(err => {
+                console.error("Payment initiation error:", err);
+                alert("Unable to start payment. Please try again later.");
+            });
         }
     </script>
 

@@ -395,6 +395,43 @@ Route::middleware(['auth', 'preventBackHistory'])->group(function () {
 });
 
 
+Route::post('/razorpay/initiate', function (Request $request) {
+    $data = $request->validate([
+        'amount' => 'required|numeric|min:0.01',
+        'currency' => 'required|string|size:3',
+        'student_id' => 'required|exists:students,id',
+        'payment_level_id' => 'nullable|integer',
+    ]);
+
+    try {
+        $order = new Order();
+        $order->student_id = $data['student_id'];
+        $order->amount = $data['amount'];
+        $order->currency = strtoupper($data['currency']);
+        $order->status = 'CREATED';
+        $order->razorpay_data = json_encode([
+            'source' => 'checkout_initiated',
+            'payment_level_id' => $data['payment_level_id'] ?? null,
+        ]);
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'order_id' => $order->id,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Razorpay local payment initiation error', [
+            'message' => $e->getMessage(),
+            'student_id' => $request->student_id ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unable to start payment. Please try again.',
+        ], 500);
+    }
+});
+
 Route::post('/razorpay/verify', function (Request $request) {
     $razorpayKey = config('services.razorpay.key');
     $razorpaySecret = config('services.razorpay.secret');
@@ -415,10 +452,14 @@ Route::post('/razorpay/verify', function (Request $request) {
         $student = Student::findOrFail($request->student_id);
         $studentCountry = strtoupper(trim((string) $student->country));
         $paymentMethod = strtolower((string) ($payment->method ?? ''));
+        $localOrder = $request->filled('local_order_id')
+            ? Order::where('id', $request->local_order_id)->where('student_id', $student->id)->first()
+            : null;
 
         if ($studentCountry !== 'INDIA' && $paymentMethod !== 'card') {
-            $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+            $order = $localOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
             $order->student_id    = $student->id;
+            $order->razorpay_payment_id = $payment->id;
             $order->amount        = $request->amount;
             $order->currency      = $payment->currency ?? $request->currency;
             $order->razorpay_data = json_encode([
@@ -459,8 +500,9 @@ Route::post('/razorpay/verify', function (Request $request) {
             ]);
 
             if ($request->filled('student_id')) {
-                $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+                $order = $localOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
                 $order->student_id    = $request->student_id;
+                $order->razorpay_payment_id = $payment->id;
                 $order->amount        = $request->amount;
                 $order->currency      = $payment->currency ?? $request->currency;
                 $order->razorpay_data = json_encode($payment->toArray());
@@ -476,7 +518,7 @@ Route::post('/razorpay/verify', function (Request $request) {
 
         // ---- From here, payment is definitely captured ----
 
-        $order = new Order();
+        $order = $localOrder ?: new Order();
         $order->student_id          = $student->id;
         $order->razorpay_payment_id = $payment->id;
         $order->amount              = $request->amount;   // usually in rupees (your choice)
@@ -610,11 +652,16 @@ Route::post('/razorpay/failure', function (Request $request) {
         $metadata = (array) ($error['metadata'] ?? []);
         $paymentId = $metadata['payment_id'] ?? $request->input('payment_id');
 
-        $order = $paymentId
+        $order = $request->filled('local_order_id')
+            ? Order::where('id', $request->local_order_id)->where('student_id', $request->student_id)->first()
+            : null;
+
+        $order = $order ?: ($paymentId
             ? Order::firstOrNew(['razorpay_payment_id' => $paymentId])
-            : new Order();
+            : new Order());
 
         $order->student_id = $request->student_id;
+        $order->razorpay_payment_id = $paymentId;
         $order->amount = $request->amount;
         $order->currency = $request->currency;
         $order->razorpay_data = json_encode([

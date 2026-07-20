@@ -556,10 +556,12 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Client confirmed Razorpay payments should credit a 30-day inclusive fee window: payment date as start_date plus the next 29 days as end_date.
 - Razorpay success now saves currency into both orders.currency and student_fees.currency.
 - Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.
+- Razorpay checkout initiation now creates a local orders row with status CREATED before opening the existing checkout flow; success/failure/rejection updates that same row when local_order_id is returned, preserving current Razorpay behavior.
 - Razorpay fee payment method rule: INDIA students can use normal Razorpay methods; non-India students should see card-only checkout and backend rejects non-card methods with order status REJECTED.
 - SuperAdmin dashboard Student Payments tab should show today's student payment orders across statuses/gateways.
 - SuperAdmin Payment Report tab should read from orders and support date/status filtering for operational review, including Razorpay and HDFC rows already stored in orders.
 - SuperAdmin Payment Report tab now uses a single custom date-range picker defaulted to Today; it replaces fixed range dropdown while still offering Today/Last Week/This Month/Last Month quick selections.
+- SuperAdmin Payment Report status dropdown now reads distinct statuses from orders so CREATED/captured/FAILED/REJECTED and future stored statuses can all be filtered without changing payment flow.
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
 ```
 

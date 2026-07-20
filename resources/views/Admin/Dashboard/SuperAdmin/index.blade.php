@@ -87,6 +87,12 @@
                 $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
                 $paymentReportStatus = request('payment_report_status', '');
                 $paymentReportQuery = App\Models\Order::with(['student', 'studentFee'])->whereNotNull('student_id');
+                $paymentReportStatuses = App\Models\Order::whereNotNull('student_id')
+                    ->whereNotNull('status')
+                    ->where('status', '!=', '')
+                    ->distinct()
+                    ->orderBy('status')
+                    ->pluck('status');
 
                 $paymentReportRangeParts = array_map('trim', explode(' - ', $paymentReportDateRange));
                 $parsePaymentReportDate = function ($date, $fallback) {
@@ -592,14 +598,11 @@
                                     <div class="col-md-3">
                                         <select name="payment_report_status" class="form-select form-select-sm pure-white">
                                             <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
-                                            <option value="captured" {{ $paymentReportStatus === 'captured' ? 'selected' : '' }}>Captured</option>
-                                            <option value="PAID" {{ $paymentReportStatus === 'PAID' ? 'selected' : '' }}>Paid</option>
-                                            <option value="COMPLETED" {{ $paymentReportStatus === 'COMPLETED' ? 'selected' : '' }}>Completed</option>
-                                            <option value="FAILED" {{ $paymentReportStatus === 'FAILED' ? 'selected' : '' }}>Failed</option>
-                                            <option value="REJECTED" {{ $paymentReportStatus === 'REJECTED' ? 'selected' : '' }}>Rejected</option>
-                                            <option value="PENDING" {{ $paymentReportStatus === 'PENDING' ? 'selected' : '' }}>Pending</option>
-                                            <option value="AUTHORIZED" {{ $paymentReportStatus === 'AUTHORIZED' ? 'selected' : '' }}>Authorized</option>
-                                            <option value="authorized" {{ $paymentReportStatus === 'authorized' ? 'selected' : '' }}>Authorized Old</option>
+                                            @foreach ($paymentReportStatuses as $status)
+                                                <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
+                                                    {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-2">

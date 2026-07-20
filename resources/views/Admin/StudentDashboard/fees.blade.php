@@ -422,6 +422,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({
@@ -448,105 +449,132 @@
             const threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
             const amountInSubunits = Math.round(amount * (threeDecimalCurrencies.includes(currency) ? 1000 : 100));
 
-            const options = {
-                key: "{{ config('services.razorpay.key') }}",
-                amount: amountInSubunits,
-                currency: currency,
-                name: "Archer Kids",
-                description: description,
-                image: "https://archerchessacademy.com/backend/images/ArcherKids-logo.png",
-                handler: function(response) {
-                    console.log("Payment Successful!", response);
-
-                    // Show the loader modal
-                    var myModal = new bootstrap.Modal(document.getElementById('LoaderModel'));
-                    myModal.show();
-
-                    fetch('/razorpay/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}' // For Laravel CSRF protection
-                        },
-                        body: JSON.stringify({
-                            payment_id: response.razorpay_payment_id,
-                            amount: amount,
-                            student_id: {{ isset($student) ? $student->id : 0 }},
-                            currency: currency,
-                            payment_level_id: paymentLevelId
-                        })
-                    }).then(res => res.json()).then(data => {
-                        console.log("Payment Verification Response:", data);
-
-                        // Hide the loader modal after the response is received
-                        myModal.hide();
-
-                        if (data.status === 'success') {
-                            // Customize message for success
-                            const message = "Payment Successful! Payment ID: " + response
-                                .razorpay_payment_id;
-                            document.getElementById('paymentStatusMessage').innerText = message;
-                            $('#paymentSuccessModal').modal('show'); // Show success modal
-                        } else {
-                            // Customize message for failure
-                            const message = data.message || "Payment Failed! Please try again later.";
-                            document.getElementById('paymentStatusMessage').innerText = message;
-                            $('#paymentSuccessModal').modal('show'); // Show failure modal
-                        }
-
-                    }).catch(err => {
-                        console.error("Error:", err);
-
-                        // Hide the loader modal if there's an error
-                        myModal.hide();
-                        alert("Payment Failed! Please try again later.");
-                    });
+            fetch('/razorpay/order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                prefill: {
-                    name: '{{ isset($student) ? $student->first_name : '' }}' + ' ' +
-                        '{{ isset($student) ?  $student->last_name : ''}}', // Concatenate first and last name
-                    email: '{{  isset($student) ? $student->email : '' }}', // Use the student's email
-                    contact: '{{  isset($student) ? $student->mobile : ''}}' // Use the student's mobile number
-                },
-                notes: {
-                    Kid_Name: '{{ isset($student) ? $student->first_name : '' }}' + ' ' +
-                        '{{ isset($student) ?  $student->last_name : ''}}',
-                    Chesslang_ID: '{{ isset($student) ? $student->student_id : 0 }}'
-                },
-                modal: {
-                    ondismiss: function() {
-                        console.log("Razorpay checkout closed by user.");
-                    }
-                },
-                theme: {
-                    color: "#28a745"
+                body: JSON.stringify({
+                    amount: amount,
+                    currency: currency,
+                    student_id: {{ isset($student) ? $student->id : 0 }},
+                    payment_level_id: paymentLevelId
+                })
+            }).then(res => res.json()).then(orderData => {
+                if (orderData.status !== 'success') {
+                    alert(orderData.message || 'Unable to create payment order. Please try again.');
+                    return;
                 }
-            };
 
-            if (studentCountry !== 'INDIA') {
-                options.method = {
-                    card: true,
-                    netbanking: false,
-                    wallet: false,
-                    upi: false,
-                    emi: false,
-                    paylater: false
+                const options = {
+                    key: "{{ config('services.razorpay.key') }}",
+                    amount: orderData.amount || amountInSubunits,
+                    currency: orderData.currency || currency,
+                    order_id: orderData.order_id,
+                    name: "Archer Kids",
+                    description: description,
+                    image: "https://archerchessacademy.com/backend/images/ArcherKids-logo.png",
+                    handler: function(response) {
+                        console.log("Payment Successful!", response);
+
+                        // Show the loader modal
+                        var myModal = new bootstrap.Modal(document.getElementById('LoaderModel'));
+                        myModal.show();
+
+                        fetch('/razorpay/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}' // For Laravel CSRF protection
+                            },
+                            body: JSON.stringify({
+                                payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                amount: amount,
+                                student_id: {{ isset($student) ? $student->id : 0 }},
+                                currency: currency,
+                                payment_level_id: paymentLevelId
+                            })
+                        }).then(res => res.json()).then(data => {
+                            console.log("Payment Verification Response:", data);
+
+                            // Hide the loader modal after the response is received
+                            myModal.hide();
+
+                            if (data.status === 'success') {
+                                // Customize message for success
+                                const message = "Payment Successful! Payment ID: " + response
+                                    .razorpay_payment_id;
+                                document.getElementById('paymentStatusMessage').innerText = message;
+                                $('#paymentSuccessModal').modal('show'); // Show success modal
+                            } else {
+                                // Customize message for failure
+                                const message = data.message || "Payment Failed! Please try again later.";
+                                document.getElementById('paymentStatusMessage').innerText = message;
+                                $('#paymentSuccessModal').modal('show'); // Show failure modal
+                            }
+
+                        }).catch(err => {
+                            console.error("Error:", err);
+
+                            // Hide the loader modal if there's an error
+                            myModal.hide();
+                            alert("Payment Failed! Please try again later.");
+                        });
+                    },
+                    prefill: {
+                        name: '{{ isset($student) ? $student->first_name : '' }}' + ' ' +
+                            '{{ isset($student) ?  $student->last_name : ''}}', // Concatenate first and last name
+                        email: '{{  isset($student) ? $student->email : '' }}', // Use the student's email
+                        contact: '{{  isset($student) ? $student->mobile : ''}}' // Use the student's mobile number
+                    },
+                    notes: {
+                        Kid_Name: '{{ isset($student) ? $student->first_name : '' }}' + ' ' +
+                            '{{ isset($student) ?  $student->last_name : ''}}',
+                        Chesslang_ID: '{{ isset($student) ? $student->student_id : 0 }}'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            console.log("Razorpay checkout closed by user.");
+                        }
+                    },
+                    theme: {
+                        color: "#28a745"
+                    }
                 };
-            }
 
-            // Open Razorpay Checkout
-            const rzp = new Razorpay(options);
-            rzp.on('payment.failed', function(response) {
-                console.error("Payment Failed!", response.error);
-                recordRazorpayFailure(response.error, amount, currency, paymentLevelId);
+                if (studentCountry !== 'INDIA') {
+                    options.method = {
+                        card: true,
+                        netbanking: false,
+                        wallet: false,
+                        upi: false,
+                        emi: false,
+                        paylater: false
+                    };
+                }
 
-                const message = response.error && response.error.description
-                    ? response.error.description
-                    : "Payment Failed! Please try again later.";
-                document.getElementById('paymentStatusMessage').innerText = message;
-                $('#paymentSuccessModal').modal('show');
+                // Open Razorpay Checkout
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function(response) {
+                    console.error("Payment Failed!", response.error);
+                    recordRazorpayFailure(response.error, amount, currency, paymentLevelId);
+
+                    const message = response.error && response.error.description
+                        ? response.error.description
+                        : "Payment Failed! Please try again later.";
+                    document.getElementById('paymentStatusMessage').innerText = message;
+                    $('#paymentSuccessModal').modal('show');
+                });
+                rzp.open();
+            }).catch(err => {
+                console.error("Razorpay order error:", err);
+                alert("Unable to start payment. Please try again later.");
             });
-            rzp.open();
         }
     </script>
 

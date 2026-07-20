@@ -411,73 +411,14 @@ Route::post('/razorpay/verify', function (Request $request) {
 
     try {
         // 1. Fetch payment
-        if (!$request->filled('razorpay_order_id') || !$request->filled('razorpay_signature')) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Payment order details are missing. Please try again.',
-            ], 422);
-        }
-
-        $api->utility->verifyPaymentSignature([
-            'razorpay_order_id' => $request->razorpay_order_id,
-            'razorpay_payment_id' => $request->payment_id,
-            'razorpay_signature' => $request->razorpay_signature,
-        ]);
-
         $payment = $api->payment->fetch($request->payment_id);
         $student = Student::findOrFail($request->student_id);
         $studentCountry = strtoupper(trim((string) $student->country));
         $paymentMethod = strtolower((string) ($payment->method ?? ''));
-        $expectedCurrency = strtoupper((string) $request->currency);
-        $paymentCurrency = strtoupper((string) ($payment->currency ?? ''));
-
-        if ($payment->order_id !== $request->razorpay_order_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Payment order mismatch. Please contact admin.',
-            ], 422);
-        }
-
-        $checkoutOrder = Order::where('student_id', $student->id)
-            ->where('status', 'CREATED')
-            ->where('currency', $expectedCurrency)
-            ->where('razorpay_data', 'like', '%' . $request->razorpay_order_id . '%')
-            ->latest()
-            ->first();
-
-        if ($paymentCurrency !== $expectedCurrency) {
-            $order = $checkoutOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
-            $order->student_id    = $student->id;
-            $order->razorpay_payment_id = $payment->id;
-            $order->amount        = $request->amount;
-            $order->currency      = $paymentCurrency ?: $expectedCurrency;
-            $order->razorpay_data = json_encode([
-                'payment' => $payment->toArray(),
-                'rejection_reason' => 'Payment currency does not match expected student currency.',
-                'expected_currency' => $expectedCurrency,
-                'payment_currency' => $paymentCurrency,
-                'razorpay_order_id' => $request->razorpay_order_id,
-            ]);
-            $order->status        = 'REJECTED';
-            $order->save();
-
-            Log::warning('Razorpay currency mismatch rejected', [
-                'payment_id' => $payment->id,
-                'student_id' => $student->id,
-                'expected_currency' => $expectedCurrency,
-                'payment_currency' => $paymentCurrency,
-            ]);
-
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Payment was attempted in a different currency. Please pay in ' . $expectedCurrency . '.',
-            ]);
-        }
 
         if ($studentCountry !== 'INDIA' && $paymentMethod !== 'card') {
-            $order = $checkoutOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+            $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
             $order->student_id    = $student->id;
-            $order->razorpay_payment_id = $payment->id;
             $order->amount        = $request->amount;
             $order->currency      = $payment->currency ?? $request->currency;
             $order->razorpay_data = json_encode([
@@ -518,9 +459,8 @@ Route::post('/razorpay/verify', function (Request $request) {
             ]);
 
             if ($request->filled('student_id')) {
-                $order = $checkoutOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+                $order = Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
                 $order->student_id    = $request->student_id;
-                $order->razorpay_payment_id = $payment->id;
                 $order->amount        = $request->amount;
                 $order->currency      = $payment->currency ?? $request->currency;
                 $order->razorpay_data = json_encode($payment->toArray());
@@ -536,7 +476,7 @@ Route::post('/razorpay/verify', function (Request $request) {
 
         // ---- From here, payment is definitely captured ----
 
-        $order = $checkoutOrder ?: new Order();
+        $order = new Order();
         $order->student_id          = $student->id;
         $order->razorpay_payment_id = $payment->id;
         $order->amount              = $request->amount;   // usually in rupees (your choice)
@@ -660,80 +600,6 @@ Route::post('/razorpay/verify', function (Request $request) {
         return response()->json([
             'status'  => 'error',
             'message' => 'Something went wrong while verifying payment.',
-        ], 500);
-    }
-});
-
-Route::post('/razorpay/order', function (Request $request) {
-    $razorpayKey = config('services.razorpay.key');
-    $razorpaySecret = config('services.razorpay.secret');
-
-    if (empty($razorpayKey) || empty($razorpaySecret)) {
-        Log::error('Razorpay keys not configured');
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Payment gateway is not configured.',
-        ], 500);
-    }
-
-    $data = $request->validate([
-        'amount' => 'required|numeric|min:0.01',
-        'currency' => 'required|string|size:3',
-        'student_id' => 'required|exists:students,id',
-        'payment_level_id' => 'nullable|integer',
-    ]);
-
-    try {
-        $currency = strtoupper($data['currency']);
-        $threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
-        $amountInSubunits = (int) round((float) $data['amount'] * (in_array($currency, $threeDecimalCurrencies, true) ? 1000 : 100));
-
-        if (in_array($currency, $threeDecimalCurrencies, true)) {
-            $amountInSubunits = (int) floor($amountInSubunits / 10) * 10;
-        }
-
-        $api = new Api($razorpayKey, $razorpaySecret);
-        $razorpayOrder = $api->order->create([
-            'receipt' => 'student_' . $data['student_id'] . '_' . time(),
-            'amount' => $amountInSubunits,
-            'currency' => $currency,
-            'payment_capture' => 0,
-            'notes' => [
-                'student_id' => (string) $data['student_id'],
-                'payment_level_id' => (string) ($data['payment_level_id'] ?? ''),
-            ],
-        ]);
-
-        $order = new Order();
-        $order->student_id = $data['student_id'];
-        $order->amount = $data['amount'];
-        $order->currency = $currency;
-        $order->status = 'CREATED';
-        $order->razorpay_data = json_encode([
-            'source' => 'checkout_order_create',
-            'expected_amount_subunits' => $amountInSubunits,
-            'expected_currency' => $currency,
-            'payment_level_id' => $data['payment_level_id'] ?? null,
-            'razorpay_order' => $razorpayOrder->toArray(),
-        ]);
-        $order->save();
-
-        return response()->json([
-            'status' => 'success',
-            'order_id' => $razorpayOrder->id,
-            'amount' => $amountInSubunits,
-            'currency' => $currency,
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Razorpay order create error', [
-            'message' => $e->getMessage(),
-            'student_id' => $request->student_id ?? null,
-            'currency' => $request->currency ?? null,
-        ]);
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Unable to create payment order.',
         ], 500);
     }
 });

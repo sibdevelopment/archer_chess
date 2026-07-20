@@ -557,7 +557,6 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Razorpay success now saves currency into both orders.currency and student_fees.currency.
 - Razorpay checkout failures should be recorded into orders with status FAILED and error details in razorpay_data.
 - Razorpay fee payment method rule: INDIA students can use normal Razorpay methods; non-India students should see card-only checkout and backend rejects non-card methods with order status REJECTED.
-- Student dashboard Razorpay checkout now creates a Razorpay Orders API order first using the expected student currency, passes order_id to Checkout, verifies signature/order_id on callback, and rejects payments returned in any currency other than the expected student currency.
 - SuperAdmin dashboard Student Payments tab should show today's student payment orders across statuses/gateways.
 - SuperAdmin Payment Report tab should read from orders and support date/status filtering for operational review, including Razorpay and HDFC rows already stored in orders.
 - SuperAdmin Payment Report tab now uses a single custom date-range picker defaulted to Today; it replaces fixed range dropdown while still offering Today/Last Week/This Month/Last Month quick selections.

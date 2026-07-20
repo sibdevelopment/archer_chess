@@ -559,6 +559,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Razorpay fee payment method rule: INDIA students can use normal Razorpay methods; non-India students should see card-only checkout and backend rejects non-card methods with order status REJECTED.
 - SuperAdmin dashboard Student Payments tab should show today's student payment orders across statuses/gateways.
 - SuperAdmin Payment Report tab should read from orders and support date/status filtering for operational review, including Razorpay and HDFC rows already stored in orders.
+- SuperAdmin Payment Report tab now uses a single custom date-range picker defaulted to Today; it replaces fixed range dropdown while still offering Today/Last Week/This Month/Last Month quick selections.
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
 ```
 

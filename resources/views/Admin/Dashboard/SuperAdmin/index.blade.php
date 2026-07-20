@@ -75,7 +75,7 @@
                 </div>
             </div>
             @php
-                $activeDashboardTab = request()->has('payment_report_filter') || request()->has('payment_report_status')
+                $activeDashboardTab = request()->has('payment_report_date') || request()->has('payment_report_status')
                     ? 'payment_report'
                     : 'students';
                 $student_payments = App\Models\Order::with(['student', 'studentFee'])
@@ -84,28 +84,27 @@
                     ->latest()
                     ->get();
 
-                $paymentReportFilter = request('payment_report_filter', 'today');
+                $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
                 $paymentReportStatus = request('payment_report_status', '');
                 $paymentReportQuery = App\Models\Order::with(['student', 'studentFee'])->whereNotNull('student_id');
 
-                if ($paymentReportFilter === 'last_week') {
-                    $paymentReportQuery->whereBetween('created_at', [
-                        now()->subWeek()->startOfWeek(),
-                        now()->subWeek()->endOfWeek(),
-                    ]);
-                } elseif ($paymentReportFilter === 'this_month') {
-                    $paymentReportQuery->whereBetween('created_at', [
-                        now()->startOfMonth(),
-                        now()->endOfMonth(),
-                    ]);
-                } elseif ($paymentReportFilter === 'last_month') {
-                    $paymentReportQuery->whereBetween('created_at', [
-                        now()->subMonthNoOverflow()->startOfMonth(),
-                        now()->subMonthNoOverflow()->endOfMonth(),
-                    ]);
-                } else {
-                    $paymentReportQuery->whereDate('created_at', now()->toDateString());
-                }
+                $paymentReportRangeParts = array_map('trim', explode(' - ', $paymentReportDateRange));
+                $parsePaymentReportDate = function ($date, $fallback) {
+                    try {
+                        return \Carbon\Carbon::createFromFormat('m/d/Y', $date);
+                    } catch (\Throwable $exception) {
+                        try {
+                            return \Carbon\Carbon::parse($date);
+                        } catch (\Throwable $exception) {
+                            return $fallback;
+                        }
+                    }
+                };
+                $paymentReportStartDate = $parsePaymentReportDate($paymentReportRangeParts[0] ?? '', now())->startOfDay();
+                $paymentReportEndDate = $parsePaymentReportDate($paymentReportRangeParts[1] ?? ($paymentReportRangeParts[0] ?? ''), $paymentReportStartDate->copy())->endOfDay();
+                $paymentReportDateRange = $paymentReportStartDate->format('m/d/Y') . ' - ' . $paymentReportEndDate->format('m/d/Y');
+
+                $paymentReportQuery->whereBetween('created_at', [$paymentReportStartDate, $paymentReportEndDate]);
 
                 if ($paymentReportStatus !== '') {
                     $paymentReportQuery->where('status', $paymentReportStatus);
@@ -581,12 +580,14 @@
                                         <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
                                     </div>
                                     <div class="col-md-3">
-                                        <select name="payment_report_filter" class="form-select form-select-sm pure-white">
-                                            <option value="today" {{ $paymentReportFilter === 'today' ? 'selected' : '' }}>Today</option>
-                                            <option value="last_week" {{ $paymentReportFilter === 'last_week' ? 'selected' : '' }}>Last Week</option>
-                                            <option value="this_month" {{ $paymentReportFilter === 'this_month' ? 'selected' : '' }}>This Month</option>
-                                            <option value="last_month" {{ $paymentReportFilter === 'last_month' ? 'selected' : '' }}>Last Month</option>
-                                        </select>
+                                        <div class="input-group input-group-sm">
+                                            <input name="payment_report_date" id="payment_report_date" type="text"
+                                                class="form-control payment-report-daterange pure-white"
+                                                value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
+                                            <span class="input-group-text">
+                                                <i class="ti ti-calendar fs-5"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="col-md-3">
                                         <select name="payment_report_status" class="form-select form-select-sm pure-white">
@@ -667,6 +668,37 @@
             </section>
         </div>
     </div>
+
+    <script src="/backend/dist/libs/bootstrap-material-datetimepicker/node_modules/moment/moment.js"></script>
+    <script src="/backend/dist/libs/daterangepicker/daterangepicker.js"></script>
+
+    <script>
+        $(function() {
+            var paymentReportInput = $('#payment_report_date');
+
+            if (paymentReportInput.length) {
+                paymentReportInput.daterangepicker({
+                    autoUpdateInput: true,
+                    startDate: moment(@json($paymentReportStartDate->format('Y-m-d'))),
+                    endDate: moment(@json($paymentReportEndDate->format('Y-m-d'))),
+                    locale: {
+                        format: 'MM/DD/YYYY',
+                        cancelLabel: 'Clear'
+                    },
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    }
+                });
+
+                paymentReportInput.on('cancel.daterangepicker', function() {
+                    $(this).val(moment().format('MM/DD/YYYY') + ' - ' + moment().format('MM/DD/YYYY'));
+                });
+            }
+        });
+    </script>
 
     <script>
         // ------------------- Student Data List :: ---------------------

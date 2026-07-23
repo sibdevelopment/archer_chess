@@ -562,6 +562,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - SuperAdmin Payment Report tab should read from orders and support date/status filtering for operational review, including Razorpay and HDFC rows already stored in orders.
 - SuperAdmin Payment Report tab now uses a single custom date-range picker defaulted to Today; it replaces fixed range dropdown while still offering Today/Last Week/This Month/Last Month quick selections.
 - SuperAdmin Payment Report status dropdown now reads distinct statuses from orders so CREATED/captured/FAILED/REJECTED and future stored statuses can all be filtered without changing payment flow.
+- Student dashboard home is blurred/blocked when the logged-in student is FEESDUE; the left navigation remains usable, the existing fee due popup still shows, and the lock clears automatically once payment/status makes the student active again.
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
 ```
 

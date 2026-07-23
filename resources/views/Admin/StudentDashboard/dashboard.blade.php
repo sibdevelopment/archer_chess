@@ -15,12 +15,61 @@
             border-radius: 5px;
             /* Optional: adds rounded corners */
         }
+
+        .fees-due-dashboard-lock {
+            position: relative;
+            min-height: 65vh;
+        }
+
+        .fees-due-dashboard-lock .fees-due-dashboard-content {
+            filter: blur(5px);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .fees-due-dashboard-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 120px 16px 40px;
+            background: rgba(255, 255, 255, 0.58);
+            border-radius: 12px;
+        }
+
+        .fees-due-dashboard-overlay-card {
+            width: min(100%, 460px);
+            padding: 28px;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #edf0f7;
+            border-radius: 10px;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+        }
+
+        .fees-due-dashboard-lock-icon {
+            width: 48px;
+            height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            color: #fff;
+            background: #ff4d4f;
+            border-radius: 50%;
+            font-size: 22px;
+        }
     </style>
     @php
         // dd($student);
+        $hasFeesDueLock = !empty($student) && strtoupper((string) $student->status) === 'FEESDUE';
     @endphp
     <!-- ------------------------------------------------------------------ :: -->
     <!-- ------------------------------------------------------------------ :: -->
+    <div class="{{ $hasFeesDueLock ? 'fees-due-dashboard-lock' : '' }}">
+        <div class="{{ $hasFeesDueLock ? 'fees-due-dashboard-content' : '' }}">
     <div class="card overflow-hidden" style="background-color: #F5F5F5 !important;">
         <div class="card-body p-0"
             style="box-shadow: rgb(50 50 93 / 0%) 0px 30px 60px -12px inset, rgb(0 0 0 / 10%) 0px 18px 36px -18px inset;">
@@ -1149,6 +1198,24 @@
         <!-- ------------------------------------------------------------------ :: -->
     </div>
     <!-- ------------------------------------------------------------------ :: -->
+
+        </div>
+
+        @if ($hasFeesDueLock)
+            <div class="fees-due-dashboard-overlay">
+                <div class="fees-due-dashboard-overlay-card">
+                    <i class="ti ti-lock fees-due-dashboard-lock-icon"></i>
+                    <h5 class="fw-semibold mb-2">Fees Due</h5>
+                    <p class="text-muted mb-4">
+                        Please clear your pending fees to continue using your dashboard.
+                    </p>
+                    <a href="/admin/student-fees" class="btn btn-primary px-4 py-2 rounded-pill">
+                        <i class="bi bi-wallet2 me-1"></i> Pay Fees
+                    </a>
+                </div>
+            </div>
+        @endif
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="fees-due" tabindex="-1" aria-labelledby="fees-dueLabel" aria-hidden="true">

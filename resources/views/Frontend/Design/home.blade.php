@@ -531,208 +531,50 @@
             </div>
             <div class="swiper coachSwiper">
                 <div class="swiper-wrapper">
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="our-teacher-thumb tw-transform-roted-1">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
+                    @foreach ($meetourtutors as $index => $tutor)
+                        @php
+                            $rotationClasses = ['tw-transform-roted-1', 'tw-transform-roted--4', 'tw-transform-roted-3'];
+                            $delay = (($index % 3) + 1) * 100;
+                            $tutorImage = $tutor->image ? Storage::url($tutor->image) : '/frontend1/tcul-img/img/tutor1.png';
+                        @endphp
+                        <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="{{ $delay }}">
+                            <div class="our-teacher-thumb {{ $rotationClasses[$index % count($rotationClasses)] }}">
+                                <div class="position-relative bg-img">
+                                    <a href="#0" class="bg-img">
+                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}" class="bg-img">
+                                    </a>
+                                    <div class="our-teacher-link">
+                                        <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
+                                            <li>
+                                                <a href="#0" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
+                                                    <span class="fw-normal tw-text-405 text-main-two-600">
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                    </span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="text-center tw-mt-6">
+                                    <h2 class="h5">
+                                        <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
+                                            {{ $tutor->name }}
+                                        </a>
+                                    </h2>
+                                    @if (!empty($tutor->designation))
+                                        <p class="fw-normal tw-text-405 text-neutral-600 mb-1">{{ $tutor->designation }}</p>
+                                    @endif
+                                    @if (!empty($tutor->rating))
+                                        <span class="fw-normal tw-text-405 text-neutral-600 t_green">{{ $tutor->rating }}</span>
+                                    @endif
                                 </div>
                             </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Samyak Nayak
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2200</span>
-                            </div>
                         </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="our-teacher-thumb tw-transform-roted--4">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Toyesh Singh
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2500</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="our-teacher-thumb tw-transform-roted-3">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Dr. Sunanya
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="our-teacher-thumb tw-transform-roted-1">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Samyak Nayak
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2200</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="our-teacher-thumb tw-transform-roted--4">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Toyesh Singh
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2500</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="our-teacher-thumb tw-transform-roted-3">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Dr. Sunanya
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2000</span>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
 
                 </div>
             </div>

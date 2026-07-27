@@ -9,7 +9,7 @@
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
         $canViewStudents = $canViewStudents ?? ($isAdminOrSuperAdmin || $user->can('students-view'));
         $canViewMissedSessions = $canViewMissedSessions ?? $canViewStudents;
-        $canViewCoaches = $canViewCoaches ?? ($isAdminOrSuperAdmin || $user->can('coachs-view'));
+        $canViewBatches = $canViewBatches ?? ($isAdminOrSuperAdmin || $user->can('batchs-view'));
         $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('dashboard-student-payments-view'));
         $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('dashboard-payment-report-view'));
 
@@ -66,13 +66,6 @@
                             <h4 class="mb-0 fw-semibold lh-1"> {{ $activeStudents }} </h4>
                             <p class="mb-0 fs-4">Total Active Students</p>
                         </div>
-                        @if ($canViewCoaches)
-                            <div class="text-center">
-                                <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
-                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
-                                <p class="mb-0 fs-4">Total Active Coaches</p>
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -80,7 +73,7 @@
                 $dashboardTabs = collect([
                     $canViewStudents ? 'students' : null,
                     $canViewMissedSessions ? 'missed_sessions' : null,
-                    $canViewCoaches ? 'coaches' : null,
+                    $canViewBatches ? 'batches' : null,
                     $canViewStudentPayments ? 'student_payments' : null,
                     $canViewPaymentReport ? 'payment_report' : null,
                 ])->filter()->values();
@@ -140,14 +133,14 @@
                         </button>
                     </li>
                 @endif
-                @if ($canViewCoaches)
+                @if ($canViewBatches)
                     <li class="nav-item" role="presentation">
                         <button
-                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'coaches' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                            id="pills-coach-tab" data-bs-toggle="pill" data-bs-target="#pills-followers" type="button"
-                            role="tab" aria-controls="pills-followers" aria-selected="{{ $activeDashboardTab === 'coaches' ? 'true' : 'false' }}">
-                            <i class="ti ti-user-exclamation me-2 fs-6"></i>
-                            <span class="d-none d-md-block">Coaches</span>
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'batches' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button"
+                            role="tab" aria-controls="pills-batch" aria-selected="{{ $activeDashboardTab === 'batches' ? 'true' : 'false' }}">
+                            <i class="ti ti-color-swatch me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Batches</span>
                         </button>
                     </li>
                 @endif
@@ -339,33 +332,101 @@
             </div>
         @endif
         <!-- ------------------------------------------------------------------ :: -->
-        @if ($canViewCoaches)
-            <div class="tab-pane fade {{ $activeDashboardTab === 'coaches' ? 'show active' : '' }}" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
+        @if ($canViewBatches)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'batches' ? 'show active' : '' }}" id="pills-batch" role="tabpanel" aria-labelledby="pills-batch-tab"
                 tabindex="0">
-                <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Coaches </h4>
-                </div>
-                <div class="row">
-                    @foreach ($coaches as $coach)
-                        @if ($coach->status === 'ACTIVE')
-                            <div class="col-md-6 col-xl-4">
-                                <div class="card">
-                                    <div class="card-body p-4 d-flex align-items-center gap-3">
-                                        <i class="ti ti-user-exclamation me-2 fs-7 text-theme"></i>
-                                        <div>
-                                            <h5 class="fw-semibold mb-0">{{ $coach->user->first_name }}
-                                                {{ $coach->user->last_name }}
-                                            </h5>
-                                            <span class="fs-2 d-flex align-items-center mt-2">
-                                                <i class="ti ti-mail text-dark fs-3 me-1"></i>{{ $coach->user->email }}
-                                            </span>
+                <section>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card w-100 position-relative overflow-hidden">
+                                <div class="card-header px-4 py-3 border-bottom">
+                                    <div class="row">
+                                        <div class="col-4 d-flex justify-content-start">
+                                            <h5 class="card-title fw-semibold mb-0 lh-sm">Batches </h5>
+                                        </div>
+                                        <div class="col-2 d-flex justify-content-end">
+                                            <select name="status" id="batch-status"
+                                                class="select2 form-select form-select-sm pure-white"
+                                                aria-label=".form-select-sm example">
+                                                <option value="">Select Status</option>
+                                                <option value="ACTIVE">Active</option>
+                                                <option value="INACTIVE">Inactive</option>
+                                                <option value="STANDBY" selected>Standby</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-2 d-flex justify-content-end">
+                                            <select name="level" id="batch-level"
+                                                class="select2 form-select form-select-sm pure-white"
+                                                aria-label=".form-select-sm example">
+                                                <option value="">Select Level</option>
+                                                @foreach ($levels as $level)
+                                                    <option value="{{ $level->id }}">{{ $level->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-2 d-flex justify-content-end">
+                                            <select name="coach" id="batch-coach"
+                                                class="select2 form-select form-select-sm pure-white"
+                                                aria-label=".form-select-sm example">
+                                                <option value="">Select Coach</option>
+                                                @foreach ($coaches as $coach)
+                                                    <option value="{{ $coach->id }}">{{ $coach->user->first_name }}
+                                                        {{ $coach->user->last_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-2 d-flex justify-content-end">
+                                            <select name="student" id="batch-student"
+                                                class="select2 form-select form-select-sm pure-white"
+                                                aria-label=".form-select-sm example">
+                                                <option value="">Select Student</option>
+                                                @foreach ($students as $student)
+                                                    <option value="{{ $student->id }}">
+                                                        {{ $student->first_name }} {{ $student->last_name }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive rounded-2 mb-4">
+                                        <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle"
+                                            id="batch-datatable" style="width: 100% !important;">
+                                            <thead class="text-dark fs-3">
+                                                <tr>
+                                                    <th width="1%">
+                                                        <h6 class="fs-3 fw-semibold mb-0">#</h6>
+                                                    </th>
+                                                    <th width="5%">
+                                                        <h6 class="fs-3 fw-semibold mb-0">Action</h6>
+                                                    </th>
+                                                    <th width="5%">
+                                                        <h6 class="fs-3 fw-semibold mb-0">Status</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-3 fw-semibold mb-0">Batch</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-3 fw-semibold mb-0">Total Kids</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-3 fw-semibold mb-0">Kids Zone Name</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-3 fw-semibold mb-0">Completed Session</h6>
+                                                    </th>
+                                                    <th>
+                                                        <h6 class="fs-3 fw-semibold mb-0">Timeline</h6>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        @endif
-                    @endforeach
-                </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         @endif
         @if ($canViewStudentPayments)
@@ -742,6 +803,89 @@
                 dataTable.ajax.reload(null, false);
             });
             $('#coach').on('change', function() {
+                dataTable.ajax.reload(null, false);
+            });
+        });
+        @endif
+
+        @if ($canViewBatches)
+        $(function() {
+            var dataTable = $('#batch-datatable').DataTable({
+                dom: "Bfrtip",
+                buttons: ["copy", "csv", "excel", "pdf", "print"],
+                processing: true,
+                serverSide: true,
+                scrollCollapse: true,
+                scrollX: false,
+                pageLength: 50,
+                ajax: {
+                    url: '{!! route('admin.dashboard.get.batches') !!}',
+                    type: 'POST',
+                    data: function(d) {
+                        d._token = $('meta[name=csrf-token]').attr('content');
+                        d.status = $('#batch-status').val();
+                        d.coach = $('#batch-coach').val();
+                        d.level = $('#batch-level').val();
+                        d.student = $('#batch-student').val();
+                    }
+                },
+                columns: [{
+                        data: 'DT_RowIndex',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'action',
+                        name: 'batchs.id',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'status',
+                        name: 'batchs.id',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'name',
+                        name: 'batchs.name',
+                        orderable: false
+                    },
+                    {
+                        data: 'total_active_students',
+                        name: 'batchs.total_active_students',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'kids_zone_name',
+                        name: 'batchs.kids_zone_name',
+                        orderable: false
+                    },
+                    {
+                        data: 'total_sessions_completed',
+                        name: 'batchs.total_sessions_completed',
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        data: 'timeline',
+                        name: 'batchs.timeline',
+                        orderable: false,
+                        searchable: false
+                    },
+                ],
+                order: [],
+                columnDefs: [{
+                    targets: [0, 1],
+                    className: "text-center"
+                }, ],
+            });
+
+            $(".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel").addClass(
+                "btn btn-primary mr-1");
+
+            $('#batch-status, #batch-coach, #batch-level, #batch-student').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
         });

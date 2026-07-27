@@ -35,7 +35,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('get:demo-recordings')->hourly();
 
         // Cancel Delay Class
-        $schedule->command('cancel:delay-batch')->everyTenMinutes();
+        $schedule->command('cancel:delay-batch')->everyMinute();
 
         $schedule->command('masterclass:reminder')->hourly();
 

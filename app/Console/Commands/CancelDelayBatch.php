@@ -11,11 +11,12 @@ use App\Models\CoachAttendance;
 use Illuminate\Console\Command;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\Log;
+use App\Models\DelayedBatch;
 
 class CancelDelayBatch extends Command
 {
     protected $signature = 'cancel:delay-batch';
-    protected $description = 'Check today\'s scheduled batches and cancel if no attendance after 10 minutes from start time';
+    protected $description = 'Track delayed batches and cancel if no coach attendance after the allowed delay from start time';
 
     public function handle()
     {
@@ -36,11 +37,11 @@ class CancelDelayBatch extends Command
             ->get();
 
         foreach ($schedules as $schedule) {
-            $fromTime = Carbon::parse($schedule->from_time);
-            // $cutoffTime = $fromTime->copy()->addMinutes(10);
-            $cutoffTime = $fromTime->copy()->addMinutes(8);
-
             $date = $now->toDateString();
+            $scheduledStart = Carbon::parse($date . ' ' . $schedule->from_time);
+            $lateTime = $scheduledStart->copy()->addMinutes(3);
+            $cutoffTime = $scheduledStart->copy()->addMinutes(8);
+            $batchId = $schedule->batch_id;
             
             $coverupExists = \App\Models\Coverupclass::where('batchschedule_id', $schedule->id)
                 ->where('date', $date)
@@ -51,20 +52,57 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
-            if ($now->greaterThanOrEqualTo($cutoffTime)) {
-                $batchId = $schedule->batch_id;
-                $date = $now->toDateString();
+            $coachAttendanceExists = CoachAttendance::where('batch_id', $batchId)
+                ->whereDate('date', $date)
+                ->exists();
 
+            $batch = null;
+
+            if (! $coachAttendanceExists && $now->greaterThan($lateTime)) {
+                $batch = Batch::find($batchId);
+
+                if (! $batch) {
+                    continue;
+                }
+
+                DelayedBatch::updateOrCreate(
+                    [
+                        'batch_id' => $batchId,
+                        'date' => $date,
+                    ],
+                    [
+                        'coach_id' => $batch->coach_id,
+                        'time' => $now->format('H:i:s'),
+                        'batch_name' => $batch->name,
+                        'country' => $batch->country,
+                        'batch_status' => $batch->status,
+                        'level_name' => optional($batch->level)->name,
+                        'timeline' => sprintf(
+                            'Scheduled start: %s | Marked late at: %s',
+                            $scheduledStart->format('d-M-Y h:i:s A'),
+                            $now->format('d-M-Y h:i:s A')
+                        ),
+                        'penalty_type' => 'LATE',
+                        'fine_amount' => 150,
+                        'fine_currency' => 'INR',
+                        'canceled_date' => null,
+                        'canceled_time' => null,
+                    ]
+                );
+            }
+
+            if ($now->greaterThanOrEqualTo($cutoffTime)) {
                 $studentAttendanceExists = StudentAttendance::where('batch_id', $batchId)
                     ->whereDate('date', $date)
                     ->exists();
 
-                $coachAttendanceExists = CoachAttendance::where('batch_id', $batchId)
-                    ->whereDate('date', $date)
-                    ->exists();
-
                 if (! $studentAttendanceExists || ! $coachAttendanceExists) {
-                    $batch = Batch::find($batchId);
+                    $batch = $batch ?: Batch::find($batchId);
+
+                    if (! $batch) {
+                        continue;
+                    }
+
                     $batchSchedules = BatchSchedule::where('batch_id', $batchId)->get();
                     $scheduledDays = $batchSchedules->pluck('weekday')->map(fn($day) => strtolower($day))->toArray();
 
@@ -138,7 +176,7 @@ class CancelDelayBatch extends Command
                     }
 
                     if (! $coachAttendanceExists) {
-                        CoachAttendance::create([
+                        $coachAttendance = CoachAttendance::create([
                             'coach_id' => $batch->coach_id,
                             'batch_id' => $batchId,
                             'type' => $schedule->type ?? null,
@@ -146,6 +184,33 @@ class CancelDelayBatch extends Command
                             'date' => $date,
                             'status' => 'CANCELLED',
                         ]);
+
+                        DelayedBatch::updateOrCreate(
+                            [
+                                'batch_id' => $batchId,
+                                'date' => $date,
+                            ],
+                            [
+                                'coach_id' => $batch->coach_id,
+                                'coach_attendance_id' => $coachAttendance->id,
+                                'time' => $now->format('H:i:s'),
+                                'batch_name' => $batch->name,
+                                'country' => $batch->country,
+                                'batch_status' => $batch->status,
+                                'level_name' => optional($batch->level)->name,
+                                'timeline' => sprintf(
+                                    'Scheduled start: %s | Auto-cancelled at: %s',
+                                    $scheduledStart->format('d-M-Y h:i:s A'),
+                                    $now->format('d-M-Y h:i:s A')
+                                ),
+                                'canceled_date' => $date,
+                                'canceled_time' => $now->format('H:i:s'),
+                                'penalty_type' => 'CANCELLED',
+                                'fine_amount' => 350,
+                                'fine_currency' => 'INR',
+                            ]
+                        );
+
                         $this->info("Marked CANCELLED for coach in batch $batchId");
                     }
                 }

@@ -17,6 +17,9 @@ class DelayedBatch extends BaseModel
         'timeline',
         'canceled_date',
         'canceled_time',
+        'penalty_type',
+        'fine_amount',
+        'fine_currency',
         'date',
         'time',
         'created_by',
@@ -64,4 +67,3 @@ class DelayedBatch extends BaseModel
         });
     }
 }
- 

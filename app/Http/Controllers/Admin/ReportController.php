@@ -159,8 +159,12 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->count();
 
+        $delayedBatchesFineTotal = DelayedBatch::where('coach_id', $coachId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->sum('fine_amount');
+
         // Return the view with the calculated data
-        return view('Admin.CoachReports.getcount', compact('completedDemosCount', 'completedBatchesCount', 'approvedLeavesCount', 'totalStudentsBatchesCount', 'coachId', 'startDate', 'endDate', 'masterclassCount', 'coverupclassCount', 'oneToOneClassCount', 'delayedBatchesCount'));
+        return view('Admin.CoachReports.getcount', compact('completedDemosCount', 'completedBatchesCount', 'approvedLeavesCount', 'totalStudentsBatchesCount', 'coachId', 'startDate', 'endDate', 'masterclassCount', 'coverupclassCount', 'oneToOneClassCount', 'delayedBatchesCount', 'delayedBatchesFineTotal'));
     }
 
     public function batchStudentCountryData(Request $request)
@@ -428,6 +432,8 @@ class ReportController extends Controller
                     'batch_status'  => $row->batch_status ?? '',
                     'level_name'    => $row->level_name ?? '',
                     'timeline'      => $row->timeline ?? '',
+                    'penalty_type'  => $row->penalty_type ?? 'LATE',
+                    'fine'          => trim(($row->fine_currency ?? 'INR') . ' ' . number_format((float) $row->fine_amount, 2)),
                     'canceled_date' => $canceledDate,
                     'canceled_time' => $canceledTime,
                 ];

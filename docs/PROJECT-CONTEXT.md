@@ -445,6 +445,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Hardcoded credentials exist in parts of the app; do not print secrets and move to env/config in future security work.
 ```
 
+## Coach Late / Auto-Cancel Penalty Notes
+
+```text
+- Existing command `cancel:delay-batch` now owns the delayed-class lifecycle and should run every minute wherever this feature is expected to work.
+- If coach attendance is still missing after 3 minutes from scheduled batch start, a delayed_batches row is created/updated with penalty_type=LATE, fine_amount=150, fine_currency=INR.
+- If the same class reaches the 8-minute auto-cancel path without coach attendance, the same delayed_batches row is upgraded to penalty_type=CANCELLED, fine_amount=350, fine_currency=INR; fines are exclusive, not additive.
+- Auto-cancel still writes CANCELLED coach/student attendance and extends batch/student/fee end dates as before.
+- Super Admin Coach Report and Coach role Coach Report show the Late/Cancel Fine stat/details through the shared CoachReports getcount/detail flow.
+```
+
 ## Coach Dashboard Report Sync Notes
 
 ```text

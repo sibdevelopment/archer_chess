@@ -1441,6 +1441,9 @@ class DashboardController extends Controller
                         ),
                         'canceled_date' => $request->status === 'CANCELLED' ? $attendanceDate : null,
                         'canceled_time' => $request->status === 'CANCELLED' ? $actualAt->format('H:i:s') : null,
+                        'penalty_type' => $request->status === 'CANCELLED' ? 'CANCELLED' : 'LATE',
+                        'fine_amount' => $request->status === 'CANCELLED' ? 350 : 150,
+                        'fine_currency' => 'INR',
                     ]
                 );
             }

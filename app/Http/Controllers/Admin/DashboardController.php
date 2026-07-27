@@ -13,7 +13,6 @@ use App\Models\Coverupclass;
 use App\Models\DelayedBatch;
 use App\Models\DemoLead;
 use App\Models\DemoSession;
-use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Models\Level;
@@ -1946,11 +1945,9 @@ class DashboardController extends Controller
         $countryValues = $this->dashboardPlainCountryValues($allowedCountries);
         $canViewStudents = $isAdminOrSuperAdmin || $user->can('students-view');
         $canViewMissedSessions = $canViewStudents;
-        $canViewBatches = $isAdminOrSuperAdmin || $user->can('batchs-view');
         $canViewCoaches = $isAdminOrSuperAdmin || $user->can('coachs-view');
-        $canViewEmployees = $isAdminOrSuperAdmin || $user->can('employee-view');
-        $canViewStudentPayments = $isAdminOrSuperAdmin || $user->can('studentfee-view');
-        $canViewPaymentReport = $isAdminOrSuperAdmin || $user->can('reports-view');
+        $canViewStudentPayments = $isAdminOrSuperAdmin || $user->can('dashboard-student-payments-view');
+        $canViewPaymentReport = $isAdminOrSuperAdmin || $user->can('dashboard-payment-report-view');
 
         $systemRoles = getSystemRoles();
         $users       = User::whereHas("roles", function ($q) use ($systemRoles) {
@@ -1972,31 +1969,10 @@ class DashboardController extends Controller
             $studentsQuery->whereIn('country', $countryValues);
         }
 
-        // Fetch all data from Coach and Employee tables
-        $employees = $canViewEmployees
-        ? Employee::whereHas('user', function ($query) {
-            $query->where('status', 'ACTIVE');
-        })->with(['user.roles'])->get()
-        : collect();
-
-        if (! $isAdminOrSuperAdmin && $canViewEmployees) {
-            $employees = $employees->filter(function ($employee) use ($countryValues) {
-                $employeeCountries = $employee->user->roles
-                    ->flatMap(fn ($role) => normalizeCountryValues($role->countries ?? []))
-                    ->flatMap(fn ($country) => countryComparisonValues($country))
-                    ->unique()
-                    ->values()
-                    ->toArray();
-
-                return ! empty(array_intersect($employeeCountries, $countryValues));
-            });
-        }
-
         $systemRoles = getSystemRoles();
         $roles       = Role::whereNotIn('name', $systemRoles)->get();
 
         // Active Counts ::
-        $activeEmployees = $canViewEmployees ? $employees->count() : 0;
         // $activeCoaches = Coach::whereHas('user', function ($q) {
         //     $q->where('status', 'ACTIVE');
         // })->count();
@@ -2040,7 +2016,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'employees', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewCoaches', 'canViewEmployees', 'canViewStudentPayments', 'canViewPaymentReport'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeCoaches', 'activeStudents', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewCoaches', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)
@@ -2387,11 +2363,6 @@ class DashboardController extends Controller
 
     public function batchData(Request $request)
     {
-        $user = auth()->user();
-        $isAdminOrSuperAdmin = $user->hasRole('Admin') || $user->hasRole('SuperAdmin');
-        $canViewBatches = $isAdminOrSuperAdmin || $user->can('batchs-view');
-        $allowedCountries = $this->dashboardAllowedCountries($user);
-
         $latestVersions = Batch::select('parent_id', \DB::raw('MAX(version) as max_version'))
             ->groupBy('parent_id');
         $query = Batch::select('batchs.*')
@@ -2401,13 +2372,7 @@ class DashboardController extends Controller
             })
             ->orderByDesc('batchs.id');
 
-        if (! $isAdminOrSuperAdmin) {
-            $this->applyDashboardCountryScope($query, 'batchs.country', $allowedCountries);
-        }
-
-        if (! $canViewBatches) {
-            $query->whereRaw('1 = 0');
-        }
+        $query->whereRaw('1 = 0');
 
         if ($request->status) {
             $query->where('status', $request->status);

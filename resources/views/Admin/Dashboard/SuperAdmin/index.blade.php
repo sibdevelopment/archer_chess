@@ -9,11 +9,9 @@
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
         $canViewStudents = $canViewStudents ?? ($isAdminOrSuperAdmin || $user->can('students-view'));
         $canViewMissedSessions = $canViewMissedSessions ?? $canViewStudents;
-        $canViewBatches = $canViewBatches ?? ($isAdminOrSuperAdmin || $user->can('batchs-view'));
         $canViewCoaches = $canViewCoaches ?? ($isAdminOrSuperAdmin || $user->can('coachs-view'));
-        $canViewEmployees = $canViewEmployees ?? ($isAdminOrSuperAdmin || $user->can('employee-view'));
-        $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('studentfee-view'));
-        $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('reports-view'));
+        $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('dashboard-student-payments-view'));
+        $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('dashboard-payment-report-view'));
 
         // Get the countries the user can see
         $allowedCountries = $allowedCountries ?? [];
@@ -75,13 +73,6 @@
                                 <p class="mb-0 fs-4">Total Active Coaches</p>
                             </div>
                         @endif
-                        @if ($canViewEmployees)
-                            <div class="text-center">
-                                <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
-                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
-                                <p class="mb-0 fs-4">Total Active Employees</p>
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -89,9 +80,7 @@
                 $dashboardTabs = collect([
                     $canViewStudents ? 'students' : null,
                     $canViewMissedSessions ? 'missed_sessions' : null,
-                    $canViewBatches ? 'batches' : null,
                     $canViewCoaches ? 'coaches' : null,
-                    $canViewEmployees ? 'employees' : null,
                     $canViewStudentPayments ? 'student_payments' : null,
                     $canViewPaymentReport ? 'payment_report' : null,
                 ])->filter()->values();
@@ -151,17 +140,6 @@
                         </button>
                     </li>
                 @endif
-                @if ($canViewBatches)
-                    <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'batches' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                            id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button"
-                            role="tab" aria-controls="pills-batch" aria-selected="{{ $activeDashboardTab === 'batches' ? 'true' : 'false' }}">
-                            <i class="ti ti-color-swatch me-2 fs-6"></i>
-                            <span class="d-none d-md-block">Batches</span>
-                        </button>
-                    </li>
-                @endif
                 @if ($canViewCoaches)
                     <li class="nav-item" role="presentation">
                         <button
@@ -170,17 +148,6 @@
                             role="tab" aria-controls="pills-followers" aria-selected="{{ $activeDashboardTab === 'coaches' ? 'true' : 'false' }}">
                             <i class="ti ti-user-exclamation me-2 fs-6"></i>
                             <span class="d-none d-md-block">Coaches</span>
-                        </button>
-                    </li>
-                @endif
-                @if ($canViewEmployees)
-                    <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'employees' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                            id="pills-employee-tab" data-bs-toggle="pill" data-bs-target="#pills-friends" type="button"
-                            role="tab" aria-controls="pills-friends" aria-selected="{{ $activeDashboardTab === 'employees' ? 'true' : 'false' }}">
-                            <i class="ti ti-user-circle me-2 fs-6"></i>
-                            <span class="d-none d-md-block">Employees</span>
                         </button>
                     </li>
                 @endif
@@ -372,103 +339,6 @@
             </div>
         @endif
         <!-- ------------------------------------------------------------------ :: -->
-        @if ($canViewBatches)
-            <div class="tab-pane fade {{ $activeDashboardTab === 'batches' ? 'show active' : '' }}" id="pills-batch" role="tabpanel" aria-labelledby="pills-batch-tab" tabindex="0">
-                <section>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card w-100 position-relative overflow-hidden">
-                            <div class="card-header px-4 py-3 border-bottom">
-                                <div class="row">
-                                    <div class="col-4 d-flex justify-content-start">
-                                        <h5 class="card-title fw-semibold mb-0 lh-sm">Batches </h5>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end ">
-                                        <select name="status" id="batch-status"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Status</option>
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="INACTIVE">Inactive</option>
-                                            <option value="STANDBY" selected>Standby</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="level" id="batch-level"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Level</option>
-                                            @foreach ($levels as $level)
-                                                <option value="{{ $level->id }}">{{ $level->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="coach" id="batch-coach"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Coach</option>
-                                            @foreach ($coaches as $coach)
-                                                <option value="{{ $coach->id }}">{{ $coach->user->first_name }}
-                                                    {{ $coach->user->last_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="student" id="batch-student"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Student</option>
-                                            @foreach ($students as $student)
-                                                <option value="{{ $student->id }}">
-                                                    {{ $student->first_name }}{{ $student->last_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="table-responsive rounded-2 mb-4">
-                                    <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle"
-                                        id="batch-datatable" style="width: 100% !important;">
-                                        <thead class="text-dark fs-3">
-                                            <tr>
-                                                <th width="1%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">#</h6>
-                                                </th>
-                                                <th width="5%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">Action</h6>
-                                                </th>
-                                                <th width="5%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">Status</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Batch</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Total Kids</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Kids Zone Name</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Completed Session</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Timeline</h6>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </section>
-            </div>
-        @endif
-        <!-- ------------------------------------------------------------------ :: -->
         @if ($canViewCoaches)
             <div class="tab-pane fade {{ $activeDashboardTab === 'coaches' ? 'show active' : '' }}" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
                 tabindex="0">
@@ -498,51 +368,6 @@
                 </div>
             </div>
         @endif
-            <!-- ------------------------------------------------------------------ :: -->
-        @if ($canViewEmployees)
-            <div class="tab-pane fade {{ $activeDashboardTab === 'employees' ? 'show active' : '' }}" id="pills-friends" role="tabpanel" aria-labelledby="pills-employee-tab"
-                tabindex="0">
-                <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Employees </h4>
-                </div>
-                <div class="row">
-                    @foreach ($employees as $employee)
-                        <div class="col-sm-6 col-lg-4">
-                            <div class="card hover-img">
-                                <div class="card-body p-4 text-center border-bottom">
-                                    <i class="ti ti-user-circle me-2 fs-7 text-theme"></i>
-                                    <h5 class="fw-semibold mb-0 mt-2">{{ $employee->user->first_name }}
-                                        {{ $employee->user->last_name }}
-                                    </h5>
-                                    <span class="text-dark fs-2">{{ $employee->user->mobile }} &nbsp; | &nbsp;
-                                        {{ $employee->user->email }}</span> <br>
-                                    <span class="text-dark fs-2">
-                                        {{ implode(
-                                            ', ',
-                                            $employee->user->roles->flatMap(function ($role) {
-                                                    return json_decode($role->countries, true);
-                                                })->toArray(),
-                                        ) }}
-                                    </span>
-                                </div>
-                                <ul
-                                    class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
-                                    <li class="position-relative">
-                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                            href="javascript:void(0)">
-                                            <i class="ti ti-user-check p-2 fs-5 text-theme"></i> &nbsp;
-                                            <span
-                                                class="text-center w-100">{{ implode(', ', $employee->user->roles->pluck('name')->toArray()) }}</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
         @if ($canViewStudentPayments)
             <div class="tab-pane fade {{ $activeDashboardTab === 'student_payments' ? 'show active' : '' }}" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab"
                 tabindex="0">
@@ -922,97 +747,6 @@
         });
         @endif
 
-
-        // ------------------- Batch Data List :: ---------------------
-        @if ($canViewBatches)
-        $(function() {
-            var dataTable = $('#batch-datatable').DataTable({
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                processing: true,
-                serverSide: true,
-                scrollCollapse: true,
-                scrollX: false,
-                pageLength: 50,
-                ajax: {
-                    url: '{!! route('admin.dashboard.get.batches') !!}',
-                    type: 'POST',
-                    data: function(d) {
-                        d._token = $('meta[name=csrf-token]').attr('content');
-                        d.status = $('#batch-status').val();
-                        d.coach = $('#batch-coach').val();
-                        d.level = $('#batch-level').val();
-                        d.student = $('#batch-student').val();
-                    }
-                },
-                columns: [{
-                        data: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'action',
-                        name: 'batchs.id',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'status',
-                        name: 'batchs.id',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'name',
-                        name: 'batchs.name',
-                        orderable: false
-                    },
-                    {
-                        data: 'total_active_students',
-                        name: 'batchs.total_active_students',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'kids_zone_name',
-                        name: 'batchs.kids_zone_name',
-                        orderable: false
-                    },
-                    {
-                        data: 'total_sessions_completed',
-                        name: 'batchs.total_sessions_completed',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'timeline',
-                        name: 'batchs.timeline',
-                        orderable: false,
-                        searchable: false
-                    },
-                ],
-                order: [],
-                columnDefs: [{
-                    targets: [0, 1],
-                    className: "text-center"
-                }, ],
-            });
-            $(".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel").addClass(
-                "btn btn-primary mr-1");
-            $('#batch-status').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-coach').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-level').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-student').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-        });
-        @endif
     </script>
     <script>
         // document.addEventListener('DOMContentLoaded', function() {

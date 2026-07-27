@@ -404,6 +404,8 @@
                                     <th style="text-align: center;">Country</th>
                                     <th style="text-align: center;">Status</th>
                                     <th style="text-align: center;">Level</th>
+                                    <th style="text-align: center;">Penalty</th>
+                                    <th style="text-align: center;">Fine</th>
                                     <th style="text-align: center;">Date</th>
                                     <th style="text-align: center;">Attendance Time</th>
                                 </tr>
@@ -853,6 +855,8 @@
                                     '<td style="text-align: center;">' + row.country + '</td>' +
                                     '<td style="text-align: center;">' + row.batch_status + '</td>' +
                                     '<td style="text-align: center;">' + row.level_name + '</td>' +
+                                    '<td style="text-align: center;">' + row.penalty_type + '</td>' +
+                                    '<td style="text-align: center;">' + row.fine + '</td>' +
                                     '<td style="text-align: center;">' + row.canceled_date + '</td>' +
                                     '<td style="text-align: center;">' + row.canceled_time + '</td>' +
                                     '</tr>';

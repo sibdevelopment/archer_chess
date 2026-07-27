@@ -159,7 +159,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- <div class="col-sm-6 col-xl-2 mt-2">
+                <div class="col-sm-6 col-xl-2 mt-2">
                     <div class="card bg-light-danger shadow-none" style="margin-bottom: 0px !important;">
                         <div class="card-body p-2">
                             <div class="d-flex align-items-center">
@@ -174,12 +174,15 @@
                                 </div>
                             </div>
                             <div class="d-flex align-items-center justify-content-between">
-                                <h5 class="mb-0 fw-semibold fs-3">Delayed Batches</h5>
+                                <h5 class="mb-0 fw-semibold fs-3">Late/Cancel Fine</h5>
                                 <span class="fs-8 fw-bold custom-color">{{ $delayedBatchesCount }}</span>
+                            </div>
+                            <div class="mt-1 text-end">
+                                <span class="fs-3 fw-semibold custom-color">INR {{ number_format((float) ($delayedBatchesFineTotal ?? 0), 2) }}</span>
                             </div>
                         </div>
                     </div>
-                </div> --}}
+                </div>
                 <!-- ------------------------------------------------------------------------- :: -->
             </div>
         </div>

@@ -16,6 +16,7 @@ class Batch extends BaseModel
     protected $fillable = [
         'name',
         'kids_zone_name',
+        'is_one_to_one',
         'coach_id',
         'level_id',
         'status',
@@ -37,6 +38,7 @@ class Batch extends BaseModel
 
     protected $casts = [
         'country' => 'array',
+        'is_one_to_one' => 'boolean',
     ];
 
     public function level()
@@ -102,5 +104,4 @@ class Batch extends BaseModel
     }
 
 }
-
 

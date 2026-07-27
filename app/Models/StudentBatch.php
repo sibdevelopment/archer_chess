@@ -44,6 +44,20 @@ class StudentBatch extends BaseModel
         return $now->between($this->start_date, $this->end_date) && $this->status === 'ACTIVE';
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'ACTIVE');
+    }
+
+    public function scopeEligibleOn($query, $date)
+    {
+        $date = Carbon::parse($date)->toDateString();
+
+        return $query->active()
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date);
+    }
+
     public static function boot()
     {
         parent::boot();
@@ -62,19 +76,6 @@ class StudentBatch extends BaseModel
             $userId = Auth::id();
             if ($userId) {
                 $model->updated_by = $userId;
-            }
-        });
-
-        // Update batch schedules when start_date or end_date is changed
-        static::updating(function ($studentBatch) {
-            if ($studentBatch->isDirty(['start_date', 'end_date'])) {
-                $batchSchedules = BatchSchedule::where('batch_id', $studentBatch->batch_id);
-                if ($batchSchedules->exists()) {
-                    $batchSchedules->update([
-                        'start_date' => $studentBatch->start_date,
-                        'end_date' => $studentBatch->end_date,
-                    ]);
-                }
             }
         });
     }

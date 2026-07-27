@@ -75,20 +75,56 @@
                 </div>
             </div>
             @php
-                $student_payments = App\Models\StudentFee::where('student_id', '!=', null)
-                    ->where('currency', null)
-                    ->where('status', 'ACTIVE')
-                    ->orderBy('id', 'DESC')
+                $activeDashboardTab = request()->has('payment_report_date') || request()->has('payment_report_status')
+                    ? 'payment_report'
+                    : 'students';
+                $student_payments = App\Models\Order::with(['student', 'studentFee'])
+                    ->whereDate('created_at', now()->toDateString())
+                    ->whereNotNull('student_id')
+                    ->latest()
                     ->get();
-                // dd($student_payments);
+
+                $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
+                $paymentReportStatus = request('payment_report_status', '');
+                $paymentReportQuery = App\Models\Order::with(['student', 'studentFee'])->whereNotNull('student_id');
+                $paymentReportStatuses = App\Models\Order::whereNotNull('student_id')
+                    ->whereNotNull('status')
+                    ->where('status', '!=', '')
+                    ->distinct()
+                    ->orderBy('status')
+                    ->pluck('status');
+
+                $paymentReportRangeParts = array_map('trim', explode(' - ', $paymentReportDateRange));
+                $parsePaymentReportDate = function ($date, $fallback) {
+                    try {
+                        return \Carbon\Carbon::createFromFormat('m/d/Y', $date);
+                    } catch (\Throwable $exception) {
+                        try {
+                            return \Carbon\Carbon::parse($date);
+                        } catch (\Throwable $exception) {
+                            return $fallback;
+                        }
+                    }
+                };
+                $paymentReportStartDate = $parsePaymentReportDate($paymentReportRangeParts[0] ?? '', now())->startOfDay();
+                $paymentReportEndDate = $parsePaymentReportDate($paymentReportRangeParts[1] ?? ($paymentReportRangeParts[0] ?? ''), $paymentReportStartDate->copy())->endOfDay();
+                $paymentReportDateRange = $paymentReportStartDate->format('m/d/Y') . ' - ' . $paymentReportEndDate->format('m/d/Y');
+
+                $paymentReportQuery->whereBetween('created_at', [$paymentReportStartDate, $paymentReportEndDate]);
+
+                if ($paymentReportStatus !== '') {
+                    $paymentReportQuery->where('status', $paymentReportStatus);
+                }
+
+                $payment_report_orders = $paymentReportQuery->latest()->get();
             @endphp
             <!-- ------------------------------------------------------------------ :: -->
             <ul class="nav nav-pills user-profile-tab justify-content-end rounded-2" id="pills-tab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button
-                        class="nav-link position-relative rounded-0 active d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                        class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'students' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
                         id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button"
-                        role="tab" aria-controls="pills-profile" aria-selected="true">
+                        role="tab" aria-controls="pills-profile" aria-selected="{{ $activeDashboardTab === 'students' ? 'true' : 'false' }}">
                         <i class="ti ti-school me-2 fs-6"></i>
                         <span class="d-none d-md-block">Students</span>
                     </button>
@@ -139,6 +175,15 @@
                                 class="text-danger">({{ $student_payments->count() }})</span></span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'payment_report' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                        id="pills-payment-report-tab" data-bs-toggle="pill" data-bs-target="#pills-payment-report" type="button"
+                        role="tab" aria-controls="pills-payment-report" aria-selected="{{ $activeDashboardTab === 'payment_report' ? 'true' : 'false' }}">
+                        <i class="ti ti-report-money me-2 fs-6"></i>
+                        <span class="d-none d-md-block">Payment Report</span>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
@@ -146,7 +191,7 @@
     <!-- ------------------------------------------------------------------ :: -->
     <div class="tab-content" id="pills-tabContent">
         <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-student-tab"
+        <div class="tab-pane fade {{ $activeDashboardTab === 'students' ? 'show active' : '' }}" id="pills-profile" role="tabpanel" aria-labelledby="pills-student-tab"
             tabindex="0">
             <section>
                 <div class="row">
@@ -478,36 +523,185 @@
                     <div class="col-sm-6 col-lg-4">
                         <div class="card hover-img">
                             <div class="card-body p-4 text-center border-bottom">
-                                <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name }}
-                                    {{ $student_payment->student->last_name }} ({{ $student_payment->student->country }})
+                                <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name ?? '' }}
+                                    {{ $student_payment->student->last_name ?? '' }} ({{ $student_payment->student->country ?? 'N/A' }})
                                 </h5>
-                                <span class="text-dark fs-2">{{ $student_payment->student->mobile }} &nbsp; | &nbsp;
-                                    {{ $student_payment->student->email }}</span> <br>
+                                <span class="text-dark fs-2">{{ $student_payment->student->mobile ?? 'N/A' }} &nbsp; | &nbsp;
+                                    {{ $student_payment->student->email ?? 'N/A' }}</span> <br>
                                 <span class="text-dark fs-2">
-                                    Start Date: {{ toIndianDate($student_payment->start_date) }} &nbsp; | &nbsp;
-                                    End Date: {{ toIndianDate($student_payment->end_date) }}
+                                    Start Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->start_date) : 'N/A' }} &nbsp; | &nbsp;
+                                    End Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->end_date) : 'N/A' }}
+                                </span><br>
+                                <span class="text-dark fs-2">
+                                    Payment Date: {{ toIndianDate($student_payment->created_at) }}
                                 </span><br>
                                 <span class="text-dark fs-3">
-                                    Fees Paid: <span style="color: green;">{{ $student_payment->monthly_fees }}
+                                    Fees Paid: <span style="color: green;">{{ $student_payment->amount }}
                                         {{ $student_payment->currency }}</span>
+                                </span><br>
+                                <span class="badge {{ strtoupper($student_payment->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                    {{ $student_payment->status }}
                                 </span>
                             </div>
                             <ul
                                 class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
                                 <li class="position-relative">
-                                    <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                        href="/admin/students/{{ $student_payment->student->id }}/student_fees"
-                                        target="_blank">
-                                        <span class="text-center w-100"> Check Fees Details</span>
-                                    </a>
+                                    @if ($student_payment->studentFee)
+                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
+                                            href="/admin/students/{{ $student_payment->student_id }}/student_fees"
+                                            target="_blank">
+                                            <span class="text-center w-100"> Check Fees Details</span>
+                                        </a>
+                                    @else
+                                        <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
+                                            No fee created
+                                        </span>
+                                    @endif
                                 </li>
                             </ul>
                         </div>
                     </div>
                 @endforeach
+                @if ($student_payments->isEmpty())
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="mb-0">No student payments received today.</h5>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
+
+        <div class="tab-pane fade {{ $activeDashboardTab === 'payment_report' ? 'show active' : '' }}" id="pills-payment-report" role="tabpanel" aria-labelledby="pills-payment-report-tab"
+            tabindex="0">
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card w-100 position-relative overflow-hidden">
+                            <div class="card-header px-4 py-3 border-bottom">
+                                <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
+                                    <div class="col-md-4">
+                                        <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group input-group-sm">
+                                            <input name="payment_report_date" id="payment_report_date" type="text"
+                                                class="form-control payment-report-daterange pure-white"
+                                                value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
+                                            <span class="input-group-text">
+                                                <i class="ti ti-calendar fs-5"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="payment_report_status" class="form-select form-select-sm pure-white">
+                                            <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
+                                            @foreach ($paymentReportStatuses as $status)
+                                                <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
+                                                    {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="table-responsive rounded-2 mb-4">
+                                    <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle">
+                                        <thead class="text-dark fs-4">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Payment Date</th>
+                                                <th>Student</th>
+                                                <th>Country</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Fee Window</th>
+                                                <th>Payment ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($payment_report_orders as $payment_order)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ toIndianDate($payment_order->created_at) }}</td>
+                                                    <td>
+                                                        {{ $payment_order->student->first_name ?? '' }}
+                                                        {{ $payment_order->student->last_name ?? '' }}
+                                                        @if ($payment_order->student)
+                                                            ({{ $payment_order->student->student_id }})
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $payment_order->student->country ?? 'N/A' }}</td>
+                                                    <td>{{ $payment_order->amount }} {{ $payment_order->currency }}</td>
+                                                    <td>
+                                                        <span class="badge {{ strtoupper($payment_order->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                                            {{ $payment_order->status }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @if ($payment_order->studentFee)
+                                                            {{ toIndianDate($payment_order->studentFee->start_date) }}
+                                                            -
+                                                            {{ toIndianDate($payment_order->studentFee->end_date) }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $payment_order->razorpay_payment_id ?? 'N/A' }}</td>
+                                                </tr>
+                                            @endforeach
+                                            @if ($payment_report_orders->isEmpty())
+                                                <tr>
+                                                    <td colspan="8" class="text-center">No payment records found.</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
+
+    <script src="/backend/dist/libs/bootstrap-material-datetimepicker/node_modules/moment/moment.js"></script>
+    <script src="/backend/dist/libs/daterangepicker/daterangepicker.js"></script>
+
+    <script>
+        $(function() {
+            var paymentReportInput = $('#payment_report_date');
+
+            if (paymentReportInput.length) {
+                paymentReportInput.daterangepicker({
+                    autoUpdateInput: true,
+                    startDate: moment(@json($paymentReportStartDate->format('Y-m-d'))),
+                    endDate: moment(@json($paymentReportEndDate->format('Y-m-d'))),
+                    locale: {
+                        format: 'MM/DD/YYYY',
+                        cancelLabel: 'Clear'
+                    },
+                    ranges: {
+                        'Today': [moment(), moment()],
+                        'Last Week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+                        'This Month': [moment().startOf('month'), moment().endOf('month')],
+                        'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                    }
+                });
+
+                paymentReportInput.on('cancel.daterangepicker', function() {
+                    $(this).val(moment().format('MM/DD/YYYY') + ' - ' + moment().format('MM/DD/YYYY'));
+                });
+            }
+        });
+    </script>
 
     <script>
         // ------------------- Student Data List :: ---------------------

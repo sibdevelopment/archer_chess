@@ -51,14 +51,13 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         // $schedule->command('BatchAttendance:not-marked-attendance')->hourly();
 
-        // OTHER
-        $schedule->command('check:fess-due-students')->dailyAt('00:30');
-
-        // USA CANADA
-        $schedule->command('set:fess-due-in-usa-canada')->dailyAt('21:05');
-
-        // UK
-        $schedule->command('set:fess-due-in-uk')->dailyAt('12:00');
+        // Fee due cron is managed directly in server crontab:
+        // */30 * * * * cd /var/www/archerkids && php artisan fees:mark-due-by-schedule --buffer=15 >> storage/logs/fee-due-cron.log 2>&1
+        //
+        // Old region-wise fee due schedules are disabled so they do not run if Laravel scheduler is enabled.
+        // $schedule->command('check:fess-due-students')->dailyAt('00:30');
+        // $schedule->command('set:fess-due-in-usa-canada')->dailyAt('21:05');
+        // $schedule->command('set:fess-due-in-uk')->dailyAt('12:00');
 
 
         // OTHER 24Hrs REminder

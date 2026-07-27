@@ -83,7 +83,7 @@ class CancelDelayBatch extends Command
                     $batch->end_date = $nextScheduledDay->toDateString();
                     $batch->save();
 
-                    $studentIds = StudentBatch::where('batch_id', $batchId)->where('status', 'ACTIVE')->pluck('student_id');
+                    $studentIds = StudentBatch::where('batch_id', $batchId)->eligibleOn($date)->pluck('student_id');
 
                     if (!$studentAttendanceExists) {
                         foreach ($studentIds as $studentId) {
@@ -105,7 +105,7 @@ class CancelDelayBatch extends Command
                             // Update StudentBatch end_date
                             $studentBatch = StudentBatch::where('student_id', $studentId)
                                 ->where('batch_id', $batchId)
-                                ->where('status', 'ACTIVE')
+                                ->eligibleOn($date)
                                 ->first();
 
                             if ($studentBatch) {

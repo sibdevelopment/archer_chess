@@ -14,6 +14,7 @@ class Coverupclass extends BaseModel
 
     protected $fillable = [
         'batch_id',
+        'batchschedule_id',
         'schedule_id',
         'old_coach_id',
         'new_coach_id',
@@ -28,6 +29,11 @@ class Coverupclass extends BaseModel
     public function schedule()
     {
         return $this->belongsTo(BatchSchedule::class, 'schedule_id');
+    }
+
+    public function batchSchedule()
+    {
+        return $this->belongsTo(BatchSchedule::class, 'batchschedule_id');
     }
 
     public function oldCoach()

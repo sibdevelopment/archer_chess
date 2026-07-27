@@ -9,7 +9,7 @@
                                     <span class="badge bg-danger">BATCH ACTIVE</span>
                                 </div>
                                 <div class="col-3 d-flex justify-content-center">
-                                    <span class="badge" style="background-color: purple;">BATCH INACTIVE</span>
+                                    <span class="badge" style="background-color: #0f766e;">1-1 BATCH</span>
                                 </div>
                                 <div class="col-3 d-flex justify-content-center">
                                     <span class="badge" style="background-color: black;">BATCH STANDBY</span>

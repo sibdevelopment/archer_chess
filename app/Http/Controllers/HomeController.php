@@ -31,7 +31,7 @@ class HomeController extends Controller
 
     public function getTimezones(Request $request)
     {
-        $country = $request->input('country'); // Retrieve the 'country' parameter from the request
+        $country = normalizeCountryValue($request->input('country')); // Retrieve the 'country' parameter from the request
         $timezones = [];
         // dd($country);
         if ($country) {

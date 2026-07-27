@@ -87,12 +87,14 @@ class CheckPayment extends Command
                 $studentfee = new StudentFee();
                 $studentfee->student_id = $student->id;
                 $studentfee->start_date = date('Y-m-d');
-                $studentfee->end_date = date('Y-m-d', strtotime('+15 days'));
+                $studentfee->end_date = date('Y-m-d', strtotime('+29 days'));
                 $studentfee->monthly_fees = $order->amount;
                 $studentfee->total_amount_paid = $order->amount;
+                $studentfee->currency = $payment['currency'] ?? $order->currency;
                 $studentfee->receive_date = date('Y-m-d');
                 $studentfee->status = 'ACTIVE';
                 $studentfee->save();
+                $studentBatchStartDate = Carbon::parse($studentfee->start_date)->toDateString();
                 
                 if ($student->status == 'FEESDUE') {
                     $student_latest_batch = StudentBatch::where('student_id', $student->id)->latest('created_at')->first();
@@ -113,7 +115,7 @@ class CheckPayment extends Command
                                     $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                                     $sudentBatch->status = $student_batch->status;
                                     $sudentBatch->is_fees_due = 0;
-                                    $sudentBatch->start_date = Carbon::today();
+                                    $sudentBatch->start_date = $studentBatchStartDate;
                                     $sudentBatch->end_date = $student_batch->batch->end_date;
                                     $sudentBatch->status = 'ACTIVE';
                                     $sudentBatch->save();
@@ -127,7 +129,7 @@ class CheckPayment extends Command
                                     $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                                     $sudentBatch->status = $last_student->status;
                                     $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                                    $sudentBatch->start_date = $last_student->start_date;
+                                    $sudentBatch->start_date = $studentBatchStartDate;
                                     $sudentBatch->end_date = $last_student->end_date;
                                     $sudentBatch->created_by = $last_student->created_by;
                                     $sudentBatch->updated_by = $last_student->updated_by;
@@ -146,7 +148,7 @@ class CheckPayment extends Command
                                     $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                                     $sudentBatch->status = $student_batch->status;
                                     $sudentBatch->is_fees_due = 0;
-                                    $sudentBatch->start_date = Carbon::today();
+                                    $sudentBatch->start_date = $studentBatchStartDate;
                                     $sudentBatch->end_date = $student_batch->batch->end_date;
                                     $sudentBatch->status = 'ACTIVE';
                                     $sudentBatch->save();
@@ -160,7 +162,7 @@ class CheckPayment extends Command
                                     $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                                     $sudentBatch->status = $last_student->status;
                                     $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                                    $sudentBatch->start_date = $last_student->start_date;
+                                    $sudentBatch->start_date = $studentBatchStartDate;
                                     $sudentBatch->end_date = $last_student->end_date;
                                     $sudentBatch->created_by = $last_student->created_by;
                                     $sudentBatch->updated_by = $last_student->updated_by;
@@ -202,11 +204,8 @@ class CheckPayment extends Command
      */
     protected function checkPaymentApi(string $paymentId)
     {
-        $key = 'rzp_live_eckVmG8LHU5uhu';
-        $secret = 'yN3zXf5cmDKzcgcYn8fWoEoC'; 
-        
-        // $key = 'rzp_test_RLrov8eGceCpPt';
-        // $secret = 'tWqTNh7WveDI7oSqKFeoj446'; 
+        $key = config('services.razorpay.key');
+        $secret = config('services.razorpay.secret');
 
         if (empty($key) || empty($secret)) {
             Log::error('Razorpay keys not configured');

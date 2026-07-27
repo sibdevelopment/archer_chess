@@ -226,7 +226,7 @@ class TimezoneController extends Controller
 
     public function getTimezones(Request $request)
     {
-        $country = $request->query('country');
+        $country = normalizeCountryValue($request->query('country'));
         $timezones = getTimezones();
 
         // dd($timezones);

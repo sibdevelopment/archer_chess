@@ -1,6 +1,22 @@
 @extends('layouts.revamp')
 @section('title', 'Home')
 @section('content')
+    <style>
+        #coaches .tutor-image-frame {
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            background: #f6f6f6;
+        }
+
+        #coaches .tutor-image-frame .tutor-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+        }
+    </style>
 
     <!--  ======= banner section start  ======= -->
     <section class="bg-main-two-200 pt-74 pb-120 position-relative z-3 overflow-hidden">
@@ -531,208 +547,50 @@
             </div>
             <div class="swiper coachSwiper">
                 <div class="swiper-wrapper">
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="our-teacher-thumb tw-transform-roted-1">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
+                    @foreach ($meetourtutors as $index => $tutor)
+                        @php
+                            $rotationClasses = ['tw-transform-roted-1', 'tw-transform-roted--4', 'tw-transform-roted-3'];
+                            $delay = (($index % 3) + 1) * 100;
+                            $tutorImage = $tutor->image ? Storage::url($tutor->image) : '/frontend1/tcul-img/img/tutor1.png';
+                        @endphp
+                        <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="{{ $delay }}">
+                            <div class="our-teacher-thumb {{ $rotationClasses[$index % count($rotationClasses)] }}">
+                                <div class="position-relative tutor-image-frame">
+                                    <a href="#0" class="d-block h-100">
+                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}" class="tutor-image">
+                                    </a>
+                                    <div class="our-teacher-link">
+                                        <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
+                                            <li>
+                                                <a href="#0" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
+                                                    <span class="fw-normal tw-text-405 text-main-two-600">
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                        <i class="ph-fill ph-star ms-1 fs-22"></i>
+                                                    </span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="text-center tw-mt-6">
+                                    <h2 class="h5">
+                                        <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
+                                            {{ $tutor->name }}
+                                        </a>
+                                    </h2>
+                                    @if (!empty($tutor->designation))
+                                        <p class="fw-normal tw-text-405 text-neutral-600 mb-1">{{ $tutor->designation }}</p>
+                                    @endif
+                                    @if (!empty($tutor->rating))
+                                        <span class="fw-normal tw-text-405 text-neutral-600 t_green">{{ $tutor->rating }}</span>
+                                    @endif
                                 </div>
                             </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Samyak Nayak
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2200</span>
-                            </div>
                         </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="our-teacher-thumb tw-transform-roted--4">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Toyesh Singh
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2500</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="our-teacher-thumb tw-transform-roted-3">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Dr. Sunanya
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="our-teacher-thumb tw-transform-roted-1">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Samyak Nayak
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2200</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="our-teacher-thumb tw-transform-roted--4">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Toyesh Singh
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2500</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="our-teacher-thumb tw-transform-roted-3">
-                            <div class="position-relative bg-img">
-                                <a href="#0" class="bg-img">
-                                    <img src="/frontend1/tcul-img/img/tutor1.png" alt="img" class="bg-img">
-                                </a>
-                                <div class="our-teacher-link">
-                                    <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
-                                        <li>
-                                            <a href="https://www.facebook.com/" class="tw-h-11 bg-white border-neutral-900 border tw-rounded-lg text-black tw-text-5 d-flex align-items-center justify-content-center hover-bg-main-600 hover-text-white tw-duration-300">
-                                                <span class="fw-normal tw-text-405 text-main-two-600">
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                    <i class="ph-fill ph-star ms-1 fs-22"></i>
-                                                </span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="text-center tw-mt-6">
-                                <h2 class="h5">
-                                    <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
-                                        Dr. Sunanya
-                                    </a>
-                                </h2>
-                                <span class="fw-normal tw-text-405 text-neutral-600 t_green">Fide Rating : 2000</span>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
 
                 </div>
             </div>
@@ -1647,82 +1505,86 @@
                             <h2 class="fw-bold text-white h4" data-aos="fade-up" data-aos-duration="600"
                                 data-aos-delay="200">Book your trial class</h2>
                         </div>
-                        <form action="#" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
+                        <form class="revamp-trial-form" method="POST" action="{{ route('confirm.trial.class') }}"
+                            data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
+                            @csrf
+                            <input type="hidden" name="country_code" class="revamp-country-code" value="+91">
+                            <input type="hidden" name="duration" value="25_minutes">
                             <div class="row gy-4">
                                 <!-- Country -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Country*</label>
-                                    <select class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
-                                        <option>Select Country</option>
-                                        <option>USA</option>
-                                        <option>Canada</option>
-                                        <option>Australia</option>
-                                        <option>New Zealand</option>
-                                        <option>India</option>
-                                        <option>UAE</option>
-                                        <option>UK</option>
-                                        <option>Singapore</option>
-                                        <option>South Africa</option>
-                                        <option>Qatar</option>
-                                        <option>Bahrain</option>
-                                        <option>Kuwait</option>
+                                    <select name="country" class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600 revamp-country" required>
+                                        <option value="">Select Country</option>
+                                        <option value="USA">USA</option>
+                                        <option value="CANADA">Canada</option>
+                                        <option value="AUSTRALIA">Australia</option>
+                                        <option value="NEWZEALAND">New Zealand</option>
+                                        <option value="INDIA">India</option>
+                                        <option value="UAE">UAE</option>
+                                        <option value="UK">UK</option>
+                                        <option value="SINGAPORE">Singapore</option>
+                                        <option value="SOUTH AFRICA">South Africa</option>
+                                        <option value="QATAR">Qatar</option>
+                                        <option value="BAHRAIN">Bahrain</option>
+                                        <option value="KUWAIT">Kuwait</option>
                                     </select>
                                 </div>
 
                                 <!-- Timezone -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Timezone*</label>
-                                    <select class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
-                                        <option>Select Time Zone</option>
-                                        <option>IST</option>
-                                        <option>EST</option>
-                                        <option>PST</option>
+                                    <select name="timezone" class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600 revamp-timezone" required>
+                                        <option value="">Select Time Zone</option>
                                     </select>
                                 </div>
 
                                 <!-- City -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">City*</label>
-                                    <input type="text" placeholder="Enter your city"
+                                    <input type="text" name="city" placeholder="Enter your city" required
                                         class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
                                 </div>
 
                                 <!-- Kid Name -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Kid's Full Name*</label>
-                                    <input type="text" placeholder="Enter kid's full name"
+                                    <input type="text" name="kids_first_name" placeholder="Enter kid's full name" required
                                         class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
                                 </div>
 
                                 <!-- Age -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Age*</label>
-                                    <input type="number" placeholder="Enter kid's age"
+                                    <input type="number" name="age" placeholder="Enter kid's age" required
                                         class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
                                 </div>
 
                                 <!-- WhatsApp -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">WhatsApp Number*</label>
-                                    <input id="phone_contact" type="tel" placeholder="Enter WhatsApp number"
+                                    <input id="phone_contact" name="mobile" type="tel" placeholder="Enter WhatsApp number" required
                                         class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600" style="width: stretch !important;">
                                 </div>
 
                                 <!-- Email -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Email*</label>
-                                    <input type="email" placeholder="Enter your email"
+                                    <input type="email" name="email" placeholder="Enter your email" required
                                         class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
                                 </div>
 
                                 <!-- Language -->
                                 <div class="col-md-6">
                                     <label class="fw-semibold tw-mb-2 text-white">Language Preference*</label>
-                                    <select class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
-                                        <option>Select language preference</option>
-                                        <option>Agree (English)</option>
-                                        <option>Kid is not comfortable in English</option>
+                                    <select name="language_preference" class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600" required>
+                                        <option value="">Select language preference</option>
+                                        <option value="Agree (English)">Agree (English)</option>
+                                        <option value="Kid is not comfortable in English">Kid is not comfortable in English</option>
                                     </select>
+                                </div>
+                                <div class="col-12">
+                                    <div class="revamp-form-message small text-white"></div>
                                 </div>
 
                                 <!-- Button -->

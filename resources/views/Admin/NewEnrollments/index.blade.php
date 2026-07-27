@@ -93,7 +93,7 @@
                             <div class="col-12 d-flex justify-content-evenly align-items-center gap-2 mt-3">
                                 <div class="row justify-content-end">
                                     @if ($user->id == 1)
-                                        <div class="col-3 d-flex justify-content-end">
+                                        <div class="col-2 d-flex justify-content-end">
                                             <select class="form-control select2" name="employee_id" id="employee_id">
                                                 <option value="">Select a Employee</option>
                                                 @foreach ($employees as $employee)
@@ -105,7 +105,14 @@
                                             </select>
                                         </div>
                                     @endif
-                                    <div class="col-3 d-flex justify-content-end">
+                                    <div class="col-2 d-flex justify-content-end">
+                                        <select class="form-control select2" name="enrollment_status" id="enrollment_status">
+                                            <option value="pending" selected>Pending Only</option>
+                                            <option value="all">All Enrollments</option>
+                                            <option value="confirmed">Confirmed Only</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2 d-flex justify-content-end">
                                         <select class="form-control select2 batch_id" name="batch_id" id="batch_id">
                                             <option value="">Select a Batch</option>
                                             @foreach ($batches as $batch)
@@ -115,7 +122,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-3 d-flex justify-content-end">
+                                    <div class="col-2 d-flex justify-content-end">
                                         <select class="form-control select2" name="payment_level_id" id="payment_level_id">
                                             <option value="">Select a Payment Level</option>
                                             @foreach ($payment_levels as $payment_level)
@@ -241,6 +248,7 @@
                         d.employee_id = $('#employee_id').val();
                         d.country = $('#country').val();
                         d.created_by = $('#created_by').val();
+                        d.enrollment_status = $('#enrollment_status').val();
                     }
                 },
                 columns: [{
@@ -361,6 +369,9 @@
             });
 
             $('#created_by').on('change', function() {
+                dataTable.ajax.reload(null, false);
+            });
+            $('#enrollment_status').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
         });

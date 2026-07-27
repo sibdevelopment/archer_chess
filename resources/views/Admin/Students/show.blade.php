@@ -176,14 +176,19 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ \Carbon\Carbon::parse($studentBatch->start_date)->format('d-M-Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($studentBatch->end_date)->format('d-M-Y') }}</td>
-                        <td>{{ $studentBatch->name }}</td>
-                        <td>{{ $studentBatch->coach->user->first_name }}
-                            {{ $studentBatch->coach->user->last_name }}</td>
-                        <td>{{ $studentBatch->level_id ? $studentBatch->level->name : 'N/A' }}</td>
+                        <td>{{ $studentBatch->batch ? $studentBatch->batch->name : 'N/A' }}</td>
+                        <td>
+                            @if ($studentBatch->coach && $studentBatch->coach->user)
+                                {{ $studentBatch->coach->user->first_name }} {{ $studentBatch->coach->user->last_name }}
+                            @else
+                                N/A
+                            @endif
+                        </td>
+                        <td>{{ $studentBatch->level ? $studentBatch->level->name : 'N/A' }}</td>
                         <td>{{ $studentBatch->status }}</td>
                         <td>
                             @php
-                                $total_sessions = App\Models\CoachAttendance::where('batch_id', $studentBatch->id)
+                                $total_sessions = App\Models\CoachAttendance::where('batch_id', $studentBatch->batch_id)
                                     ->where('status', 'COMPLETED')
                                     ->orderBy('id', 'desc')
                                     ->count();

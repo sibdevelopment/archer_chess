@@ -80,8 +80,8 @@
                 $i = 1;
 
                 $studentBatches = app\Models\StudentBatch::where('batch_id', $data->id)
-                ->where('start_date', '<=', $date)
-                ->where('end_date', '>=', $date)
+                ->eligibleOn($date)
+                ->with('student')
                 ->select('student_id')  // Select only student_id
                 ->distinct()  // Ensure uniqueness
                 ->get();

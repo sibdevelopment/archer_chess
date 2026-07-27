@@ -107,7 +107,9 @@
                 </td>
                 <td style="text-align: center;">
                     @if ($schedule['type'] == 'Batch' || $schedule['type'] == 'Coverup')
-                        @if ($schedule['batchStatus'] == 'ACTIVE')
+                        @if (($schedule['is_one_to_one'] ?? false) && $schedule['type'] == 'Batch')
+                            <span class="badge" style="background-color: #0f766e;">1-1 Batch</span>
+                        @elseif ($schedule['batchStatus'] == 'ACTIVE')
                             <span class="badge bg-danger">{{ $schedule['type'] }}</span>
                         @elseif($schedule['batchStatus'] == 'INACTIVE')
                             <span class="badge" style="background-color: purple;">{{ $schedule['type'] }}</span>

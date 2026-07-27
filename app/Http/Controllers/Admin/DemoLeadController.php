@@ -33,6 +33,38 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class DemoLeadController extends Controller
 {
+    private function batchCountryMatches(Batch $batch, ?string $country): bool
+    {
+        if (! $country) {
+            return true;
+        }
+
+        $countries = normalizeCountryValues($batch->country);
+
+        return in_array(normalizeCountryValue($country), $countries, true);
+    }
+
+    private function applyBatchCountryFilter($query, ?string $country)
+    {
+        if (! $country) {
+            return $query;
+        }
+
+        $countryValues = countryComparisonValues($country);
+
+        return $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+            foreach ($countryValues as $countryValue) {
+                $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                    ->orWhere(function ($query) use ($countryValue) {
+                        $query->whereRaw('NOT json_valid(country)')->where(function ($query) use ($countryValue) {
+                            $query->where('country', $countryValue)
+                                ->orWhereRaw('FIND_IN_SET(?, country)', [$countryValue]);
+                        });
+                    });
+            }
+        });
+    }
+
 
     public function index()
     {
@@ -73,7 +105,7 @@ class DemoLeadController extends Controller
             $query->where('status', '!=', 'CONVERTED');
         }
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
         if ($request->level) {
             $query->whereHas('demoSessions', function ($query) use ($request) {
@@ -362,6 +394,9 @@ Archer Chess Academy";
             'date.required' => 'Date is required.',
             'time.required' => 'Time is required.',
         ]);
+        $request->merge([
+            'country' => normalizeCountryValue($request->country),
+        ]);
 
         // Create Demo Lead
         $demoLead = new DemoLead();
@@ -540,6 +575,9 @@ Archer Chess Academy";
             'date.required'      => 'Date is required.',
             'time.required'      => 'Time is required.',
         ]);
+        $request->merge([
+            'country' => normalizeCountryValue($request->country),
+        ]);
 
         DB::transaction(function () use ($request, $demolead) {
             // ✅ Update Demo Lead
@@ -616,7 +654,10 @@ Archer Chess Academy";
         $levels = Level::where('status', 'ACTIVE')->get();
         $lastpayment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
         $employees = Employee::get();
-        $batches = Batch::where('status', 'ACTIVE')->get();
+        $batches = $this->applyBatchCountryFilter(
+            Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
+            $demolead->country
+        )->get();
         return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'lastpayment_levels', 'employees', 'batches'));
     }
 
@@ -651,6 +692,19 @@ Archer Chess Academy";
                 'status' => 'error',
                 'message' => 'Demo lead not found.',
             ], 404);
+        }
+
+        if ($request->filled('batch_id')) {
+            $selectedBatch = Batch::find($request->batch_id);
+            if (! $selectedBatch || ! in_array($selectedBatch->status, ['ACTIVE', 'STANDBY', 'UPCOMING'], true) || ! $this->batchCountryMatches($selectedBatch, $demolead->country)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Selected batch does not match the demo lead country.',
+                    'errors' => [
+                        'batch_id' => ['Selected batch does not match the demo lead country.'],
+                    ],
+                ], 422);
+            }
         }
 
         $user = User::find($demolead->user_id);
@@ -693,8 +747,9 @@ Archer Chess Academy";
         $student->age = !empty($demolead->age) ? $demolead->age : '';
         $student->mobile = !empty($demolead->mobile) ? $demolead->mobile : '';
         $student->city = !empty($demolead->city) ? $demolead->city : '';
-        $student->country = !empty($demolead->country) ? $demolead->country : '';
-        $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
+        $student->country = !empty($demolead->country) ? normalizeCountryValue($demolead->country) : '';
+        // Last Payment Level is no longer collected during demo lead conversion.
+        // $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
 
         $student->status = 'INACTIVE';
         if ($request->has('student_id') && !empty($request->student_id)) {
@@ -756,6 +811,7 @@ Archer Chess Academy";
     public function getTimezones(Request $request)
     {
         $country = $request->query('country');
+        $country = normalizeCountryValue($country);
         $timezones = getTimezones();
         if ($country && isset($timezones[$country])) {
             return response()->json([$country => $timezones[$country]]);
@@ -835,7 +891,7 @@ Archer Chess Academy";
         }
 
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
 
         if ($request->level) {

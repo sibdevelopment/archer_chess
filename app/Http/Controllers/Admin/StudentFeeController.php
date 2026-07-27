@@ -18,6 +18,41 @@ use Illuminate\Support\Facades\Mail;
 
 class StudentFeeController extends Controller
 {
+    private function syncActiveStudentBatchFeeWindow(Student $student, StudentFee $studentFee): void
+    {
+        if ($studentFee->status !== 'ACTIVE' || ! $studentFee->start_date) {
+            return;
+        }
+
+        $feeStartDate = Carbon::parse($studentFee->start_date)->toDateString();
+        $feeEndDate = $studentFee->end_date
+            ? Carbon::parse($studentFee->end_date)->toDateString()
+            : null;
+
+        StudentBatch::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->with('batch')
+            ->get()
+            ->each(function (StudentBatch $studentBatch) use ($feeStartDate, $feeEndDate) {
+                $batchStartDate = $studentBatch->batch && $studentBatch->batch->start_date
+                    ? Carbon::parse($studentBatch->batch->start_date)->toDateString()
+                    : null;
+                $batchEndDate = $studentBatch->batch && $studentBatch->batch->end_date
+                    ? Carbon::parse($studentBatch->batch->end_date)->toDateString()
+                    : null;
+
+                $studentBatch->start_date = $batchStartDate && Carbon::parse($batchStartDate)->gt(Carbon::parse($feeStartDate))
+                    ? $batchStartDate
+                    : $feeStartDate;
+                if ($feeEndDate) {
+                    $studentBatch->end_date = $batchEndDate && Carbon::parse($batchEndDate)->lt(Carbon::parse($feeEndDate))
+                        ? $batchEndDate
+                        : $feeEndDate;
+                }
+                $studentBatch->save();
+            });
+    }
+
     public function index(Student $student)
     {
         // dd(extension_loaded('gd'));
@@ -166,6 +201,9 @@ class StudentFeeController extends Controller
         $endDate = Carbon::parse($request->input('end_date'));
 
         $old_status = $student->status;
+        $studentBatchStartDate = $request->input('start_date')
+            ? Carbon::parse($request->input('start_date'))->toDateString()
+            : Carbon::today()->toDateString();
 
         if ($endDate->lt($today)) {
             $student_fee->status = 'INACTIVE';
@@ -195,7 +233,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -209,7 +247,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -228,7 +266,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -242,7 +280,7 @@ class StudentFeeController extends Controller
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -256,6 +294,7 @@ class StudentFeeController extends Controller
 
 
         $student_fee->save();
+        $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         if ($student->user->email) {
             Mail::to($student->user->email)
@@ -328,6 +367,7 @@ class StudentFeeController extends Controller
             // }
         }
         $student_fee->save();
+        $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         return response()->json([
             'status' => 'success',

@@ -27,6 +27,9 @@
                                         <i class="ti ti-id-badge-2 text-dark fs-6"></i>
                                         <h6 class="fs-4 fw-semibold mb-0">
                                             Name : {{ $batch->name }}
+                                            @if ($batch->is_one_to_one)
+                                                <span class="badge bg-dark ms-2">1-1 Batch</span>
+                                            @endif
                                         </h6>
                                     </li>
                                 @endif
@@ -136,6 +139,34 @@
                                 </div>
                             </div>
                             <div class="card-body border-top">
+                                @php
+                                    $shouldBlankAssignmentFields = $blankAssignmentFields ?? false;
+                                    $isTransferAssignment = !empty($transferFromBatchId ?? null) && !empty($transferStudentIds ?? null);
+                                    $selectedLevelId = $shouldBlankAssignmentFields ? null : (($prefillLevelId ?? null) ?: $batch->level_id);
+                                    $numberOfSessionsValue = $shouldBlankAssignmentFields ? '' : (($prefillNumberOfSessions ?? null) ?: ($batch->number_of_sessions ?? 8));
+                                    $startDateValue = '';
+                                    if (! $shouldBlankAssignmentFields) {
+                                        $startDateValue = $prefillStartDate
+                                            ? \Carbon\Carbon::parse($prefillStartDate)->format('Y-m-d')
+                                            : (isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '');
+                                    }
+                                    $endDateValue = '';
+                                    if (! $shouldBlankAssignmentFields) {
+                                        $endDateValue = $prefillEndDate
+                                            ? \Carbon\Carbon::parse($prefillEndDate)->format('Y-m-d')
+                                            : (isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '');
+                                    }
+                                @endphp
+                                @if ($isTransferAssignment)
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            Review the assignment details and click Save to complete this batch transfer.
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="transfer_from_batch_id" value="{{ $transferFromBatchId }}">
+                                    <input type="hidden" name="transfer_student_ids" value="{{ $transferStudentIds }}">
+                                    <input type="hidden" name="transfer_cutoff_date" value="{{ $transferCutoffDate ?? $prefillStartDate }}">
+                                @endif
                                 <div class="row">
                                     {{-- <h6 class="text-warning fs-4">Personal Info :</h6> --}}
                                     <!-- Roll No. (Portal ID) -->
@@ -145,11 +176,13 @@
                                                 <select class="form-control select2"
         name="student_ids[]" multiple="multiple"
         id="student_ids"
+        data-one-to-one="{{ $batch->is_one_to_one ? 'YES' : 'NO' }}"
         @if($batch->status == 'INACTIVE') data-readonly="true" @endif>
 
                                             @foreach ($students as $student)
                                                 <option value="{{ $student->id }}"
-                                                    @foreach ($assignedStudents as $assignedStudent) {{ $assignedStudent->student_id == $student->id ? 'selected' : '' }} @endforeach>
+                                                    @foreach ($assignedStudents as $assignedStudent) {{ $assignedStudent->student_id == $student->id ? 'selected' : '' }} @endforeach
+                                                    {{ in_array($student->id, $preselectedStudentIds ?? []) ? 'selected' : '' }}>
                                                     {{ $student->first_name }} {{ $student->last_name }}
                                                     @if (!is_null($student->student_id))
                                                         ({{ $student->student_id }})
@@ -185,7 +218,7 @@
                                             <option value="">Select Level</option>
                                             @foreach ($levels as $level)
                                                 <option value="{{ $level->id }}"
-                                                    @if ($batch->level_id == $level->id) selected @endif>
+                                                    @if ($selectedLevelId == $level->id) selected @endif>
                                                     {{ $level->name }}
                                                 </option>
                                             @endforeach
@@ -193,7 +226,7 @@
 
                                         <!-- Hidden input to store the selected value -->
                                         <input type="hidden" id="hidden_level_id" name="level_id"
-                                            value="{{ $batch->level_id }}">
+                                            value="{{ $selectedLevelId }}">
 
                                         <div id="level_id-error" style="color:red"></div>
                                     </div>
@@ -216,7 +249,7 @@
                                         <label class="control-label col-form-label">Number of Sessions <sup
                                                 class="tcul-star-restrict">*</sup></label>
                                         <input type="number" class="form-control" name="number_of_sessions"
-                                            value="{{ $batch->number_of_sessions ?? 8 }}" required
+                                            value="{{ $numberOfSessionsValue }}" required
                                             @if ($is_hide == 1) readonly @endif>
                                         <div id="number_of_sessions-error" style="color:red"></div>
                                     </div>
@@ -230,7 +263,7 @@
                                             $readonly = (!$is_edit && $is_hide);
                                         @endphp
                                         <input type="date" class="form-control" name="start_date"
-                                            value="{{ isset($batch) && $batch->start_date ? \Carbon\Carbon::parse($batch->start_date)->format('Y-m-d') : '' }}"
+                                            value="{{ $startDateValue }}"
                                             @if ($readonly) readonly @endif
                                             >
                                         <div id="start_date-error" style="color:red"></div>
@@ -247,7 +280,7 @@
                                             type="date" 
                                             class="form-control" 
                                             name="end_date"
-                                            value="{{ isset($batch) && $batch->end_date ? \Carbon\Carbon::parse($batch->end_date)->format('Y-m-d') : '' }}"
+                                            value="{{ $endDateValue }}"
                                             @if ($readonly) readonly @endif
                                         >
 
@@ -350,7 +383,13 @@
 
         $('#student_ids').on('change', function() {
             var removedStudentIds = [];
-            var studentIds = $(this).val();
+            var studentIds = $(this).val() || [];
+            if ($(this).data('one-to-one') === 'YES' && studentIds.length > 1) {
+                var latestStudentId = studentIds[studentIds.length - 1];
+                $(this).val([latestStudentId]).trigger('change.select2');
+                studentIds = [latestStudentId];
+                toastr.error('Only one student can be assigned to a 1-1 batch.');
+            }
             var assignedStudentIds = {!! json_encode($assignedStudents->pluck('student_id')) !!};
 
             assignedStudentIds.forEach(function(assignedStudentId) {

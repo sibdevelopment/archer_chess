@@ -39,24 +39,36 @@
                     </div>
                     <div class="card-body border-top">
                         <div class="row">
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-4">
                                 <label class="control-label col-form-label">Name <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <input type="text" class="form-control" placeholder="Name" id="name" name="name"
                                     value="{{ isset($batch) ? $batch->name : '' }}" />
                                 <div id="name-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-4">
                                 <label class="control-label col-form-label">Kids Zone Name</label>
                                 <input type="text" class="form-control" placeholder="Kids Zone Name"
                                     name="kids_zone_name" value="{{ isset($batch) ? $batch->kids_zone_name : '' }}" />
                                 <div id="kids-zone-name-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label class="control-label col-form-label">Batch Type</label>
+                                <select class="form-control" name="is_one_to_one" id="is_one_to_one">
+                                    <option value="0" {{ !isset($batch) || !$batch->is_one_to_one ? 'selected' : '' }}>
+                                        Normal
+                                    </option>
+                                    <option value="1" {{ isset($batch) && $batch->is_one_to_one ? 'selected' : '' }}>
+                                        1-1 Batch
+                                    </option>
+                                </select>
+                                <div id="is_one_to_one-error" style="color:red"></div>
+                            </div>
                             <div class="col-sm-12 col-md-6">
                                 <label class="control-label col-form-label">Coach <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control select2" id="coach_id" name="coach_id"
-                                    {{ isset($batch) ? 'disabled' : '' }}>
+                                    data-selected-coach="{{ isset($batch) ? $batch->coach_id : '' }}" disabled>
                                     <option value="">Select a coach</option>
                                     @foreach ($coaches as $coach)
                                         @if (isset($batch) && $batch->coach_id == $coach->id)
@@ -69,14 +81,14 @@
                                     @endforeach
                                 </select>
                                 <div id="coach_id-error" style="color:red"></div>
-                                @if (isset($batch))
+                                @if (isset($batch) && $batch->status !== 'UPCOMING')
                                     <div class="text-secondary mt-2">You can't change the coach once it has been set.</div>
                                 @endif
                             </div>
                             <div class="col-sm-12 col-md-6">
                                 <label class="control-label col-form-label">Country <sup
                                         class="tcul-star-restrict">*</sup></label>
-                                <select class="form-control select2" name="country[]" multiple="multiple">
+                                <select class="form-control select2" id="country" name="country[]" multiple="multiple">
                                     <option value="">Select Country</option>
                                     @if ($isAdminOrSuperAdmin)
                                         <option value="USA"
@@ -111,24 +123,28 @@
                                             {{ isset($batch) && in_array('SINGAPORE', $batch->country ?? []) ? 'selected' : '' }}>
                                             SINGAPORE
                                         </option>
+                                        <option value="SOUTH AFRICA"
+                                            {{ isset($batch) && in_array('SOUTH AFRICA', $batch->country ?? []) ? 'selected' : '' }}>
+                                            SOUTH AFRICA
+                                        </option>
                                         <option value="QATAR"
-                                            {{ isset($batch) && in_array('QATAR', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('QATAR', $batch->country ?? []) ? 'selected' : '' }}>
                                             QATAR
                                         </option>
                                         <option value="BAHRAIN"
-                                            {{ isset($batch) && in_array('BAHRAIN', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('BAHRAIN', $batch->country ?? []) ? 'selected' : '' }}>
                                             BAHRAIN
                                         </option>
                                         <option value="KUWAIT"
-                                            {{ isset($batch) && in_array('KUWAIT', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('KUWAIT', $batch->country ?? []) ? 'selected' : '' }}>
                                             KUWAIT
                                         </option>
                                         <option value="EUROPEAN UNION"
-                                            {{ isset($batch) && in_array('EUROPEAN UNION', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('EUROPEAN UNION', $batch->country ?? []) ? 'selected' : '' }}>
                                             EUROPEAN UNION
                                         </option>
                                         <option value="OMAN"
-                                            {{ isset($batch) && in_array('OMAN', $batch->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($batch) && in_array('OMAN', $batch->country ?? []) ? 'selected' : '' }}>
                                             OMAN
                                         </option>
                                     @else
@@ -229,6 +245,7 @@
                     },
                     success: function(data) {
                         $('#day-div').prepend(data);
+                        refreshAvailableCoaches();
                     },
                     error: function(xhr, ajaxOptions, thrownError) {
                         toastr.error(xhr.responseJSON.message, '');
@@ -250,6 +267,7 @@
                             },
                             success: function(data) {
                                 $('#day-div').prepend(data);
+                                refreshAvailableCoaches();
                             },
                             error: function(xhr, ajaxOptions, thrownError) {
                                 toastr.error(xhr.responseJSON.message, '');
@@ -266,6 +284,7 @@
                 // Add Day ID to hidden input for later deletion
                 var deletedDays = $('#deleted-days').val();
                 $('#deleted-days').val(deletedDays ? deletedDays + ',' + unique_row_id : unique_row_id);
+                refreshAvailableCoaches();
             });
         });
     </script>
@@ -322,34 +341,100 @@
     </script>
 
     <script>
-        $(document).on('change', '.weekday, .from_time, .to_time, #coach_id', function() {
-            checkBatchSchedule();
+        const isBatchEdit = "{{ isset($batch) ? 'true' : 'false' }}" === 'true';
+        const canEditBatchCoach = "{{ isset($batch) && $batch->status === 'UPCOMING' ? 'true' : 'false' }}" === 'true';
+
+        $(document).on('change', '.weekday, .from_time, .to_time, #country', function() {
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+                return;
+            }
+
+            refreshAvailableCoaches();
         });
 
-        function checkBatchSchedule() {
-            let weekday = $('.weekday').val();
-            let fromTime = $('.from_time').val();
-            let toTime = $('.to_time').val();
-            let coach_id = $('#coach_id').val();
+        function collectSchedules() {
+            let weekdays = {};
+            let fromTimes = {};
+            let toTimes = {};
+
+            $('.weekday').each(function() {
+                let key = $(this).data('unique-row-id');
+                weekdays[key] = $(this).val();
+            });
+
+            $('.from_time').each(function() {
+                let key = $(this).data('unique-row-id');
+                fromTimes[key] = $(this).val();
+            });
+
+            $('.to_time').each(function() {
+                let key = $(this).data('unique-row-id');
+                toTimes[key] = $(this).val();
+            });
+
+            return {
+                weekday: weekdays,
+                from_time: fromTimes,
+                to_time: toTimes
+            };
+        }
+
+        function hasCompleteSchedule(schedules) {
+            let keys = Object.keys(schedules.weekday);
+            if (!keys.length) {
+                return false;
+            }
+
+            return keys.every(function(key) {
+                return schedules.weekday[key] && schedules.from_time[key] && schedules.to_time[key];
+            });
+        }
+
+        function setCoachOptions(coaches) {
+            let selectedCoach = $('#coach_id').data('selected-coach') || $('#coach_id').val();
+            $('#coach_id').empty().append('<option value="">Select a coach</option>');
+
+            if (!coaches.length) {
+                $('#coach_id').append('<option value="">No available coach found</option>');
+            }
+
+            coaches.forEach(function(coach) {
+                let selected = selectedCoach && String(selectedCoach) === String(coach.id) ? 'selected' : '';
+                $('#coach_id').append('<option value="' + coach.id + '" ' + selected + '>' + coach.name + '</option>');
+            });
+
+            $('#coach_id').prop('disabled', (isBatchEdit && !canEditBatchCoach) || coaches.length === 0);
+            $('#coach_id').trigger('change');
+        }
+
+        function refreshAvailableCoaches() {
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+                return;
+            }
+
+            let schedules = collectSchedules();
+            let countries = $('#country').val() || [];
+
+            if (!countries.length || !hasCompleteSchedule(schedules)) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+                return;
+            }
 
             $.ajax({
-                url: "{{ route('admin.batchs.check.schedule') }}",
+                url: "{{ route('admin.batchs.available.coaches') }}",
                 type: "POST",
                 data: {
-                    weekday: weekday,
-                    from_time: fromTime,
-                    to_time: toTime,
-                    coach_id: coach_id,
-                    _token: $('meta[name="csrf-token"]').attr('content') // CSRF token for Laravel
+                    country: countries,
+                    weekday: schedules.weekday,
+                    from_time: schedules.from_time,
+                    to_time: schedules.to_time,
+                    batch_id: "{{ isset($batch) ? $batch->id : '' }}",
+                    _token: $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(response) {
-                    console.log(response);
-                    console.log(response.status);
-                    if (response.status === "error") {
-                        alert("This schedule already exists!");
-                    } else {
-                        console.log("Schedule is available.");
-                    }
+                    setCoachOptions(response.coaches || []);
                 },
                 error: function(xhr, status, error) {
                     console.error(xhr);
@@ -358,6 +443,14 @@
                 }
             });
         }
+
+        $(document).ready(function() {
+            if (isBatchEdit && !canEditBatchCoach) {
+                $('#coach_id').prop('disabled', true).trigger('change.select2');
+            } else {
+                setTimeout(refreshAvailableCoaches, 500);
+            }
+        });
     </script>
 
 @endsection

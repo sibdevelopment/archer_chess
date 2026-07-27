@@ -17,7 +17,7 @@
                         <div>
                             <h3 class="text-center tw-mb-6 text-neutral-950"> Refund Policy</h3>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
-                                <li><a href="/design/home" class="text-main-600 hover-text-main-700 tw-text-405"> <i
+                                <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
                                 <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
                                 <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Refund Policy </span>

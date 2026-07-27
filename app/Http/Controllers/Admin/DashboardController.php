@@ -39,6 +39,28 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DashboardController extends Controller
 {
+    private function dashboardStudentBatchLabel(Student $student, bool $activeOnlyForCoach = false): string
+    {
+        $query = $student->studentBatches()->with('batch');
+
+        if ($activeOnlyForCoach) {
+            $query->where('status', 'ACTIVE');
+        }
+
+        $studentBatch = $query
+            ->orderByRaw("CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END")
+            ->orderByDesc('id')
+            ->first();
+
+        if (!$studentBatch || !$studentBatch->batch) {
+            return '';
+        }
+
+        $statusBadge = $studentBatch->status === 'ACTIVE' ? ' (Present)' : ' (Previous Batch)';
+
+        return $studentBatch->batch->name . $statusBadge;
+    }
+
     public function index1(Request $request): View
     {  
         return view('Admin.Dashboard.SuperAdmin.dashboard-index');
@@ -491,6 +513,7 @@ class DashboardController extends Controller
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
+                    'is_one_to_one'    => $batch->is_one_to_one,
                 ];
 
                 if ($batch->name == 'Abhijeet-WTH4:30AM') {
@@ -772,6 +795,7 @@ class DashboardController extends Controller
                     'coverup' => $isCoverup ? 'Yes' : 'No',
                     'active_students' => $studentCount,
                     'start_url' => $coverup->start_url ?? $batch->start_url, // Use coverup start_url if exists, else batch start_url
+                    'is_one_to_one' => $batch->is_one_to_one,
                 ];
             }
         }
@@ -1444,6 +1468,15 @@ class DashboardController extends Controller
         }
         
         foreach ($request->student_ids as $studentId) {
+            $studentBatch = StudentBatch::where('batch_id', $request->batch_id)
+                ->where('student_id', $studentId)
+                ->eligibleOn($attendanceDate)
+                ->first();
+
+            if (! $studentBatch) {
+                continue;
+            }
+
             $studentAttendance = StudentAttendance::where('batch_id', $request->batch_id)
                 ->where('student_id', $studentId)
                 ->whereDate('date', $attendanceDate)
@@ -1466,10 +1499,6 @@ class DashboardController extends Controller
                 $studentAttendance = new StudentAttendance();
                 $studentAttendance->student_id = $studentId;
                 $studentAttendance->batch_id = $request->batch_id;
-                $studentBatch = StudentBatch::where('batch_id', $request->batch_id)
-                    ->where('student_id', $studentId)
-                    ->where('status', 'ACTIVE')
-                    ->first();
                 $studentAttendance->level_id = $studentBatch ? $studentBatch->level_id : null; 
                 
                 $studentAttendance->date = $attendanceDate;
@@ -1773,17 +1802,25 @@ class DashboardController extends Controller
         $calendarData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                $startOfWeek  = Carbon::now()->startOfWeek();
-                $endDate      = Carbon::now()->addYear();
-                $studentBatch = $batch->studentBatches->first();
-                if ($studentBatch) {
-                    $startOfWeek = Carbon::parse($studentBatch->start_date)->startOfWeek();
-                    $endDate     = Carbon::parse($studentBatch->end_date);
+                $batchStartDate = $batch->start_date
+                    ? Carbon::parse($batch->start_date)
+                    : Carbon::now();
+                $batchEndDate = $batch->end_date
+                    ? Carbon::parse($batch->end_date)
+                    : Carbon::now()->addYear();
+
+                if ((! $batch->start_date || ! $batch->end_date) && $batch->studentBatches->isNotEmpty()) {
+                    $studentBatch   = $batch->studentBatches->first();
+                    $batchStartDate = Carbon::parse($studentBatch->start_date);
+                    $batchEndDate   = Carbon::parse($studentBatch->end_date);
                 }
-                $date = $startOfWeek->dayOfWeek === Carbon::parse($schedule->weekday)->dayOfWeek
-                ? $startOfWeek
-                : $startOfWeek->next($schedule->weekday);
-                while ($date <= $endDate) {
+
+                $date = $batchStartDate->copy();
+                if ($date->dayOfWeek !== Carbon::parse($schedule->weekday)->dayOfWeek) {
+                    $date = $date->next($schedule->weekday);
+                }
+
+                while ($date <= $batchEndDate) {
                     $fromTimeCarbon    = Carbon::createFromFormat('H:i:s', $schedule->from_time);
                     $toTimeCarbon      = Carbon::createFromFormat('H:i:s', $schedule->to_time);
                     $formattedFromTime = $fromTimeCarbon->format('g') . ($fromTimeCarbon->format('i') === '00' ? ' ' . $fromTimeCarbon->format('A') : ':' . $fromTimeCarbon->format('i A'));
@@ -1791,7 +1828,7 @@ class DashboardController extends Controller
                     $calendarData[]    = [
                         'title'     => $formattedFromTime . ' - ' . $formattedToTime,
                         'start'     => $date->format('Y-m-d'),
-                        'color'     => 'red',
+                        'color'     => $batch->is_one_to_one ? '#0f766e' : 'red',
                         'textColor' => 'white',
                     ];
                     $date->addWeek();
@@ -1916,11 +1953,11 @@ class DashboardController extends Controller
             $query->where('students.country', $request->country);
         }
         if ($request->batch) {
-            $studentIds = StudentBatch::where('batch_id', $request->batch)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
         if ($request->coach) {
-            $studentIds = StudentBatch::where('coach_id', $request->coach)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('coach_id', $request->coach)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
 
@@ -1953,21 +1990,7 @@ class DashboardController extends Controller
                 // return $student->student_id;
             })
             ->editColumn('batch', function ($student) use ($isCoach) {
-                $attendedBatches = $student->studentBatches()->with('batch')->get();
-                if ($isCoach) {
-                    $attendedBatches = $attendedBatches->filter(function ($studentBatch) {
-                        return $studentBatch->status === 'ACTIVE';
-                    });
-                }
-                $sortedBatches = $attendedBatches->sortByDesc(function ($studentBatch) {
-                    return $studentBatch->status === 'ACTIVE';
-                });
-                $attendedBatchNames = $sortedBatches->map(function ($studentBatch) {
-                    $batchName   = $studentBatch->batch->name;
-                    $statusBadge = $studentBatch->status === 'ACTIVE' ? ' (Present)' : ' (Previous Batch)';
-                    return $batchName . $statusBadge;
-                })->implode(', ');
-                return $attendedBatchNames;
+                return $this->dashboardStudentBatchLabel($student, $isCoach);
             })
             ->addColumn('student_fees', function ($student) {
                 return '<a href="/admin/students/' . $student->id . '/student_fees" class="badge bg-success fs-1"><i class="ti ti-box-multiple"></i> &nbsp; Student Fees  </a>';
@@ -2171,11 +2194,7 @@ class DashboardController extends Controller
                     . '<div class="d-flex justify-content-end">' . $whatsappLink . '</div></div>';
             })
             ->editColumn('batch', function ($student) use ($isCoach) {
-                $attendedBatches = $student->studentBatches()->with('batch')->get();
-                if ($isCoach) {
-                    $attendedBatches = $attendedBatches->filter(fn($b) => $b->status === 'ACTIVE');
-                }
-                return $attendedBatches->pluck('batch.name')->implode(', ');
+                return $this->dashboardStudentBatchLabel($student, $isCoach);
             })
             ->editColumn('status', function ($student) use ($isCoach) {
                  switch ($student->status) {
@@ -2278,7 +2297,7 @@ class DashboardController extends Controller
                 return $batch->name;
             })
             ->addColumn('total_active_students', function ($batch) {
-                $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
+                $totalActiveStudents = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
                 return '<span class="badge bg-warning fs-1">' . $totalActiveStudents . ' &nbsp;  <i class="ti ti-user-shield"></i> </span>';
             })
             ->editColumn('version', function ($batch) {

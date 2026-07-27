@@ -9,6 +9,7 @@ use App\Models\Batch;
 use App\Models\Coach;
 use App\Models\Level;
 use App\Models\Student;
+use App\Models\StudentFee;
 use App\Models\Coverupclass;
 use App\Models\StudentBatch;
 use Illuminate\Http\Request;
@@ -20,12 +21,88 @@ use App\Models\CoachAvailability;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
 
 
 class BatchController extends Controller
 {
+    private function joiningStartDateForStudent(Student $student, $fallbackDate = null): string
+    {
+        $batchStartDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
+        $latestActiveFee = StudentFee::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->whereNotNull('start_date')
+            ->orderBy('end_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestActiveFee) {
+            $feeStartDate = Carbon::parse($latestActiveFee->start_date)->toDateString();
+
+            return Carbon::parse($feeStartDate)->gt(Carbon::parse($batchStartDate))
+                ? $feeStartDate
+                : $batchStartDate;
+        }
+
+        return $batchStartDate;
+    }
+
+    private function joiningEndDateForStudent(Student $student, $fallbackDate = null): string
+    {
+        $batchEndDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
+        $latestActiveFee = StudentFee::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->whereNotNull('end_date')
+            ->orderBy('end_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestActiveFee) {
+            $feeEndDate = Carbon::parse($latestActiveFee->end_date)->toDateString();
+
+            return Carbon::parse($feeEndDate)->lt(Carbon::parse($batchEndDate))
+                ? $feeEndDate
+                : $batchEndDate;
+        }
+
+        return $batchEndDate;
+    }
+
+    private function normalizeCountries($countries): array
+    {
+        return normalizeCountryValues($countries);
+    }
+
+    private function batchesShareCountry(Batch $sourceBatch, Batch $targetBatch): bool
+    {
+        return ! empty(array_intersect(
+            $this->normalizeCountries($sourceBatch->country),
+            $this->normalizeCountries($targetBatch->country)
+        ));
+    }
+
+    private function mergeBatchCountries(Batch $sourceBatch, Batch $targetBatch): array
+    {
+        return collect($this->normalizeCountries($targetBatch->country))
+            ->merge($this->normalizeCountries($sourceBatch->country))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function transferRemainingSessions(Batch $batch, $studentBatches = null): int
+    {
+        $studentBatches = $studentBatches ?: $batch->studentBatches()->where('status', 'ACTIVE')->get();
+        $assignedSessions = (int) ($studentBatches->max('number_of_sessions') ?: $batch->number_of_sessions ?: 1);
+        $completedSessions = CoachAttendance::where('batch_id', $batch->id)
+            ->where('status', 'COMPLETED')
+            ->count();
+
+        return max(1, $assignedSessions - $completedSessions);
+    }
+
     public function index()
     {
         $this->updateBatchStatusBasedOnEndDate();
@@ -71,8 +148,8 @@ class BatchController extends Controller
                 $query->where('weekday', $todayWeekday)
                     ->where('to_time', '<=', $oneHourAgo);
             },
-            'studentBatches' => function ($query) {
-                $query->where('status', 'ACTIVE')->with('student');
+            'studentBatches' => function ($query) use ($todayDate) {
+                $query->eligibleOn($todayDate)->with('student');
             },
             'coach',
             'parent',
@@ -87,6 +164,10 @@ class BatchController extends Controller
         $batches->each(function ($batch) use ($now, $todayDate) {
             $batchId = $batch->id;
             $coachId = $batch->coach_id;
+
+            if ($batch->studentBatches->isEmpty()) {
+                return;
+            }
 
             // Fetch additional data for each batch
             $batchLevel      = optional($batch->studentBatches->first())->level;
@@ -178,7 +259,7 @@ class BatchController extends Controller
         return response()->json($coaches);
     }
 
-    public function changeCoaches(Request $request)
+    public function changeCoaches(Request $request, CoachAvailabilityService $availability)
     {
         $batchId = $request->batch_id;
 
@@ -199,53 +280,22 @@ class BatchController extends Controller
         if (now()->gt($fromTime->addMinutes(10))) {
             return response()->json(['error' => 'Coach change is not allowed after 10 minutes from batch start.'], 403);
         }
-        $coaches = Coach::where('status', 'ACTIVE')->get();
+        $availableCoaches = Coach::where('status', 'ACTIVE')
+            ->with('user')
+            ->get()
+            ->filter(function ($coach) use ($batch, $schedule, $availability) {
+                if ($coach->id == $batch->coach_id) {
+                    return false;
+                }
 
-
-
-        //Add Main Logic Here
-        $todayDay = Carbon::now()->format('l');
-        $from_time = $schedule->from_time;
-
-        // Get today's available coaches based on their availability and the batch schedule
-        $todays_available_coaches = CoachAvailability::where('day_of_week', $todayDay)
-            ->whereHas('periods', function ($query) use ($from_time) {
-                    $query->where('from_period', '<=', $from_time)
-                        ->where('to_period', '>=', $from_time);
-                })
-            ->where('status', 'ACTIVE')
-            ->pluck('coach_id')
-            ->toArray();
-
-        // Get coaches who are currently working in batches at the same time
-        $working_batches = BatchSchedule::where('weekday', $todayDay)
-            ->where('status', 'ACTIVE')
-            ->whereTime('from_time', '<=', $from_time)
-            ->whereTime('to_time', '>=', $from_time) 
-            ->pluck('batch_id');
-
-        // Get the coach IDs of those working batches
-        $working_batch_coaches = Batch::whereIn('id', $working_batches)
-            ->where('status', 'ACTIVE')
-            ->pluck('coach_id')
-            ->toArray();
-
-        $coverup_coach_ids = CoverupClass::whereDate('date', now()->toDateString())
-                            ->pluck('new_coach_id')
-                            ->filter() // remove nulls
-                            ->toArray();
-        
-        $unavailableCoachIds = array_unique(array_merge($working_batch_coaches, $coverup_coach_ids));
-        // find available coaches for the batch
-        // $availableCoaches = Coach::whereIn('id', $todays_available_coaches)
-        //     ->whereNotIn('id', $working_batch_coaches)
-        //     ->where('status', 'ACTIVE')
-        //     ->get();
-
-        $availableCoaches = Coach::whereIn('id', $todays_available_coaches)
-        ->whereNotIn('id', $unavailableCoachIds)
-        ->where('status', 'ACTIVE')
-        ->get();
+                return $availability->validateCoachForSingleEvent(
+                    $coach->id,
+                    Carbon::today()->toDateString(),
+                    $schedule->from_time,
+                    $schedule->to_time
+                )['ok'];
+            })
+            ->values();
 
         $currentCoachId = $batch->coach_id;
 
@@ -256,19 +306,34 @@ class BatchController extends Controller
         ]);
     }
 
-    public function changeCoach(Request $request){
+    public function changeCoach(Request $request, CoachAvailabilityService $availability){
         $coach = Coach::find($request->coach_id);
         $batch = Batch::find($request->batch_id);
-
-        $todayDay = Carbon::now()->format('l');
-        $batchSchedule = $batch->batchSchedules()->where('weekday', $todayDay)->first();
 
         if (!$coach || !$batch) {
             return response()->json(['error' => 'Coach or Batch not found.'], 404);
         } 
 
+        $todayDay = Carbon::now()->format('l');
+        $batchSchedule = $batch->batchSchedules()->where('weekday', $todayDay)->first();
+
+        if (!$batchSchedule) {
+            return response()->json(['error' => 'Batch is not scheduled for today.'], 403);
+        }
+
         if ($batch->coach_id == $coach->id) {
             return response()->json(['error' => 'You cannot assign the same coach to the batch.'], 403);
+        }
+
+        $coachValidation = $availability->validateCoachForSingleEvent(
+            (int) $coach->id,
+            Carbon::today()->toDateString(),
+            $batchSchedule->from_time,
+            $batchSchedule->to_time
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json(['error' => $coachValidation['message']], 422);
         }
 
         $coverupclass                   = new Coverupclass();
@@ -404,24 +469,28 @@ class BatchController extends Controller
         }
 
         if ($request->country) {
-            $country = $request->country;
+            $countryValues = countryComparisonValues($request->country);
             #we are using below code instead of wherejsoncontains
             // First, check if the `country` column contains valid JSON for this batch
-            $query->whereNotNull('country')->where(function ($query) use ($country) {
-                $query->whereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $country . '"]'])
-                    ->orWhere(function ($query) use ($country) {
-                        $query->whereRaw('NOT json_valid(country)')->where('country', $country);
-                    });
+            $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+                foreach ($countryValues as $countryValue) {
+                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                        ->orWhere(function ($query) use ($countryValue) {
+                            $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                        });
+                }
             });
         }
         // Filter by allowed countries for non-admin/superadmin users
         if (! $isAdminOrSuperAdmin && ! empty($allowedCountries)) {
             $query->where(function ($query) use ($allowedCountries) {
-                foreach ($allowedCountries as $allowedCountry) {
-                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $allowedCountry . '"]'])
-                        ->orWhere(function ($query) use ($allowedCountry) {
-                            $query->whereRaw('NOT json_valid(country)')->where('country', $allowedCountry);
-                        });
+                foreach (normalizeCountryValues($allowedCountries) as $allowedCountry) {
+                    foreach (countryComparisonValues($allowedCountry) as $countryValue) {
+                        $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                            ->orWhere(function ($query) use ($countryValue) {
+                                $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                            });
+                    }
                 }
             });
         }
@@ -483,13 +552,27 @@ class BatchController extends Controller
         // Anil-TTH5:30AM
         return DataTables::eloquent($query)
             ->editColumn('name', function ($batch) {
-                $totalActiveStudentsBadge = '<span class="badge bg-warning fs-1">' .
-                $batch->studentBatches()
+                $today = Carbon::today()->toDateString();
+
+                $regularActiveCount = $batch->studentBatches()
                     ->where('coach_id', $batch->coach_id)
-                    ->where('status', 'ACTIVE')
+                    ->eligibleOn($today)
                     ->get()
                     ->unique('student_id')
-                    ->count() . ' &nbsp; <i class="ti ti-user-shield"></i> </span>';
+                    ->count();
+
+                $totalActiveStudentsBadge = '<span class="badge bg-warning fs-1">' .
+                $regularActiveCount . ' &nbsp; <i class="ti ti-user-shield"></i> </span>';
+
+                $lateJoinerCount = $batch->studentBatches()
+                    ->where('coach_id', $batch->coach_id)
+                    ->where('status', 'ACTIVE')
+                    ->whereDate('start_date', '>', $today)
+                    ->get()
+                    ->unique('student_id')
+                    ->count();
+
+                $lateJoinerBadge = '<span class="badge bg-info fs-1">' . $lateJoinerCount . ' late &nbsp; <i class="ti ti-user-plus"></i> </span>';
 
                 $current_feesDueStudentIds = $batch->studentBatches()
                     ->where('coach_id', $batch->coach_id)
@@ -541,10 +624,13 @@ class BatchController extends Controller
                 $levelName  = $batch->level_id ? $batch->level->name : '';
                 $levelBadge = $levelName ? '<span class="badge bg-primary fs-1"> (' . $levelName . ') </span>' : '';
 
-                $batchName = $batch->name;
+                $batchTypeBadge = $batch->is_one_to_one
+                    ? '<span class="badge bg-dark fs-1 ms-1">1-1</span>'
+                    : '<span class="badge bg-light-secondary text-secondary fs-1 ms-1">Normal</span>';
+                $batchName = $batch->name . ' ' . $batchTypeBadge;
 
                 return '<div class="d-flex justify-content-between">' . $batchName . ' &nbsp; ' .
-                    '<div class="d-flex justify-content-end">' . $levelBadge . '&nbsp;&nbsp;' . $totalActiveStudentsBadge . '&nbsp;&nbsp;' . $feesDueStudentBadge . '</div>' . '</div>';
+                    '<div class="d-flex justify-content-end">' . $levelBadge . '&nbsp;&nbsp;' . $totalActiveStudentsBadge . '&nbsp;&nbsp;' . $lateJoinerBadge . '&nbsp;&nbsp;' . $feesDueStudentBadge . '</div>' . '</div>';
             })
             ->editColumn('version', function ($batch) {
                 return $batch->version;
@@ -607,10 +693,13 @@ class BatchController extends Controller
                     case 'ACTIVE':
                         $badgeColor = 'success';
                         break;
+                    case 'UPCOMING':
+                        $badgeColor = 'info';
+                        break;
                     default:
                         $badgeColor = 'secondary';
                 }
-                return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
+                return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '" data-status="' . $batch->status . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
             })
             ->addColumn('timeline', function ($batch) {
                 $latestCompletedSession = CoachAttendance::where('batch_id', $batch->id)
@@ -704,6 +793,10 @@ class BatchController extends Controller
                 // }
 
                 $show = '<a href="' . route('admin.batchs.show', ['batch' => $batch->route_key]) . '" class="badge bg-info fs-1 modal-one-btn" data-entity="batchs" data-title="Batch Details" data-route-key="' . $batch->route_key . '"><i class="fa fa-eye"></i></a>';
+                $transfer = '';
+                if (in_array($batch->status, ['ACTIVE', 'STANDBY'])) {
+                    $transfer = '<a href="#" class="badge bg-primary fs-1 batch-transfer-btn" data-batch-id="' . $batch->id . '" title="Transfer Students"><i class="ti ti-arrows-exchange"></i></a>';
+                }
 
                 $delete = '';
                 if (auth()->user()->hasRole('SuperAdmin')) {
@@ -711,7 +804,7 @@ class BatchController extends Controller
                 }
 
                 // return $edit . ' ' . $show;
-                return $edit . ' ' . $show . '  ' . $change_coach;
+                return $edit . ' ' . $show . ' ' . $transfer . '  ' . $change_coach;
             })
             ->addIndexColumn()
             ->rawColumns(['name', 'coach_id', 'action', 'status', 'schedule', 'assign', 'reassign', 'timeline', 'created_by', 'updated_by', 'kids_zone_name', 'country', 'created_at', 'updated_at', 'start_url', 'join_url'])
@@ -721,11 +814,13 @@ class BatchController extends Controller
 
     public function list(Request $request)
     {
-        $countries = $request->input('countries', []);
+        $countries = normalizeCountryValues($request->input('countries', []));
         $batches   = Batch::where('status', 'ACTIVE')
             ->where(function ($query) use ($countries) {
                 foreach ($countries as $country) {
-                    $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($country)]);
+                    foreach (countryComparisonValues($country) as $countryValue) {
+                        $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($countryValue)]);
+                    }
                 }
             })
             ->get();
@@ -738,11 +833,13 @@ class BatchController extends Controller
 
     public function masterclassTounamentlist(Request $request)
     {
-        $countries = $request->input('countries', []);
+        $countries = normalizeCountryValues($request->input('countries', []));
         $batches   = Batch::where('status', '!=', 'INACTIVE')
             ->where(function ($query) use ($countries) {
                 foreach ($countries as $country) {
-                    $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($country)]);
+                    foreach (countryComparisonValues($country) as $countryValue) {
+                        $query->orWhereRaw('JSON_CONTAINS(country, ?)', [json_encode($countryValue)]);
+                    }
                 }
             })
             ->get();
@@ -767,7 +864,7 @@ class BatchController extends Controller
 
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CoachAvailabilityService $availability)
     {
         $request->validate([
             'name' => [
@@ -780,16 +877,37 @@ class BatchController extends Controller
 
         $request->validate($this->rules, $this->customMessages);
 
+        $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
+        $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
+        $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
+
+        $coachValidation = $availability->validateRawBatchCoach(
+            (int) $request->coach_id,
+            normalizeCountryValues($request->input('country', [])),
+            $schedules
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
         $batch = new Batch;
         $batch->fill($request->all());
+        $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
-            $batch->country = $request->input('country');
+            $batch->country = normalizeCountryValues($request->input('country'));
         }
 
         $batch->version = 1;
         $batch->save();
         $batch->parent_id = $batch->id;
-        $batch->status = 'ACTIVE';
+        $batch->status = 'UPCOMING';
         $batch->save();
 
 
@@ -820,17 +938,6 @@ class BatchController extends Controller
             $batch->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
             $batch->save();
         }
-
-        // Extract Request Data
-        $daysOfWeek = $request->input('weekday', []);
-        $fromTimes  = $request->input('from_time', []);
-        $toTimes    = $request->input('to_time', []);
-        // Ensure arrays are properly formatted
-        $daysOfWeek = is_array($daysOfWeek) ? $daysOfWeek : (array) $daysOfWeek;
-        $fromTimes  = is_array($fromTimes) ? $fromTimes : (array) $fromTimes;
-        $toTimes    = is_array($toTimes) ? $toTimes : (array) $toTimes;
-
-
 
         // Save Batch Schedule Data
         foreach ($daysOfWeek as $index => $day) {
@@ -867,14 +974,49 @@ class BatchController extends Controller
         return view('Admin.Batchs.scheduleform', compact('batch_schedule'));
     }
 
-    public function update(Request $request, Batch $batch)
+    public function update(Request $request, Batch $batch, CoachAvailabilityService $availability)
     {
         $this->rules['name']     = '';
         $this->rules['coach_id'] = '';
         $request->validate($this->rules, $this->customMessages);
-        $batch->fill($request->all());
+
+        $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
+        $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
+        $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
+        $countries  = normalizeCountryValues($request->input('country', $batch->country ?? []));
+
+        $canChangeCoach = $batch->status === 'UPCOMING';
+        $coachId = $canChangeCoach
+            ? (int) $request->input('coach_id', $batch->coach_id)
+            : (int) $batch->coach_id;
+
+        $coachValidation = $batch->status !== 'UPCOMING' && $batch->start_date && $batch->end_date
+            ? $availability->validateCoachForBatchAssignment($coachId, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries)
+            : $availability->validateRawBatchCoach($coachId, $countries, $schedules, $batch->id);
+
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
+        if ($request->boolean('is_one_to_one') && $batch->studentBatches()->where('status', 'ACTIVE')->distinct('student_id')->count('student_id') > 1) {
+            return response()->json([
+                'message' => 'This batch already has more than one active student, so it cannot be marked as 1-1.',
+                'errors' => [
+                    'is_one_to_one' => ['This batch already has more than one active student, so it cannot be marked as 1-1.'],
+                ],
+            ], 422);
+        }
+
+        $batch->fill($canChangeCoach ? $request->all() : $request->except('coach_id'));
+        $batch->is_one_to_one = $request->boolean('is_one_to_one');
         if ($request->has('country')) {
-            $batch->country = $request->input('country');
+            $batch->country = $countries;
         }
         $batch->save();
 
@@ -908,14 +1050,7 @@ class BatchController extends Controller
         // }
 
         // Extract Request Data
-        $daysOfWeek       = $request->input('weekday', []);
-        $fromTimes        = $request->input('from_time', []);
-        $toTimes          = $request->input('to_time', []);
         $deletedDaysInput = $request->input('deleted_days', []);
-        // Ensure arrays are properly formatted
-        $daysOfWeek  = is_array($daysOfWeek) ? $daysOfWeek : (array) $daysOfWeek;
-        $fromTimes   = is_array($fromTimes) ? $fromTimes : (array) $fromTimes;
-        $toTimes     = is_array($toTimes) ? $toTimes : (array) $toTimes;
         $deletedDays = is_array($deletedDaysInput) ? $deletedDaysInput : explode(',', $deletedDaysInput);
         // Update or Add Batch Schedules
         foreach ($daysOfWeek as $id => $day) {
@@ -1035,6 +1170,42 @@ class BatchController extends Controller
 
         $levels  = Level::where('status', 'ACTIVE')->get();
         $coaches = Coach::where('status', 'ACTIVE')->get();
+        $preselectedStudentIds = array_filter((array) $request->input('student_id', []));
+        if ($request->filled('student_ids')) {
+            $preselectedStudentIds = array_merge($preselectedStudentIds, array_filter(explode(',', (string) $request->input('student_ids'))));
+        }
+        $prefillStartDate = $request->input('start_date');
+        $prefillEndDate = $request->input('end_date');
+        $prefillNumberOfSessions = $request->input('number_of_sessions');
+        $prefillLevelId = $request->input('level_id');
+        $transferFromBatchId = $request->input('transfer_from_batch_id');
+        $transferStudentIds = $request->input('transfer_student_ids');
+        $transferCutoffDate = $request->input('transfer_cutoff_date');
+        $blankAssignmentFields = false;
+
+        if ($request->filled('new_enrollment_id')) {
+            $newEnrollment = \App\Models\NewEnrollment::find($request->input('new_enrollment_id'));
+            if ($newEnrollment) {
+                $blankAssignmentFields = $batch->status === 'UPCOMING';
+                if (! $blankAssignmentFields && ! $prefillStartDate && ! $prefillEndDate) {
+                    $prefillStartDate = $newEnrollment->start_date;
+                    $prefillEndDate = $newEnrollment->end_date;
+                }
+                $preselectedStudentIds[] = $newEnrollment->student_id;
+            }
+        }
+        if ($request->filled('change_class_id')) {
+            $changeClass = \App\Models\Changeclass::find($request->input('change_class_id'));
+            if ($changeClass) {
+                if (! $prefillStartDate && ! $prefillEndDate) {
+                    $prefillStartDate = $changeClass->start_date;
+                    $prefillEndDate = $changeClass->end_date;
+                }
+                $preselectedStudentIds[] = $changeClass->student_id;
+            }
+        }
+
+        $preselectedStudentIds = array_values(array_unique(array_filter($preselectedStudentIds)));
 
         $currentBatchStudentIds = StudentBatch::where('batch_id', $batch->id)
             ->where('status', 'ACTIVE')
@@ -1055,15 +1226,127 @@ class BatchController extends Controller
             ->whereIn('country', $batch->country ?? [])
             ->whereNotIn('id', $allExcludedStudentIds)
             ->get();
+        if (! empty($preselectedStudentIds)) {
+            $preselectedStudents = Student::whereIn('id', $preselectedStudentIds)->get();
+            $students = $students->merge($preselectedStudents)->unique('id')->values();
+        }
         // dd($students);
 
         $assignedStudents = StudentBatch::where('batch_id', $batch->id)->where('status', 'ACTIVE')->get();
         $batchSchedules   = $batch->batchSchedules()->get();
 
-        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit'));
+        return view('Admin.Batchs.assignbatchform', compact('batch', 'levels', 'coaches', 'students', 'assignedStudents', 'batchSchedules', 'is_hide', 'is_edit', 'preselectedStudentIds', 'prefillStartDate', 'prefillEndDate', 'prefillNumberOfSessions', 'prefillLevelId', 'transferFromBatchId', 'transferStudentIds', 'transferCutoffDate', 'blankAssignmentFields'));
     }
 
-    public function saveAssignedStudent(Request $request)
+    public function transferStudentsModal(Batch $batch)
+    {
+        $studentBatches = $batch->studentBatches()
+            ->where('status', 'ACTIVE')
+            ->with(['student', 'level'])
+            ->get();
+
+        $studentCount = $studentBatches->count();
+        $targetBatches = collect();
+
+        if ($studentCount > 0) {
+            $targetBatches = Batch::with(['coach.user'])
+                ->where('id', '!=', $batch->id)
+                ->whereIn('status', ['ACTIVE', 'UPCOMING'])
+                ->orderBy('status')
+                ->orderBy('name')
+                ->get()
+                ->filter(function (Batch $targetBatch) use ($batch, $studentCount) {
+                    if (! $this->batchesShareCountry($batch, $targetBatch)) {
+                        return false;
+                    }
+
+                    if ($targetBatch->status === 'ACTIVE') {
+                        return ! $targetBatch->is_one_to_one;
+                    }
+
+                    return ! $targetBatch->is_one_to_one || $studentCount === 1;
+                })
+                ->values();
+        }
+
+        $defaultCutoffDate = Carbon::today()->toDateString();
+        $prefillEndDate = optional($studentBatches->sortByDesc('end_date')->first())->end_date ?: $batch->end_date;
+        $remainingSessions = $this->transferRemainingSessions($batch, $studentBatches);
+
+        return view('Admin.Batchs.transferstudents', compact(
+            'batch',
+            'studentBatches',
+            'targetBatches',
+            'defaultCutoffDate',
+            'prefillEndDate',
+            'remainingSessions'
+        ));
+    }
+
+    public function redirectTransferStudents(Request $request, Batch $batch)
+    {
+        $request->validate([
+            'target_batch_id' => 'required|exists:batchs,id',
+            'cutoff_date' => 'required|date',
+            'end_date' => 'required|date',
+            'number_of_sessions' => 'required|integer|min:1',
+        ]);
+
+        $sourceStudentBatches = $batch->studentBatches()
+            ->where('status', 'ACTIVE')
+            ->get();
+        $transferStudentIds = $sourceStudentBatches->pluck('student_id')->unique()->values()->all();
+
+        if (empty($transferStudentIds)) {
+            return back()->withErrors(['target_batch_id' => 'No active students found in source batch.']);
+        }
+
+        $targetBatch = Batch::findOrFail($request->target_batch_id);
+        $transferCount = count($transferStudentIds);
+
+        if (! $this->batchesShareCountry($batch, $targetBatch)) {
+            return back()->withErrors(['target_batch_id' => 'Target batch must share at least one country with the source batch.']);
+        }
+
+        if (! in_array($targetBatch->status, ['ACTIVE', 'UPCOMING'])) {
+            return back()->withErrors(['target_batch_id' => 'Only active or upcoming/raw batches can receive transferred students.']);
+        }
+
+        if ($targetBatch->status === 'ACTIVE' && $targetBatch->is_one_to_one) {
+            return back()->withErrors(['target_batch_id' => 'Active 1-1 batches cannot receive transferred students.']);
+        }
+
+        if ($targetBatch->status === 'UPCOMING' && $targetBatch->is_one_to_one && $transferCount !== 1) {
+            return back()->withErrors(['target_batch_id' => '1-1 raw batches can receive only one transferred student.']);
+        }
+
+        $targetStudentIds = $targetBatch->status === 'ACTIVE'
+            ? StudentBatch::where('batch_id', $targetBatch->id)->where('status', 'ACTIVE')->pluck('student_id')->all()
+            : [];
+        $studentIdsForAssign = collect($targetStudentIds)
+            ->merge($transferStudentIds)
+            ->unique()
+            ->values()
+            ->all();
+
+        return redirect()->route('admin.batchs.assign.student', [
+            'batch' => $targetBatch->id,
+            'student_id' => $studentIdsForAssign,
+            'transfer_from_batch_id' => $batch->id,
+            'transfer_student_ids' => implode(',', $transferStudentIds),
+            'transfer_cutoff_date' => $request->cutoff_date,
+            'start_date' => $request->cutoff_date,
+            'end_date' => $request->end_date,
+            'number_of_sessions' => $targetBatch->status === 'ACTIVE'
+                ? ($targetBatch->number_of_sessions ?: $request->number_of_sessions)
+                : $request->number_of_sessions,
+            'level_id' => $targetBatch->status === 'ACTIVE'
+                ? $targetBatch->level_id
+                : $batch->level_id,
+        ]);
+    }
+
+    public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability)
     {
 
         // Validate the request data
@@ -1088,62 +1371,194 @@ class BatchController extends Controller
 
         ## Get All Data
         $batch             = Batch::find($batchId);
-        $batch->status     = 'ACTIVE';
-        $batch->level_id   = $levelId;
-        $batch->coach_id   = $coachId;
-        $batch->start_date = $startDate;
-        $batch->end_date   = $endDate;
-        $batch->save();
+        $originalBatchStatus = $batch->status;
+        $isTransfer = $request->filled('transfer_from_batch_id') && $request->filled('transfer_student_ids');
+        $transferStudentIds = collect(explode(',', (string) $request->input('transfer_student_ids')))
+            ->filter(fn ($studentId) => is_numeric($studentId))
+            ->map(fn ($studentId) => (int) $studentId)
+            ->unique()
+            ->values()
+            ->all();
+        $transferSourceBatch = null;
+        $transferCutoffDate = $request->input('transfer_cutoff_date', $startDate);
+        $isTransferToActiveTarget = false;
+        $targetAssignmentLevelId = $levelId;
+        $targetAssignmentCoachId = $coachId;
+        $targetAssignmentSessions = $request->number_of_sessions;
+
+        if ($isTransfer) {
+            $transferSourceBatch = Batch::find($request->input('transfer_from_batch_id'));
+            if (! $transferSourceBatch || $transferSourceBatch->id === $batch->id) {
+                return response()->json([
+                    'message' => 'Invalid source batch selected for transfer.',
+                    'errors' => ['transfer_from_batch_id' => ['Invalid source batch selected for transfer.']],
+                ], 422);
+            }
+
+            if (empty($transferStudentIds) || count(array_diff($transferStudentIds, array_map('intval', (array) $studentIds))) > 0) {
+                return response()->json([
+                    'message' => 'Transferred students must remain selected before saving.',
+                    'errors' => ['student_ids' => ['Transferred students must remain selected before saving.']],
+                ], 422);
+            }
+
+            if (! $this->batchesShareCountry($transferSourceBatch, $batch)) {
+                return response()->json([
+                    'message' => 'Target batch must share at least one country with the source batch.',
+                    'errors' => ['batch_id' => ['Target batch must share at least one country with the source batch.']],
+                ], 422);
+            }
+
+            if (! in_array($originalBatchStatus, ['ACTIVE', 'UPCOMING'])) {
+                return response()->json([
+                    'message' => 'Only active or upcoming/raw batches can receive transferred students.',
+                    'errors' => ['batch_id' => ['Only active or upcoming/raw batches can receive transferred students.']],
+                ], 422);
+            }
+
+            if ($originalBatchStatus === 'ACTIVE' && $batch->is_one_to_one) {
+                return response()->json([
+                    'message' => 'Active 1-1 batches cannot receive transferred students.',
+                    'errors' => ['batch_id' => ['Active 1-1 batches cannot receive transferred students.']],
+                ], 422);
+            }
+
+            if ($originalBatchStatus === 'UPCOMING' && $batch->is_one_to_one && count($transferStudentIds) !== 1) {
+                return response()->json([
+                    'message' => '1-1 raw batches can receive only one transferred student.',
+                    'errors' => ['student_ids' => ['1-1 raw batches can receive only one transferred student.']],
+                ], 422);
+            }
+
+            $activeSourceStudentIds = StudentBatch::where('batch_id', $transferSourceBatch->id)
+                ->where('status', 'ACTIVE')
+                ->whereIn('student_id', $transferStudentIds)
+                ->pluck('student_id')
+                ->map(fn ($studentId) => (int) $studentId)
+                ->all();
+
+            if (count(array_diff($transferStudentIds, $activeSourceStudentIds)) > 0) {
+                return response()->json([
+                    'message' => 'One or more selected students are no longer active in the source batch.',
+                    'errors' => ['student_ids' => ['One or more selected students are no longer active in the source batch.']],
+                ], 422);
+            }
+
+            $isTransferToActiveTarget = $originalBatchStatus === 'ACTIVE';
+            if ($isTransferToActiveTarget) {
+                $targetAssignmentLevelId = $batch->level_id ?: $levelId;
+                $targetAssignmentCoachId = $batch->coach_id ?: $coachId;
+                $targetAssignmentSessions = $batch->number_of_sessions ?: $request->number_of_sessions;
+            }
+        }
+
+        if ($batch->is_one_to_one && count(array_unique((array) $studentIds)) > 1) {
+            return response()->json([
+                'message' => 'Only one student can be assigned to a 1-1 batch.',
+                'errors' => [
+                    'student_ids' => ['Only one student can be assigned to a 1-1 batch.'],
+                ],
+            ], 422);
+        }
+
+        $schedules         = $batch->batchSchedules()
+            ->where('status', 'ACTIVE')
+            ->get()
+            ->map(fn ($schedule) => [
+                'weekday' => $schedule->weekday,
+                'from_time' => $schedule->from_time,
+                'to_time' => $schedule->to_time,
+            ])
+            ->all();
+
+        $coachValidation = $isTransfer
+            ? ['ok' => true]
+            : $availability->validateCoachForBatchAssignment((int) $coachId, $schedules, $startDate, $endDate, $batch->id, $batch->country ?? []);
+        if (!$coachValidation['ok']) {
+            return response()->json([
+                'message' => 'Selected coach is not available.',
+                'errors' => [
+                    'coach_id' => [$coachValidation['message']],
+                ],
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+        if ($isTransfer) {
+            $batch->country = $this->mergeBatchCountries($transferSourceBatch, $batch);
+        }
+
+        if (! $isTransferToActiveTarget) {
+            $batch->status     = 'ACTIVE';
+            $batch->level_id   = $levelId;
+            $batch->coach_id   = $coachId;
+            $batch->start_date = $startDate;
+            $batch->end_date   = $endDate;
+            $batch->save();
+
+            BatchSchedule::where('batch_id', $batchId)->update([
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+                'status'     => 'ACTIVE',
+            ]);
+        }
 
         $requestStudents = Student::whereIn('id', $studentIds)->get();
         $level           = Level::find($levelId);
         $coach           = Coach::find($coachId);
 
         foreach ($requestStudents as $key => $student) {
+            if ($isTransferToActiveTarget && ! in_array((int) $student->id, $transferStudentIds)) {
+                continue;
+            }
+
+            $studentStartDate = $this->joiningStartDateForStudent($student, $startDate);
+            $studentEndDate = $this->joiningEndDateForStudent($student, $endDate);
             $oldStudentBatch = StudentBatch::where('student_id', $student->id)->where('batch_id', $batchId)->orderBy('id', 'desc')->first();
             if ($oldStudentBatch) {
                 if ($oldStudentBatch->status == 'INACTIVE' && $oldStudentBatch->is_fees_due == '1') {
                     $oldStudentBatch                     = new StudentBatch();
                     $oldStudentBatch->student_id         = $student->id;
                     $oldStudentBatch->batch_id           = $batchId;
-                    $oldStudentBatch->level_id           = $levelId;
-                    $oldStudentBatch->coach_id           = $coachId;
-                    $oldStudentBatch->start_date         = Carbon::today();
-                    $oldStudentBatch->end_date           = $batch->end_date;
+                    $oldStudentBatch->level_id           = $targetAssignmentLevelId;
+                    $oldStudentBatch->coach_id           = $targetAssignmentCoachId;
+                    $oldStudentBatch->start_date         = $studentStartDate;
+                    $oldStudentBatch->end_date           = $studentEndDate;
                     $oldStudentBatch->status             = 'ACTIVE';
-                    $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
+                    $oldStudentBatch->number_of_sessions = $targetAssignmentSessions;
                     $oldStudentBatch->save();
                 } else {
                     if ($oldStudentBatch->status == 'ACTIVE') {
                         $oldStudentBatch->status             = 'ACTIVE';
-                        $oldStudentBatch->level_id           = $levelId;
-                        $oldStudentBatch->coach_id           = $coachId;
-                        $oldStudentBatch->start_date         = $startDate;
-                        $oldStudentBatch->end_date           = $endDate;
-                        $oldStudentBatch->number_of_sessions = $request->number_of_sessions;
+                        $oldStudentBatch->level_id           = $targetAssignmentLevelId;
+                        $oldStudentBatch->coach_id           = $targetAssignmentCoachId;
+                        $oldStudentBatch->start_date         = $studentStartDate;
+                        $oldStudentBatch->end_date           = $studentEndDate;
+                        $oldStudentBatch->number_of_sessions = $targetAssignmentSessions;
                         $oldStudentBatch->save();
                     } else {
                         if ($oldStudentBatch->status == 'INACTIVE' && $oldStudentBatch->is_fees_due == '0') {
                             $studentBatch                     = new StudentBatch();
                             $studentBatch->student_id         = $student->id;
                             $studentBatch->batch_id           = $batchId;
-                            $studentBatch->coach_id           = $coachId;
-                            $studentBatch->level_id           = $levelId;
+                            $studentBatch->coach_id           = $targetAssignmentCoachId;
+                            $studentBatch->level_id           = $targetAssignmentLevelId;
                             $studentBatch->status             = 'ACTIVE';
-                            $studentBatch->start_date         = Carbon::today();
-                            $studentBatch->end_date           = $endDate;
-                            $studentBatch->number_of_sessions = $request->number_of_sessions;
+                            $studentBatch->start_date         = $studentStartDate;
+                            $studentBatch->end_date           = $studentEndDate;
+                            $studentBatch->number_of_sessions = $targetAssignmentSessions;
                             $studentBatch->save();
                         } else {
                             $studentBatch                     = new StudentBatch();
                             $studentBatch->student_id         = $student->id;
                             $studentBatch->batch_id           = $batchId;
-                            $studentBatch->coach_id           = $coachId;
-                            $studentBatch->level_id           = $levelId;
+                            $studentBatch->coach_id           = $targetAssignmentCoachId;
+                            $studentBatch->level_id           = $targetAssignmentLevelId;
                             $studentBatch->status             = 'ACTIVE';
-                            $studentBatch->start_date         = $startDate;
-                            $studentBatch->end_date           = $endDate;
-                            $studentBatch->number_of_sessions = $request->number_of_sessions;
+                            $studentBatch->start_date         = $studentStartDate;
+                            $studentBatch->end_date           = $studentEndDate;
+                            $studentBatch->number_of_sessions = $targetAssignmentSessions;
                             $studentBatch->save();
                         }
                     }
@@ -1153,30 +1568,38 @@ class BatchController extends Controller
                     $studentBatch                     = new StudentBatch();
                     $studentBatch->student_id         = $student->id;
                     $studentBatch->batch_id           = $batchId;
-                    $studentBatch->coach_id           = $coachId;
-                    $studentBatch->level_id           = $levelId;
+                    $studentBatch->coach_id           = $targetAssignmentCoachId;
+                    $studentBatch->level_id           = $targetAssignmentLevelId;
                     $studentBatch->status             = 'ACTIVE';
-                    $studentBatch->start_date         = Carbon::today();
-                    $studentBatch->end_date           = $endDate;
-                    $studentBatch->number_of_sessions = $request->number_of_sessions;
+                    $studentBatch->start_date         = $studentStartDate;
+                    $studentBatch->end_date           = $studentEndDate;
+                    $studentBatch->number_of_sessions = $targetAssignmentSessions;
                     $studentBatch->save();
                 } else {
                     $studentBatch                     = new StudentBatch();
                     $studentBatch->student_id         = $student->id;
                     $studentBatch->batch_id           = $batchId;
-                    $studentBatch->coach_id           = $coachId;
-                    $studentBatch->level_id           = $levelId;
+                    $studentBatch->coach_id           = $targetAssignmentCoachId;
+                    $studentBatch->level_id           = $targetAssignmentLevelId;
                     $studentBatch->status             = 'ACTIVE';
-                    $studentBatch->start_date         = $startDate;
-                    $studentBatch->end_date           = $endDate;
-                    $studentBatch->number_of_sessions = $request->number_of_sessions;
+                    $studentBatch->start_date         = $studentStartDate;
+                    $studentBatch->end_date           = $studentEndDate;
+                    $studentBatch->number_of_sessions = $targetAssignmentSessions;
                     $studentBatch->save();
                 }
             }
         }
         // }
 
-        $removeStudentIds = explode(',', $request->removed_student_ids);
+        $removeStudentIds = collect(explode(',', (string) $request->removed_student_ids))
+            ->filter(fn ($studentId) => is_numeric($studentId))
+            ->map(fn ($studentId) => (int) $studentId)
+            ->unique()
+            ->values()
+            ->all();
+        if ($isTransferToActiveTarget) {
+            $removeStudentIds = array_values(array_intersect($removeStudentIds, $transferStudentIds));
+        }
         if (count($removeStudentIds) > 0) {
             $removeStudentBatches = StudentBatch::where('batch_id', $batchId)->whereIn('student_id', $removeStudentIds)->where('status', 'ACTIVE')->get();
             foreach ($removeStudentBatches as $removeStudentBatch) {
@@ -1184,6 +1607,33 @@ class BatchController extends Controller
                 $removeStudentBatch->end_date = Carbon::today();
                 $removeStudentBatch->end_time = Carbon::now()->format('H:i:s');
                 $removeStudentBatch->save();
+            }
+        }
+
+        if ($isTransfer) {
+            $sourceStudentBatches = StudentBatch::where('batch_id', $transferSourceBatch->id)
+                ->whereIn('student_id', $transferStudentIds)
+                ->where('status', 'ACTIVE')
+                ->get();
+
+            foreach ($sourceStudentBatches as $sourceStudentBatch) {
+                $sourceStudentBatch->status = 'INACTIVE';
+                $sourceStudentBatch->end_date = Carbon::parse($transferCutoffDate)->toDateString();
+                $sourceStudentBatch->end_time = Carbon::now()->format('H:i:s');
+                $sourceStudentBatch->save();
+            }
+
+            $sourceStillHasActiveStudents = StudentBatch::where('batch_id', $transferSourceBatch->id)
+                ->where('status', 'ACTIVE')
+                ->exists();
+
+            if (! $sourceStillHasActiveStudents) {
+                $transferSourceBatch->status = 'INACTIVE';
+                $transferSourceBatch->save();
+
+                BatchSchedule::where('batch_id', $transferSourceBatch->id)->update([
+                    'status' => 'INACTIVE',
+                ]);
             }
         }
 
@@ -1218,20 +1668,37 @@ class BatchController extends Controller
         }
 
         $confirmReassign = $request->confirm_reassign === 'CANCEL' ? null : $request->confirm_reassign;
-        Batch::where('id', $request->batch_id)->update([
-            'start_date'                => $request->start_date,
-            'end_date'                  => $request->end_date,
-            'number_of_sessions'        => $request->number_of_sessions,
-            'level_id'                  => $request->level_id,
-            'status'                    => 'ACTIVE',
-            'confirm_reassign'          => $confirmReassign,
-            'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
-            'created_by'                => Auth::id(),
-        ]);
+        if ($isTransferToActiveTarget) {
+            Batch::where('id', $request->batch_id)->update([
+                'country'                   => $batch->country,
+                'status'                    => 'ACTIVE',
+                'confirm_reassign'          => $confirmReassign,
+                'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
+                'created_by'                => Auth::id(),
+            ]);
+        } else {
+            Batch::where('id', $request->batch_id)->update([
+                'start_date'                => $request->start_date,
+                'end_date'                  => $request->end_date,
+                'number_of_sessions'        => $request->number_of_sessions,
+                'level_id'                  => $request->level_id,
+                'country'                   => $batch->country,
+                'status'                    => 'ACTIVE',
+                'confirm_reassign'          => $confirmReassign,
+                'confirm_reassign_batch_id' => $confirmReassign === null ? null : DB::raw('confirm_reassign_batch_id'),
+                'created_by'                => Auth::id(),
+            ]);
+        }
+
+        DB::commit();
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Students have been successfully assigned/updated to the batch.',
+            'message' => $isTransfer ? 'Students have been successfully transferred to the batch.' : 'Students have been successfully assigned/updated to the batch.',
         ]);
     }
 
@@ -1340,6 +1807,20 @@ class BatchController extends Controller
         }
 
         $batch         = Batch::find($request->batch_id);
+        if (!$batch) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Batch not found.',
+            ], 404);
+        }
+
+        if ($batch->status === 'UPCOMING' && in_array($request->status, ['ACTIVE', 'STANDBY'])) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Upcoming batch can become active only after assigning students.',
+            ], 422);
+        }
+
         $batch->status = $request->status;
         $batch->save();
 
@@ -1404,24 +1885,64 @@ class BatchController extends Controller
         $coach_attendances = CoachAttendance::where('batch_id', $request->id)->where('status','COMPLETED')->get();
         return view('Admin.Batchs.batchAttendance',compact('coach_attendances'));
     }
-    public function checkSchedule(Request $request)
+    public function checkSchedule(Request $request, CoachAvailabilityService $availability)
     {
+        if ($request->has('country') && is_array($request->input('weekday'))) {
+            $schedules = $availability->schedulesFromRequest(
+                $request->input('weekday', []),
+                $request->input('from_time', []),
+                $request->input('to_time', [])
+            );
+
+            if (empty($request->input('country', [])) || empty($schedules)) {
+                return response()->json([
+                    'status' => 'success',
+                    'coaches' => [],
+                ]);
+            }
+
+            $availableCoaches = $availability->availableCoachesForRawBatch(
+                normalizeCountryValues($request->input('country', [])),
+                $schedules,
+                $request->input('batch_id')
+            );
+
+            if ($request->filled('batch_id')) {
+                $batch = Batch::find($request->input('batch_id'));
+                if ($batch && $batch->coach_id && !$availableCoaches->contains('id', $batch->coach_id)) {
+                    $currentCoach = Coach::with('user')->find($batch->coach_id);
+                    if ($currentCoach) {
+                        $availableCoaches->prepend($currentCoach);
+                    }
+                }
+            }
+
+            $coaches = $availableCoaches->map(function ($coach) {
+                return [
+                    'id' => $coach->id,
+                    'name' => trim(optional($coach->user)->first_name . ' ' . optional($coach->user)->last_name),
+                ];
+            })->values();
+
+            return response()->json([
+                'status' => 'success',
+                'coaches' => $coaches,
+            ]);
+        }
+
         $coach_id = $request->coach_id;
-        $weekday  = $request->weekday;
-        $fromTime = $request->from_time;
-        $toTime   = $request->to_time;
+        $schedules = [[
+            'weekday' => $request->weekday,
+            'from_time' => $request->from_time,
+            'to_time' => $request->to_time,
+        ]];
 
-        $batchSchedule = BatchSchedule::whereHas('batch', function ($query) use ($coach_id) {
-            $query->where('coach_id', $coach_id)->where('status', '!=', 'INACTIVE');
-        })->where('weekday', $weekday)
-            ->where('from_time', $fromTime)
-            ->where('to_time', $toTime)
-            ->first();
+        $coachValidation = $availability->validateRawBatchCoach((int) $coach_id, normalizeCountryValues($request->input('country', [])), $schedules, $request->input('batch_id'));
 
-        if ($batchSchedule) {
+        if (!$coachValidation['ok']) {
             return response()->json([
                 'status'  => 'error',
-                'message' => 'The schedule already exists.',
+                'message' => $coachValidation['message'],
             ], 200);
         }
 

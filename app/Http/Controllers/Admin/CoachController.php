@@ -54,12 +54,14 @@ class CoachController extends Controller
         }
 
         if ($request->country) {
-            $country = $request->country;
-            $query->whereNotNull('country')->where(function ($query) use ($country) {
-                $query->whereRaw('json_valid(country) AND json_contains(country, ?)', ['["' . $country . '"]'])
-                    ->orWhere(function ($query) use ($country) {
-                        $query->whereRaw('NOT json_valid(country)')->where('country', $country);
-                    });
+            $countryValues = countryComparisonValues($request->country);
+            $query->whereNotNull('country')->where(function ($query) use ($countryValues) {
+                foreach ($countryValues as $countryValue) {
+                    $query->orWhereRaw('json_valid(country) AND json_contains(country, ?)', [json_encode($countryValue)])
+                        ->orWhere(function ($query) use ($countryValue) {
+                            $query->whereRaw('NOT json_valid(country)')->where('country', $countryValue);
+                        });
+                }
             });
         }
 
@@ -152,8 +154,8 @@ class CoachController extends Controller
         ->get();
 
         $batchData = $batches->map(function ($batch) use ($completedBatchData) {
-            $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
-            $activeStudentBatches = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $totalActiveStudents = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
+            $activeStudentBatches = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $levelNames = $activeStudentBatches->map(function ($studentBatch) {
                 return $studentBatch->level->name;
             })->unique()->implode(', ');
@@ -249,6 +251,9 @@ class CoachController extends Controller
     {
         // dd($request->all());
         $request->validate($this->rules, $this->customMessages);
+        $request->merge([
+            'country' => normalizeCountryValues($request->input('country', [])),
+        ]);
 
         // New User ::
         $user = new User;
@@ -294,6 +299,9 @@ class CoachController extends Controller
         $this->rules['portal_id'] = 'sometimes|nullable|unique:coachs,portal_id,' . $coach->id;
 
         $request->validate($this->rules, $this->customMessages);
+        $request->merge([
+            'country' => normalizeCountryValues($request->input('country', [])),
+        ]);
         $user = User::find($coach->user_id);
         $user->fill($request->all());
         if ($request->password) {
@@ -318,6 +326,23 @@ class CoachController extends Controller
     public function changeStatus(Request $request)
     {
         $coach = Coach::findByKey($request->route_key);
+
+        if ($request->status === 'INACTIVE') {
+            $blockingBatches = Batch::where('coach_id', $coach->id)
+                ->whereIn('status', ['ACTIVE', 'STANDBY'])
+                ->orderBy('status')
+                ->orderBy('name')
+                ->get(['id', 'name', 'kids_zone_name', 'status', 'start_date', 'end_date']);
+
+            if ($blockingBatches->isNotEmpty()) {
+                return response()->json([
+                    'status' => 'blocked',
+                    'message' => 'This coach has active or standby batches assigned. Please deactivate or reassign these batches first.',
+                    'batches' => $blockingBatches,
+                ], 422);
+            }
+        }
+
         $coach->status = $request->status;
         $coach->save();
 

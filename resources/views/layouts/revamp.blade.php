@@ -6,12 +6,60 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description"
         content="Archers Chess Academy is an online chess learning platform dedicated to providing high-quality chess education to students of all ages and skill levels. Our academy offers a comprehensive curriculum designed to help students develop their chess skills, strategic thinking, and love for the game. With experienced coaches, interactive lessons, and a supportive community, Archers Chess Academy is the perfect place for aspiring chess players to learn, grow, and excel in the world of chess.">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @stack('meta')
     <meta name="keywords"
         content="Archers Chess Academy, Chess Learning, Online Chess Education, Chess Coaching, Chess Lessons, Chess Community, Chess Skills, Strategic Thinking, Chess Curriculum">
     <meta name="robots" content="index, follow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Title -->
-    <title>{{ config('app.name') }}</title>
+    <title>@yield('title', config('app.name'))</title>
+    <!-- Google Tag Manager -->
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s),
+                dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-PZ3VKNXF');
+    </script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Meta Pixel Code -->
+    <script>
+        ! function(f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function() {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '777952784455654');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id=777952784455654&ev=PageView&noscript=1" /></noscript>
+    <!-- End Meta Pixel Code -->
+    @yield('head')
     <!-- Favicon -->
     <link rel="icon" href="/frontend/tcul_img/home/archer_favicon.png" type="image/png">
     <!-- Bootstrap -->
@@ -311,10 +359,88 @@
                 left: 120px !important;
             }
         }
+
+        .cms-content {
+            color: inherit;
+            line-height: 1.6;
+        }
+
+        .cms-content p {
+            margin: 0 0 1rem;
+        }
+
+        .cms-content ul {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 0 0 1rem;
+        }
+
+        .cms-content ol {
+            list-style: decimal;
+            padding-left: 1.5rem;
+            margin: 0 0 1rem;
+        }
+
+        .cms-content li {
+            margin-bottom: 0.35rem;
+        }
+
+        .cms-content a {
+            display: inline;
+            text-decoration: underline;
+        }
+
+        .cms-content span {
+            display: inline;
+        }
+
+        .cms-content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .cms-content table {
+            width: 100%;
+            max-width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .cms-content th,
+        .cms-content td {
+            border: 1px solid #dee2e6;
+            padding: 0.5rem;
+        }
+
+        .cms-content blockquote {
+            margin: 0 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid #dee2e6;
+        }
+
+        .cms-content .header,
+        .cms-content .header.fixed-header,
+        .cms-content .header-fixed,
+        .cms-content .fixed-header,
+        .cms-content .sticky,
+        .cms-content .sticky-top,
+        .cms-content .sticky-lg-top,
+        .cms-content .position-fixed,
+        .cms-content .position-sticky {
+            position: static !important;
+            top: auto !important;
+            inset-block-start: auto !important;
+            z-index: auto !important;
+            animation: none !important;
+        }
     </style>
 </head>
 
 <body style="overflow-x: hidden;">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PZ3VKNXF" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
 
     <div class="tcul-floating_btn_contact" style="right: 130px;">
         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal">
@@ -385,7 +511,7 @@
         </button>
 
         {{-- <div class="mobile-menu__inner">
-            <a href="/design/home" class="mobile-menu__logo">
+            <a href="{{ route('home') }}" class="mobile-menu__logo">
                 <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="Logo">
             </a>
             <div class="mobile-menu__menu">
@@ -517,7 +643,7 @@
                                 <i class="ph-fill ph-user"></i>
                             </span>
                             <div class="d-flex align-items-center tw-gap-1">
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                                <a href="{{ route('login') }}"
                                     class="fw-normal tw-text-305 text-black hover-text-main-600">
                                     Login
                                 </a>
@@ -590,7 +716,7 @@
                     <div class="search_wrapper">
                         <div class="search_top d-flex justify-content-between align-items-center">
                             <div class="search_logo">
-                                <a href="/design/home">
+                                <a href="{{ route('home') }}">
                                     <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="Logo">
                                 </a>
                             </div>
@@ -635,13 +761,13 @@
 
 
     <!-- ==================== Header Start Here ==================== -->
-    <header class="header bg-main-two-200 tw-transition-all tw-z-99">
+    <header class="header js-revamp-site-header bg-main-two-200 tw-transition-all tw-z-99">
         <div class="container container-two">
             <nav
                 class="d-flex align-items-center justify-content-between position-relative bg-white tw-p-4 tw-rounded-bottom-16-px mobile-center mobile-logo-space">
                 <!-- Logo Start -->
                 <div class="logo">
-                    <a href="/design/home" class="link">
+                    <a href="{{ route('home') }}" class="link">
                         <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="Logo" class="max-w-200-px">
                     </a>
                 </div>
@@ -652,43 +778,43 @@
                     <!-- Nav menu Start -->
                     <ul class="nav-menu d-lg-flex align-items-center tw-gap-6">
                         <li class="nav-menu__item">
-                            <a href="/design/home"
+                            <a href="{{ route('home') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Home</a>
                         </li>
                         <li class="nav-menu__item has-submenu position-relative">
-                            <a href="#curriculum"
+                            <a href="{{ route('home') }}#curriculum"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Programs</a>
                             <ul
                                 class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#curriculum"
+                                    <a href="{{ route('explore.course.details.beginner') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Beginners Chess Classes</a>
                                 </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#curriculum"
+                                    <a href="{{ route('explore.course.details.intermediate') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Intermediate Chess Classes</a>
                                 </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#curriculum0"
+                                    <a href="{{ route('explore.course.details.advanced') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Advanced Chess Classes</a>
                                 </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#curriculum"
+                                    <a href="{{ route('explore.course.details.expert') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Grand Master Chess Classes</a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav-menu__item has-submenu position-relative">
-                            <a href="javascript:void(0)"
+                            <a href="{{ route('about') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">About</a>
                             <ul
                                 class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#about"
+                                    <a href="{{ route('about') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         About Us</a>
                                 </li>
@@ -698,12 +824,12 @@
                                         Book a Trial</a>
                                 </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#gallery"
+                                    <a href="{{ route('gallery') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Gallery</a>
                                 </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                    <a href="#faq"
+                                    <a href="{{ route('home') }}#faq"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         FAQ’s</a>
                                 </li>
@@ -711,11 +837,11 @@
                         </li>
                        
                         <li class="nav-menu__item">
-                            <a href="#coaches"
+                            <a href="{{ route('home') }}#coaches"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Coaches</a>
                         </li>
                         <li class="nav-menu__item">
-                            <a href="#contact"
+                            <a href="{{ route('contact') }}"
                                 class="nav-menu__link text-neutral-950 tw-py-5 fw-medium w-100">Contact</a>
                         </li>
                     </ul>
@@ -779,7 +905,7 @@
                         <div class="col-xl-4 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="100">
                             <div>
-                                <a href="/design/home" class="tw-mb-2">
+                                <a href="{{ route('home') }}" class="tw-mb-2">
                                     <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="logo">
                                 </a>
                                 <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-6">Give your child the opportunity to learn and master chess from the comfort of their home.</p>
@@ -829,7 +955,7 @@
                                 <h1 class="fw-bold text-neutral-950 h5">Quick Links</h1>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
                                 <div class="d-flex flex-column tw-gap-3">
-                                    <a href="#about"
+                                    <a href="{{ route('about') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -837,7 +963,7 @@
                                         About
                                     </a>
 
-                                    <a href="#about"
+                                    <a href="{{ route('home') }}#about"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -845,7 +971,7 @@
                                         Why Archer
                                     </a>
 
-                                    <a href="#curriculum"
+                                    <a href="{{ route('home') }}#curriculum"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -853,7 +979,7 @@
                                         Courses
                                     </a>
 
-                                    <a href="#coaches"
+                                    <a href="{{ route('home') }}#coaches"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -869,7 +995,7 @@
                                         Contact
                                     </a>
 
-                                    <a href="#gallery"
+                                    <a href="{{ route('gallery') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -927,7 +1053,7 @@
                                 <h2 class="fw-bold text-neutral-950 h5">Useful Links</h2>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
                                 <div class="d-flex flex-column tw-gap-3">
-                                    <a href="javascript:void(0)"
+                                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -935,7 +1061,7 @@
                                         Book A Trial Class
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('privacy') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -943,7 +1069,7 @@
                                         Privacy Policy
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('shipping.policy') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -951,7 +1077,7 @@
                                         Shipping Policy
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('terms') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -959,7 +1085,7 @@
                                         Terms Of Service
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('refund.policy') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -967,7 +1093,7 @@
                                         Refund & Cancellation
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('blog') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -975,7 +1101,7 @@
                                         Blog
                                     </a>
 
-                                    <a href="javascript:void(0)"
+                                    <a href="{{ route('event') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -1077,75 +1203,81 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form>
+                    <form class="revamp-trial-form" method="POST" action="{{ route('confirm.trial.class') }}">
+                        @csrf
+                        <input type="hidden" name="country_code" class="revamp-country-code" value="+91">
+                        <input type="hidden" name="duration" value="25_minutes">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Country*</label>
-                                <select class="form-control border-0 tw-py-3">
-                                    <option>Select Country</option>
-                                    <option>USA</option>
-                                    <option>Canada</option>
-                                    <option>Australia</option>
-                                    <option>New Zealand</option>
-                                    <option>India</option>
-                                    <option>UAE</option>
-                                    <option>UK</option>
-                                    <option>Singapore</option>
-                                    <option>South Africa</option>
-                                    <option>Qatar</option>
-                                    <option>Bahrain</option>
-                                    <option>Kuwait</option>
+                                <select name="country" class="form-control border-0 tw-py-3 revamp-country" required>
+                                    <option value="">Select Country</option>
+                                    <option value="USA">USA</option>
+                                    <option value="CANADA">Canada</option>
+                                    <option value="AUSTRALIA">Australia</option>
+                                    <option value="NEWZEALAND">New Zealand</option>
+                                    <option value="INDIA">India</option>
+                                    <option value="UAE">UAE</option>
+                                    <option value="UK">UK</option>
+                                    <option value="SINGAPORE">Singapore</option>
+                                    <option value="SOUTH AFRICA">South Africa</option>
+                                    <option value="QATAR">Qatar</option>
+                                    <option value="BAHRAIN">Bahrain</option>
+                                    <option value="KUWAIT">Kuwait</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Timezone*</label>
-                                <select class="form-control border-0 tw-py-3">
-                                    <option>Select Time Zone</option>
+                                <select name="timezone" class="form-control border-0 tw-py-3 revamp-timezone" required>
+                                    <option value="">Select Time Zone</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">City*</label>
-                                <input type="text" class="form-control border-0 tw-py-3" placeholder="Enter your city">
+                                <input type="text" name="city" class="form-control border-0 tw-py-3" placeholder="Enter your city" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Kid's Full Name*</label>
-                                <input type="text" class="form-control border-0 tw-py-3" placeholder="Enter kid's full name">
+                                <input type="text" name="kids_first_name" class="form-control border-0 tw-py-3" placeholder="Enter kid's full name" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Age*</label>
-                                <input type="number" class="form-control border-0 tw-py-3" placeholder="Enter kid's age">
+                                <input type="number" name="age" class="form-control border-0 tw-py-3" placeholder="Enter kid's age" required>
                             </div>
                             <!-- WhatsApp -->
                             <div class="col-md-6">
                                 <label class="text-neutral-950">WhatsApp Number*</label>
-                                <input id="phone_modal" type="tel" placeholder="Enter WhatsApp number"
+                                <input id="phone_modal" name="mobile" type="tel" placeholder="Enter WhatsApp number" required
                                     class="tw-py-4 tw-px-6 bg-white w-100 border-0 fw-normal tw-text-305 tw-rounded-2xl text-neutral-600">
                             </div>
 
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Email*</label>
-                                <input type="email" class="form-control border-0 tw-py-3" placeholder="Enter your email">
+                                <input type="email" name="email" class="form-control border-0 tw-py-3" placeholder="Enter your email" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="text-neutral-950 ">Language Preference*</label>
-                                <select class="form-control border-0 tw-py-3">
-                                    <option>Select language preference</option>
-                                    <option>Agree (English)</option>
-                                    <option>Kid is not comfortable in English</option>
+                                <select name="language_preference" class="form-control border-0 tw-py-3" required>
+                                    <option value="">Select language preference</option>
+                                    <option value="Agree (English)">Agree (English)</option>
+                                    <option value="Kid is not comfortable in English">Kid is not comfortable in English</option>
                                 </select>
                             </div>
+                            <div class="col-12">
+                                <div class="revamp-form-message small"></div>
+                            </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer justify-content-center border-0">
-                    <a href="javascript:void(0)" data-bs-dismiss="modal" data-bs-target="#thankYouModal" class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 tw-border-bottom-main-two-600 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4" data-block="button">
+                        <div class="modal-footer justify-content-center border-0">
+                            <button type="submit" class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 tw-border-bottom-main-two-600 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4" data-block="button">
                         <span class="button__flair" style="translate: none; rotate: none; scale: none; transform: translate(120%, -13.6364%) scale(0, 0);"></span>
                         <span class="button__label">Submit</span>
                         <span class="text-white tw-text-2xl group-hover-text-white tw-duration-500 position-relative">
                             <img src="/frontend1/assets/images/icon/banner-icon-white.png" alt="icon">
                         </span>
-                    </a>
-                    {{-- <button class="btn btn-success">Submit</button> --}}
+                            </button>
+                            {{-- <button class="btn btn-success">Submit</button> --}}
+                        </div>
+                    </form>
                 </div>
                 <div style="background-image: url(/frontend1/assets/images/bg/footer-bottom-bg-img1.png);" class="bg-img">
                     <div class="container">
@@ -1583,7 +1715,7 @@
                         Your registration has been submitted successfully.
                     </p>
 
-                    <a href="/design/home" class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 tw-border-bottom-main-two-600 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4" data-block="button">
+                    <a href="{{ route('home') }}" class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 tw-border-bottom-main-two-600 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4" data-block="button">
                         <span class="button__flair" style="translate: none; rotate: none; scale: none; transform: translate(120%, -13.6364%) scale(0, 0);"></span>
                         <span class="button__label">Back to Home</span>
                         <span class="text-white tw-text-2xl group-hover-text-white tw-duration-500 position-relative">
@@ -1598,14 +1730,16 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.0/lottie.min.js"></script> 
     <script>
-        // Load local Lottie animation
-        lottie.loadAnimation({
-        container: document.getElementById('lottie'),
-        renderer: 'svg',
-        loop: true,
-        autoplay: true,
-        path: '/frontend1/tcul-img/img/icons/success.json'
-        });
+        const lottieContainer = document.getElementById('lottie');
+        if (lottieContainer) {
+            lottie.loadAnimation({
+                container: lottieContainer,
+                renderer: 'svg',
+                loop: true,
+                autoplay: true,
+                path: '/frontend1/tcul-img/img/icons/success.json'
+            });
+        }
     </script>
 
     {{-- International Telephone Input --}}
@@ -1613,15 +1747,19 @@
         const phoneContact = document.querySelector("#phone_contact");
         const phoneModal = document.querySelector("#phone_modal");
 
-            window.intlTelInput(phoneContact, {
-            initialCountry: "in",
-            separateDialCode: true
-            });
+            if (phoneContact) {
+                window.intlTelInput(phoneContact, {
+                    initialCountry: "in",
+                    separateDialCode: true
+                });
+            }
 
-            window.intlTelInput(phoneModal, {
-            initialCountry: "in",
-            separateDialCode: true
-        });
+            if (phoneModal) {
+                window.intlTelInput(phoneModal, {
+                    initialCountry: "in",
+                    separateDialCode: true
+                });
+            }
     </script>
 
     <script>
@@ -1636,6 +1774,144 @@
 
     <!-- Jquery js -->
     <script src="/frontend1/assets/js/jquery-3.7.1.min.js"></script>
+    <script>
+        (function () {
+            const csrfToken = $('meta[name="csrf-token"]').attr('content');
+            if (csrfToken) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                });
+            }
+
+            const timezonesByCountry = {
+                'USA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
+                'CANADA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
+                'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide', 'Australia/Sydney'],
+                'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
+                'INDIA': ['Indian Standard Time'],
+                'UAE': ['Gulf Standard Time'],
+                'UK': ['British Summer Time', 'Greenwich Mean Time'],
+                'SINGAPORE': ['Singapore Standard Time'],
+                'SOUTH AFRICA': ['South Africa Standard Time'],
+                'QATAR': ['Arabian Standard Time'],
+                'BAHRAIN': ['Arabian Standard Time'],
+                'KUWAIT': ['Arabian Standard Time']
+            };
+
+            const dialCodeByCountry = {
+                'USA': '+1',
+                'CANADA': '+1',
+                'AUSTRALIA': '+61',
+                'NEWZEALAND': '+64',
+                'INDIA': '+91',
+                'UAE': '+971',
+                'UK': '+44',
+                'SINGAPORE': '+65',
+                'SOUTH AFRICA': '+27',
+                'QATAR': '+974',
+                'BAHRAIN': '+973',
+                'KUWAIT': '+965'
+            };
+
+            function setMessage($form, selector, message, isError) {
+                const $message = $form.find(selector);
+                $message
+                    .removeClass('text-danger text-success text-white')
+                    .addClass(isError ? 'text-danger' : 'text-success')
+                    .html(message || '');
+            }
+
+            function firstErrorMessage(errors, fallback) {
+                if (!errors) {
+                    return fallback;
+                }
+                const firstKey = Object.keys(errors)[0];
+                return firstKey && errors[firstKey] && errors[firstKey][0] ? errors[firstKey][0] : fallback;
+            }
+
+            function syncCountryFields($form) {
+                const country = $form.find('.revamp-country').val();
+                const $timezone = $form.find('.revamp-timezone');
+                const selectedTimezone = $timezone.val();
+                const timezones = timezonesByCountry[country] || [];
+
+                $timezone.empty().append('<option value="">Select Time Zone</option>');
+                timezones.forEach(function (timezone) {
+                    $timezone.append($('<option>', { value: timezone, text: timezone }));
+                });
+                if (timezones.includes(selectedTimezone)) {
+                    $timezone.val(selectedTimezone);
+                }
+                $form.find('.revamp-country-code').val(dialCodeByCountry[country] || '+91');
+            }
+
+            $('.revamp-trial-form').each(function () {
+                syncCountryFields($(this));
+            });
+
+            $(document).on('change', '.revamp-country', function () {
+                syncCountryFields($(this).closest('form'));
+            });
+
+            $(document).on('submit', '.revamp-trial-form', function (event) {
+                event.preventDefault();
+                const $form = $(this);
+                const $button = $form.find('[type="submit"]');
+
+                setMessage($form, '.revamp-form-message', '', false);
+                $button.prop('disabled', true);
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize() + (csrfToken ? '&_token=' + encodeURIComponent(csrfToken) : ''),
+                    success: function (response) {
+                        if (response.status === 'success') {
+                            setMessage($form, '.revamp-form-message', response.message || 'Trial class booked successfully.', false);
+                            window.location.href = "{{ route('book.trial.class.thankyou') }}?user_id=" + response.user_id;
+                            return;
+                        }
+                        setMessage($form, '.revamp-form-message', response.message || 'Unable to submit form.', true);
+                    },
+                    error: function (xhr) {
+                        const message = firstErrorMessage(xhr.responseJSON && xhr.responseJSON.errors, 'Unable to submit form. Please check the details and try again.');
+                        setMessage($form, '.revamp-form-message', message, true);
+                    },
+                    complete: function () {
+                        $button.prop('disabled', false);
+                    }
+                });
+            });
+
+            $(document).on('submit', '.revamp-contact-form', function (event) {
+                event.preventDefault();
+                const $form = $(this);
+                const $button = $form.find('[type="submit"]');
+
+                setMessage($form, '.revamp-contact-message', '', false);
+                $button.prop('disabled', true);
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize() + (csrfToken ? '&_token=' + encodeURIComponent(csrfToken) : ''),
+                    success: function (response) {
+                        setMessage($form, '.revamp-contact-message', response.message || 'Your enquiry has been submitted successfully.', false);
+                        window.location.href = "{{ route('thankyou') }}";
+                    },
+                    error: function (xhr) {
+                        const message = firstErrorMessage(xhr.responseJSON && xhr.responseJSON.errors, 'Unable to submit enquiry. Please check the details and try again.');
+                        setMessage($form, '.revamp-contact-message', message, true);
+                    },
+                    complete: function () {
+                        $button.prop('disabled', false);
+                    }
+                });
+            });
+        })();
+    </script>
     <!-- phosphor Js -->
     <script src="/frontend1/assets/js/phosphor-icon.js"></script>
     <!-- Bootstrap Bundle Js -->

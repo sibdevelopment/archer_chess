@@ -182,6 +182,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('batchs/list', [BatchController::class, 'list'])->name('batchs.list');
         Route::post('batchs/masterclass_tounament/list', [BatchController::class, 'masterclassTounamentlist'])->name('batchs.masterclassTounamentlist');
         Route::post('batchs/change-status', [BatchController::class, 'changeStatus'])->name('batchs.change.status');
+        Route::post('batchs/available-coaches', [BatchController::class, 'checkSchedule'])->name('batchs.available.coaches');
         Route::get('batch/get/coaches', [BatchController::class, 'getCoaches'])->name('batch.get.coaches');
         Route::get('batch/get/students', [BatchController::class, 'getStudents'])->name('batch.get.students');
         Route::post('batches/check-name', [BatchController::class, 'checkName'])->name('batchs.check.name');
@@ -192,6 +193,8 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         // Assign Batch Students ------------------------------
         Route::get('batchs/{batch}/assign/student', [BatchController::class, 'assignBatchToStudent'])->name('batchs.assign.student');
         Route::post('batchs/{batch}/assign/student/save', [BatchController::class, 'saveAssignedStudent'])->name('batchs.assigned.student.save');
+        Route::get('batchs/{batch}/transfer/student', [BatchController::class, 'transferStudentsModal'])->name('batchs.transfer.student');
+        Route::post('batchs/{batch}/transfer/student/redirect', [BatchController::class, 'redirectTransferStudents'])->name('batchs.transfer.student.redirect');
         Route::get('batchs/{batch}/reassign/student', [BatchController::class, 'reassignBatchToStudentModal'])->name('batchs.reassign.student');
         Route::post('batchs/{batch}/reassign/student/save', [BatchController::class, 'saveReassignedStudent'])->name('batchs.reassigned.student.save');
         Route::post('batchs/check/schedule', [BatchController::class, 'checkSchedule'])->name('batchs.check.schedule');
@@ -238,6 +241,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('reports/{coachId}/batch-attendance', [ReportController::class, 'batchAttendance'])->name('reports.batchAttendance');
         Route::get('reports/batchstudent/countrydata', [ReportController::class, 'batchStudentCountryData'])->name('batchstudent.countrydata');
         Route::get('reports/batch/completed/data', [ReportController::class, 'batchCompletedData'])->name('batch.completed.data');
+        Route::get('reports/one-to-one-class/completed/data', [ReportController::class, 'oneToOneClassCompletedData'])->name('one-to-one-class.completed.data');
         Route::get('reports/delayed-batches/data', [ReportController::class, 'delayedBatchesReportData'])->name('reports.delayed.batches.data');
         Route::get('reports/coverupclass/completed/data', [ReportController::class, 'coverupclassCompletedData'])->name('coverupclass.completed.data');
         Route::get('reports/demo/completed/data', [ReportController::class, 'demoCompletedData'])->name('demo.completed.data');
@@ -391,14 +395,94 @@ Route::middleware(['auth', 'preventBackHistory'])->group(function () {
 });
 
 
+Route::post('/razorpay/initiate', function (Request $request) {
+    $data = $request->validate([
+        'amount' => 'required|numeric|min:0.01',
+        'currency' => 'required|string|size:3',
+        'student_id' => 'required|exists:students,id',
+        'payment_level_id' => 'nullable|integer',
+    ]);
+
+    try {
+        $order = new Order();
+        $order->student_id = $data['student_id'];
+        $order->amount = $data['amount'];
+        $order->currency = strtoupper($data['currency']);
+        $order->status = 'CREATED';
+        $order->razorpay_data = json_encode([
+            'source' => 'checkout_initiated',
+            'payment_level_id' => $data['payment_level_id'] ?? null,
+        ]);
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'order_id' => $order->id,
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Razorpay local payment initiation error', [
+            'message' => $e->getMessage(),
+            'student_id' => $request->student_id ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unable to start payment. Please try again.',
+        ], 500);
+    }
+});
+
 Route::post('/razorpay/verify', function (Request $request) {
-    // Use config instead of hardcoding ideally
-    $api = new Api('rzp_live_eckVmG8LHU5uhu', 'yN3zXf5cmDKzcgcYn8fWoEoC');
-    // $api = new Api('rzp_test_RLrov8eGceCpPt', 'tWqTNh7WveDI7oSqKFeoj446');
+    $razorpayKey = config('services.razorpay.key');
+    $razorpaySecret = config('services.razorpay.secret');
+
+    if (empty($razorpayKey) || empty($razorpaySecret)) {
+        Log::error('Razorpay keys not configured');
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Payment gateway is not configured.',
+        ], 500);
+    }
+
+    $api = new Api($razorpayKey, $razorpaySecret);
 
     try {
         // 1. Fetch payment
         $payment = $api->payment->fetch($request->payment_id);
+        $student = Student::findOrFail($request->student_id);
+        $studentCountry = strtoupper(trim((string) $student->country));
+        $paymentMethod = strtolower((string) ($payment->method ?? ''));
+        $localOrder = $request->filled('local_order_id')
+            ? Order::where('id', $request->local_order_id)->where('student_id', $student->id)->first()
+            : null;
+
+        if ($studentCountry !== 'INDIA' && $paymentMethod !== 'card') {
+            $order = $localOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+            $order->student_id    = $student->id;
+            $order->razorpay_payment_id = $payment->id;
+            $order->amount        = $request->amount;
+            $order->currency      = $payment->currency ?? $request->currency;
+            $order->razorpay_data = json_encode([
+                'payment' => $payment->toArray(),
+                'rejection_reason' => 'Only card payments are allowed for non-India students.',
+                'student_country' => $student->country,
+                'payment_method' => $paymentMethod,
+            ]);
+            $order->status        = 'REJECTED';
+            $order->save();
+
+            Log::warning('Razorpay non-card payment rejected for non-India student', [
+                'payment_id' => $payment->id,
+                'student_id' => $student->id,
+                'student_country' => $student->country,
+                'method' => $paymentMethod,
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Only card payments are allowed for non-India students.',
+            ]);
+        }
 
         // 2. If it's only authorized, capture it
         if ($payment->status === 'authorized') {
@@ -415,6 +499,17 @@ Route::post('/razorpay/verify', function (Request $request) {
                 'status'     => $payment->status,
             ]);
 
+            if ($request->filled('student_id')) {
+                $order = $localOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
+                $order->student_id    = $request->student_id;
+                $order->razorpay_payment_id = $payment->id;
+                $order->amount        = $request->amount;
+                $order->currency      = $payment->currency ?? $request->currency;
+                $order->razorpay_data = json_encode($payment->toArray());
+                $order->status        = strtoupper($payment->status ?? 'FAILED');
+                $order->save();
+            }
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Payment is not captured yet. Please try again later.',
@@ -423,9 +518,7 @@ Route::post('/razorpay/verify', function (Request $request) {
 
         // ---- From here, payment is definitely captured ----
 
-        $student = Student::findOrFail($request->student_id);
-
-        $order = new Order();
+        $order = $localOrder ?: new Order();
         $order->student_id          = $student->id;
         $order->razorpay_payment_id = $payment->id;
         $order->amount              = $request->amount;   // usually in rupees (your choice)
@@ -439,12 +532,14 @@ Route::post('/razorpay/verify', function (Request $request) {
         $studentfee = new StudentFee();
         $studentfee->student_id        = $student->id;
         $studentfee->start_date        = date('Y-m-d');
-        $studentfee->end_date          = date('Y-m-d', strtotime('+15 days'));
+        $studentfee->end_date          = date('Y-m-d', strtotime('+29 days'));
         $studentfee->monthly_fees      = $request->amount;
         $studentfee->total_amount_paid = $request->amount;
+        $studentfee->currency          = $payment->currency ?? $request->currency;
         $studentfee->receive_date      = date('Y-m-d');
         $studentfee->status            = 'ACTIVE';
         $studentfee->save();
+        $studentBatchStartDate = Carbon::parse($studentfee->start_date)->toDateString();
 
         // Link order ↔ student_fee
         $order->student_fee_id = $studentfee->id;
@@ -475,7 +570,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -489,7 +584,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -508,7 +603,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                             $sudentBatch->status = $student_batch->status;
                             $sudentBatch->is_fees_due = 0;
-                            $sudentBatch->start_date = Carbon::today();
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $student_batch->batch->end_date;
                             $sudentBatch->status = 'ACTIVE';
                             $sudentBatch->save();
@@ -522,7 +617,7 @@ Route::post('/razorpay/verify', function (Request $request) {
                             $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                             $sudentBatch->status = $last_student->status;
                             $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                            $sudentBatch->start_date = $last_student->start_date;
+                            $sudentBatch->start_date = $studentBatchStartDate;
                             $sudentBatch->end_date = $last_student->end_date;
                             $sudentBatch->created_by = $last_student->created_by;
                             $sudentBatch->updated_by = $last_student->updated_by;
@@ -547,6 +642,48 @@ Route::post('/razorpay/verify', function (Request $request) {
         return response()->json([
             'status'  => 'error',
             'message' => 'Something went wrong while verifying payment.',
+        ], 500);
+    }
+});
+
+Route::post('/razorpay/failure', function (Request $request) {
+    try {
+        $error = (array) $request->input('error', []);
+        $metadata = (array) ($error['metadata'] ?? []);
+        $paymentId = $metadata['payment_id'] ?? $request->input('payment_id');
+
+        $order = $request->filled('local_order_id')
+            ? Order::where('id', $request->local_order_id)->where('student_id', $request->student_id)->first()
+            : null;
+
+        $order = $order ?: ($paymentId
+            ? Order::firstOrNew(['razorpay_payment_id' => $paymentId])
+            : new Order());
+
+        $order->student_id = $request->student_id;
+        $order->razorpay_payment_id = $paymentId;
+        $order->amount = $request->amount;
+        $order->currency = $request->currency;
+        $order->razorpay_data = json_encode([
+            'error' => $error,
+            'source' => 'checkout_failure',
+        ]);
+        $order->status = 'FAILED';
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment failure recorded.',
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Razorpay failure record error', [
+            'message' => $e->getMessage(),
+            'student_id' => $request->student_id ?? null,
+        ]);
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Unable to record payment failure.',
         ], 500);
     }
 });

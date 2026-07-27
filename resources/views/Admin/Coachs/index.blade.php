@@ -111,6 +111,41 @@
 <!-- ------------------------------------------------------------------- :: -->
 
 
+<!-- Coach Deactivation Blocked Modal -->
+<div class="modal fade text-left" id="coachDeactivateBlockedModal" tabindex="-1" role="dialog"
+    aria-labelledby="coachDeactivateBlockedModalLabel" style="z-index: 9999 !important;">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header rounded" style="background-color: #fa896b !important;">
+                <h5 class="modal-title text-white" id="coachDeactivateBlockedModalLabel">Coach Cannot Be Deactivated</h5>
+                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">This coach has active or standby batches assigned. Please deactivate or reassign these batches first.</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Batch</th>
+                                <th>Kids Zone</th>
+                                <th>Status</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coachDeactivateBlockedBatches"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn bg-light-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade text-left" id="deleteConfirmationModal" tabindex="-1" role="dialog"
     aria-labelledby="deleteConfirmationModalLabel" style="z-index: 9999 !important;">
@@ -187,6 +222,7 @@
 
     $(document).on('change', '.coach-status-switch', function(e){
         e.preventDefault();
+        var $switch = $(this);
         var routeKey = $(this).data('routekey');
         var status = $(this).is(':checked') ? 'ACTIVE' : 'INACTIVE';
         $.ajax({
@@ -217,7 +253,30 @@
                     });
                 }
             },
-            error: function(data) {
+            error: function(xhr) {
+                $switch.prop('checked', status === 'INACTIVE');
+
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.status === 'blocked') {
+                    var rows = '';
+                    var batches = xhr.responseJSON.batches || [];
+
+                    batches.forEach(function(batch, index) {
+                        rows += '<tr>' +
+                            '<td>' + (index + 1) + '</td>' +
+                            '<td>' + (batch.name || 'N/A') + '</td>' +
+                            '<td>' + (batch.kids_zone_name || 'N/A') + '</td>' +
+                            '<td><span class="badge bg-danger">' + (batch.status || 'N/A') + '</span></td>' +
+                            '<td>' + (batch.start_date || 'N/A') + '</td>' +
+                            '<td>' + (batch.end_date || 'N/A') + '</td>' +
+                            '</tr>';
+                    });
+
+                    $('#coachDeactivateBlockedBatches').html(rows);
+                    $('#coachDeactivateBlockedModal').modal('show');
+                    toastr.error(xhr.responseJSON.message || 'Coach cannot be deactivated.');
+                    return;
+                }
+
                 toastr.error('Something went wrong!');
             }
         });

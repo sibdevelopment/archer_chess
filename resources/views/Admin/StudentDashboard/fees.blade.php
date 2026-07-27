@@ -118,44 +118,29 @@
     @endphp
     @if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
         @php
-            $student_country = $student->country;
-            $nextPaymentLevelAmount = '0';
-            $currency = '';
-            if ($student_country == 'USA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->usa_fees;
-                $currency = 'USD';
-            } elseif ($student_country == 'CANADA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->canada_fees;
-                $currency = 'CAD';
-            } elseif ($student_country == 'AUSTRALIA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->australia_fees;
-                $currency = 'AUD';
-            } elseif ($student_country == 'NEW ZEALAND') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->newzealand_fees;
-                $currency = '';
-            } elseif ($student_country == 'INDIA') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->india_fees;
-                $currency = 'INR';
-            } elseif ($student_country == 'UAE') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->uae_fees;
-                $currency = 'AED';
-            } elseif ($student_country == 'UK') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->uk_fees;
-                $currency = 'GBP';
-            }elseif ($student_country == 'QATAR') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->qatar_fees;
-                $currency = 'QAR';
-            }elseif ($student_country == 'SINGAPORE') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->singapore_fees;
-                $currency = 'SGD';
-            }elseif ($student_country == 'EUROPEAN UNION') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->european_union_fees;
-                $currency = 'EUR';
-            }elseif ($student_country == 'OMAN') {
-                $nextPaymentLevelAmount = $nextPaymentLevel->oman_fees;
-                $currency = 'OMR';
-            }
-            // $currency = 'INR';
+            $student_country = normalizeCountryValue($student->country);
+            $paymentCountryMap = [
+                'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
+                'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],
+                'AUSTRALIA' => ['column' => 'australia_fees', 'currency' => 'AUD'],
+                'NEW ZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
+                'NEWZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
+                'INDIA' => ['column' => 'india_fees', 'currency' => 'INR'],
+                'UAE' => ['column' => 'uae_fees', 'currency' => 'AED'],
+                'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
+                'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
+                'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
+                'SOUTH AFRICA' => ['column' => 'south_africa_fees', 'currency' => 'ZAR'],
+                'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
+                'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
+                'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
+                'BAHRAIN' => ['column' => 'bahrain_fees', 'currency' => 'BHD'],
+            ];
+            $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
+            $feeColumn = $paymentCountry['column'];
+            $currency = $paymentCountry['currency'];
+            $nextPaymentLevelAmount = $feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0;
+            $canPayNextPaymentLevel = $currency && (float) $nextPaymentLevelAmount > 0;
 
         @endphp
         <div class="container-fluid mt-4">
@@ -175,11 +160,17 @@
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
                         </button> --}}
 
-                        {{-- Razorpay Payment Button --}}
-                        <button class="btn btn-success pay-now-btn"
-                            onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
-                        </button> 
+                        @if ($canPayNextPaymentLevel)
+                            {{-- Razorpay Payment Button --}}
+                            <button class="btn btn-success pay-now-btn"
+                                onclick="payWithRazorpay({{ $nextPaymentLevelAmount }}, 'Next Payment Level Fees', '{{ $currency }}', {{ $nextPaymentLevel->id }})">
+                                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextPaymentLevelAmount }} {{ $currency }}
+                            </button>
+                        @else
+                            <div class="text-danger text-end">
+                                Payment amount is not configured for {{ $student->country }}.
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -187,28 +178,8 @@
             <!-- Next 3 Payment Levels Section -->
             @php
                 $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
-                if ($student_country == 'USA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('usa_fees');
-                } elseif ($student_country == 'CANADA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('canada_fees');
-                } elseif ($student_country == 'AUSTRALIA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('australia_fees');
-                } elseif ($student_country == 'NEW ZEALAND') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('newzealand_fees');
-                } elseif ($student_country == 'INDIA') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('india_fees');
-                } elseif ($student_country == 'UAE') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uae_fees');
-                } elseif ($student_country == 'UK') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uk_fees');
-                } elseif ($student_country == 'QATAR') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('qatar_fees');
-                } elseif ($student_country == 'SINGAPORE') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('singapore_fees');
-                } elseif ($student_country == 'EUROPEAN UNION') {
-                    $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('european_union_fees');
-                } elseif ($student_country == 'OMAN') {
-                } 
+                $nextThreePaymentLevelsAmount = $feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0;
+                $canPayNextThreePaymentLevels = $currency && (float) $nextThreePaymentLevelsAmount > 0;
             @endphp
             <div class="card shadow-lg border-0 rounded-lg">
                 <div class="card-body">
@@ -220,11 +191,17 @@
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
                             {{ $currency }}
                         </button> --}}
-                        <button class="btn btn-primary pay-now-btn"
-                            onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
-                            {{ $currency }}
-                        </button>
+                        @if ($canPayNextThreePaymentLevels)
+                            <button class="btn btn-primary pay-now-btn"
+                                onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+                                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                                {{ $currency }}
+                            </button>
+                        @else
+                            <div class="text-danger text-end">
+                                Payment amount is not configured for {{ $student->country }}.
+                            </div>
+                        @endif
                         {{-- <button class="btn btn-primary pay-now-btn hdfc-btn" data-amount="{{ $nextThreePaymentLevelsAmount }}">
                             <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
                             {{ $currency }}
@@ -233,31 +210,7 @@
                     <ul class="list-group list-group-flush">
                         @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
                             @php
-                                if ($student_country == 'USA') {
-                                    $amount = $nextThreePaymentLevel->usa_fees;
-                                } elseif ($student_country == 'CANADA') {
-                                    $amount = $nextThreePaymentLevel->canada_fees;
-                                } elseif ($student_country == 'AUSTRALIA') {
-                                    $amount = $nextThreePaymentLevel->australia_fees;
-                                } elseif ($student_country == 'NEW ZEALAND') {
-                                    $amount = $nextThreePaymentLevel->newzealand_fees;
-                                } elseif ($student_country == 'INDIA') {
-                                    $amount = $nextThreePaymentLevel->india_fees;
-                                } elseif ($student_country == 'UAE') {
-                                    $amount = $nextThreePaymentLevel->uae_fees;
-                                } elseif ($student_country == 'UK') {
-                                    $amount = $nextThreePaymentLevel->uk_fees;
-                                } elseif ($student_country == 'UK') {
-                                    $amount = $nextThreePaymentLevel->uk_fees;
-                                } elseif ($student_country == 'QATAR') {
-                                    $amount = $nextThreePaymentLevel->qatar_fees;
-                                } elseif ($student_country == 'SINGAPORE') {
-                                    $amount = $nextThreePaymentLevel->singapore_fees;
-                                } elseif ($student_country == 'EUROPEAN UNION') {
-                                    $amount = $nextThreePaymentLevel->european_union_fees;
-                                } elseif ($student_country == 'OMAN') {
-                                    $amount = $nextThreePaymentLevel->oman_fees;
-                                } 
+                                $amount = $feeColumn ? ($nextThreePaymentLevel->{$feeColumn} ?? 0) : 0;
                             @endphp
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div>
@@ -464,12 +417,63 @@
     <!-- Include Razorpay Script -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
-        function payWithRazorpay(amount, description, currency, paymentLevelId) {
+        function recordRazorpayFailure(error, amount, currency, paymentLevelId, localOrderId) {
+            fetch('/razorpay/failure', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    error: error,
+                    amount: amount,
+                    student_id: {{ isset($student) ? $student->id : 0 }},
+                    currency: currency,
+                    payment_level_id: paymentLevelId,
+                    local_order_id: localOrderId
+                })
+            }).catch(function(err) {
+                console.error("Payment failure record error:", err);
+            });
+        }
 
-            const options = {
-                // key: "rzp_test_RLrov8eGceCpPt",
-                key: "rzp_live_eckVmG8LHU5uhu",
-                amount: amount * 100,
+        function payWithRazorpay(amount, description, currency, paymentLevelId) {
+            const studentCountry = '{{ strtoupper(trim($student->country ?? '')) }}';
+            amount = Number(amount);
+
+            if (!currency || !amount || amount <= 0) {
+                alert('Payment amount is not configured. Please contact admin.');
+                return;
+            }
+
+            const threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
+            const amountInSubunits = Math.round(amount * (threeDecimalCurrencies.includes(currency) ? 1000 : 100));
+
+            fetch('/razorpay/initiate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    amount: amount,
+                    currency: currency,
+                    student_id: {{ isset($student) ? $student->id : 0 }},
+                    payment_level_id: paymentLevelId
+                })
+            }).then(res => res.json()).then(initiateData => {
+                if (initiateData.status !== 'success') {
+                    alert(initiateData.message || 'Unable to start payment. Please try again.');
+                    return;
+                }
+
+                const localOrderId = initiateData.order_id;
+
+                const options = {
+                key: "{{ config('services.razorpay.key') }}",
+                amount: amountInSubunits,
                 currency: currency,
                 name: "Archer Kids",
                 description: description,
@@ -485,6 +489,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Accept': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}' // For Laravel CSRF protection
                         },
                         body: JSON.stringify({
@@ -492,7 +497,8 @@
                             amount: amount,
                             student_id: {{ isset($student) ? $student->id : 0 }},
                             currency: currency,
-                            payment_level_id: paymentLevelId
+                            payment_level_id: paymentLevelId,
+                            local_order_id: localOrderId
                         })
                     }).then(res => res.json()).then(data => {
                         console.log("Payment Verification Response:", data);
@@ -508,7 +514,7 @@
                             $('#paymentSuccessModal').modal('show'); // Show success modal
                         } else {
                             // Customize message for failure
-                            const message = "Payment Failed! Please try again later.";
+                            const message = data.message || "Payment Failed! Please try again later.";
                             document.getElementById('paymentStatusMessage').innerText = message;
                             $('#paymentSuccessModal').modal('show'); // Show failure modal
                         }
@@ -532,14 +538,44 @@
                         '{{ isset($student) ?  $student->last_name : ''}}',
                     Chesslang_ID: '{{ isset($student) ? $student->student_id : 0 }}'
                 },
+                modal: {
+                    ondismiss: function() {
+                        console.log("Razorpay checkout closed by user.");
+                    }
+                },
                 theme: {
                     color: "#28a745"
                 }
             };
 
+            if (studentCountry !== 'INDIA') {
+                options.method = {
+                    card: true,
+                    netbanking: false,
+                    wallet: false,
+                    upi: false,
+                    emi: false,
+                    paylater: false
+                };
+            }
+
             // Open Razorpay Checkout
             const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                console.error("Payment Failed!", response.error);
+                recordRazorpayFailure(response.error, amount, currency, paymentLevelId, localOrderId);
+
+                const message = response.error && response.error.description
+                    ? response.error.description
+                    : "Payment Failed! Please try again later.";
+                document.getElementById('paymentStatusMessage').innerText = message;
+                $('#paymentSuccessModal').modal('show');
+            });
             rzp.open();
+            }).catch(err => {
+                console.error("Payment initiation error:", err);
+                alert("Unable to start payment. Please try again later.");
+            });
         }
     </script>
 

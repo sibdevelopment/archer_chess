@@ -215,7 +215,7 @@
                         closeButton: true,
                     });
                     setTimeout(function() {
-                        window.location.href = "{{ route('admin.changeclasses.index') }}";
+                        window.location.href = data.redirect_url || "{{ route('admin.changeclasses.index') }}";
                     }, 100);
                 } else {
                     toastr.error('There is some error!!');

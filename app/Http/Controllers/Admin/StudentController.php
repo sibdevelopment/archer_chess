@@ -111,10 +111,10 @@ class StudentController extends Controller
         }
         
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
         if ($request->batch) {
-            $studentIds = StudentBatch::where('batch_id', $request->batch)->where('status', 'ACTIVE')->pluck('student_id');
+            $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('id', $studentIds);
         }
 
@@ -292,7 +292,7 @@ class StudentController extends Controller
                 return '';
             })
             ->editColumn('batch_schedule', function ($student) use ($isCoach) {
-                $student_latest_batch = StudentBatch::where('student_id', $student->id)->latest('created_at')->first();
+                $student_latest_batch = $student->latestBatch;
                 if ($student_latest_batch) {
                     $batch_schedule = BatchSchedule::where('batch_id', $student_latest_batch->batch_id)->get();
                     $scheduless     = '';
@@ -451,7 +451,11 @@ class StudentController extends Controller
         // where('status', 'ACTIVE')
         //     ->
             when(! empty($request->countries), function ($query) use ($request) {
-                return $query->whereIn('country', $request->countries);
+                return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
+                    ->flatMap(fn ($country) => countryComparisonValues($country))
+                    ->unique()
+                    ->values()
+                    ->all());
             })
             ->get();
         // dd($students);
@@ -466,7 +470,11 @@ class StudentController extends Controller
         // where('status', '!=', 'INACTIVE')
         //     ->
             when(! empty($request->countries), function ($query) use ($request) {
-                return $query->whereIn('country', $request->countries);
+                return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
+                    ->flatMap(fn ($country) => countryComparisonValues($country))
+                    ->unique()
+                    ->values()
+                    ->all());
             })
             ->get();
 
@@ -485,6 +493,11 @@ class StudentController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'country' => normalizeCountryValue($request->input('country')),
+            'fees_country' => normalizeCountryValue($request->input('country')),
+        ]);
+
         // Custom validation for mobile with '+' sign
         $request->validate($this->rules, $this->customMessages);
         $request->validate([
@@ -547,6 +560,8 @@ class StudentController extends Controller
     {
         $request->merge([
             'mobile' => preg_replace('/[^0-9+]/', '', $request->mobile),
+            'country' => normalizeCountryValue($request->input('country')),
+            'fees_country' => normalizeCountryValue($request->input('country')),
         ]);
         // Custom validation for mobile with '+' sign
         $request->validate([
@@ -622,15 +637,13 @@ class StudentController extends Controller
         $studentFees = $student->studentFees()->orderBy('end_date', 'desc')->get();
         $studentStatuses = $student->studentStatuses()->get();
 
-        $uniqueBatchIds = StudentBatch::where('student_id', $student->id)
-            ->select('batch_id')
-            ->groupBy('batch_id')   
-            ->orderByRaw('MAX(id) DESC')
-            ->pluck('batch_id'); 
-
-        $studentBatches = Batch::whereIn('id', $uniqueBatchIds)
-            ->orderBy('id', 'desc')
+        $studentBatchRows = StudentBatch::with(['batch', 'coach.user', 'level'])
+            ->where('student_id', $student->id)
+            ->orderBy('start_date')
+            ->orderBy('id')
             ->get();
+
+        $studentBatches = $this->buildStudentBatchTimeline($studentBatchRows);
 
         $studentAttendances = $student->studentAttendances()
             ->with(['coach', 'batch', 'level'])
@@ -677,6 +690,67 @@ class StudentController extends Controller
 
         // Return the view with the data
         return view('Admin.Students.show', $data);
+    }
+
+    private function buildStudentBatchTimeline($studentBatchRows)
+    {
+        $visibleRows = $studentBatchRows->filter(function ($studentBatch) use ($studentBatchRows) {
+            if ((int) $studentBatch->is_fees_due !== 1) {
+                return true;
+            }
+
+            return ! $studentBatchRows->contains(function ($candidate) use ($studentBatch) {
+                if ((int) $candidate->is_fees_due === 1) {
+                    return false;
+                }
+
+                $sameAssignment = $candidate->batch_id === $studentBatch->batch_id
+                    && $candidate->coach_id === $studentBatch->coach_id
+                    && $candidate->level_id === $studentBatch->level_id;
+
+                if (! $sameAssignment) {
+                    return false;
+                }
+
+                return Carbon::parse($candidate->start_date)->lte(Carbon::parse($studentBatch->end_date))
+                    && Carbon::parse($candidate->end_date)->gte(Carbon::parse($studentBatch->start_date));
+            });
+        });
+
+        return $visibleRows
+            ->groupBy(function ($studentBatch) {
+                return implode('|', [
+                    $studentBatch->batch_id,
+                    $studentBatch->coach_id,
+                    $studentBatch->level_id,
+                ]);
+            })
+            ->flatMap(function ($group) {
+                $segments = collect();
+
+                foreach ($group->sortBy('start_date')->values() as $studentBatch) {
+                    $lastSegment = $segments->last();
+                    $overlapsLastSegment = $lastSegment
+                        && Carbon::parse($studentBatch->start_date)->lte(Carbon::parse($lastSegment->end_date));
+
+                    if (! $overlapsLastSegment) {
+                        $segments->push($studentBatch);
+                        continue;
+                    }
+
+                    if (
+                        Carbon::parse($studentBatch->end_date)->gt(Carbon::parse($lastSegment->end_date))
+                        || $studentBatch->id > $lastSegment->id
+                    ) {
+                        $segments->pop();
+                        $segments->push($studentBatch);
+                    }
+                }
+
+                return $segments;
+            })
+            ->sortBy('start_date')
+            ->values();
     }
 
     public function changeStatus(Request $request)
@@ -858,7 +932,7 @@ class StudentController extends Controller
         }
 
         if ($request->country) {
-            $query->where('country', $request->country);
+            $query->whereIn('country', countryComparisonValues($request->country));
         }
 
         if ($request->batch) {
@@ -940,7 +1014,8 @@ class StudentController extends Controller
         //'address' => 'required',
         'student_id' => 'required|unique:students,student_id',
         'country'    => 'required', // Add rule for countries
-        'fees_country' => 'required',
+        // Fees Country follows Country and is no longer collected separately.
+        // 'fees_country' => 'required',
         'timezone'   => 'required',
     ];
 
@@ -952,7 +1027,7 @@ class StudentController extends Controller
         'student_id.required' => 'Student ID is required.',
         'student_id.unique'   => 'Student ID must be unique.',
         'country.required'    => 'Please select the country', // Add cust
-        'fees_country' => 'Please select the Fees country',
+        // 'fees_country' => 'Please select the Fees country',
         'timezone.required'   => 'Please select the timezone',
     ];
 

@@ -117,6 +117,9 @@ class ReportController extends Controller
         $completedBatchesCount = CoachAttendance::where('coach_id', $coachId)
             ->where('type', 'Batch')
             ->where('status', 'COMPLETED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->whereBetween('date', [$startDate, $endDate])
             ->count();
             // dd($coachId,$startDate,$endDate);
@@ -126,8 +129,20 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->where('status', '!=', 'NOTMARKED')
             ->where('status', '!=', 'CANCELLED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->count();
             // dd( $totalStudentsBatchesCount);
+
+        $oneToOneClassCount = CoachAttendance::where('coach_id', $coachId)
+            ->where('type', 'Batch')
+            ->where('status', 'COMPLETED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', true);
+            })
+            ->whereBetween('date', [$startDate, $endDate])
+            ->count();
 
         $masterclassCount = CoachAttendance::where('coach_id', $coachId)
             ->where('type', 'Masterclass')
@@ -145,7 +160,7 @@ class ReportController extends Controller
             ->count();
 
         // Return the view with the calculated data
-        return view('Admin.CoachReports.getcount', compact('completedDemosCount', 'completedBatchesCount', 'approvedLeavesCount', 'totalStudentsBatchesCount', 'coachId', 'startDate', 'endDate', 'masterclassCount', 'coverupclassCount', 'delayedBatchesCount'));
+        return view('Admin.CoachReports.getcount', compact('completedDemosCount', 'completedBatchesCount', 'approvedLeavesCount', 'totalStudentsBatchesCount', 'coachId', 'startDate', 'endDate', 'masterclassCount', 'coverupclassCount', 'oneToOneClassCount', 'delayedBatchesCount'));
     }
 
     public function batchStudentCountryData(Request $request)
@@ -166,6 +181,9 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->where('status', '!=', 'NOTMARKED')
             ->where('status', '!=', 'CANCELLED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->count();
 
         // Get the student IDs from StudentAttendance for the given coachId and date range
@@ -174,6 +192,9 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->where('status', '!=', 'NOTMARKED')
             ->where('status', '!=', 'CANCELLED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->pluck('student_id');
 
         // Count occurrences of each student ID
@@ -205,6 +226,9 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->where('status', '!=', 'NOTMARKED')
             ->where('status', '!=', 'CANCELLED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->with(['student'])
             ->orderByDesc('id')
             ->get();
@@ -428,6 +452,9 @@ class ReportController extends Controller
         $completedBatchData = CoachAttendance::where('coach_id', $coachId)
             ->where('type', 'Batch')
             ->where('status', 'COMPLETED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', false);
+            })
             ->whereBetween('date', [$startDate, $endDate])
             ->select('batch_id', \DB::raw('count(*) as count'), \DB::raw('GROUP_CONCAT(date) as dates'), \DB::raw('GROUP_CONCAT(time) as times'))
             ->groupBy('batch_id')
@@ -443,10 +470,10 @@ class ReportController extends Controller
         //dd($completedBatchIds );
 
         // Fetch all batch data for the completed batch IDs
-        $batches   = Batch::whereIn('id', $completedBatchIds)->get();
+        $batches   = Batch::whereIn('id', $completedBatchIds)->where('is_one_to_one', false)->get();
         $batchData = $batches->map(function ($batch) use ($completedBatchData) {
-            $totalActiveStudents  = $batch->studentBatches()->where('status', 'ACTIVE')->count();
-            $activeStudentBatches = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $totalActiveStudents  = $batch->studentBatches()->eligibleOn(Carbon::today())->count();
+            $activeStudentBatches = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $levelNames           = $activeStudentBatches->map(function ($studentBatch) {
                 return $studentBatch->level->name;
             })->unique()->implode(', ');
@@ -552,6 +579,87 @@ class ReportController extends Controller
         ]);
     }
 
+    public function oneToOneClassCompletedData(Request $request)
+    {
+        $coachId   = $request->input('coachId');
+        $startDate = $request->input('startDate');
+        $endDate   = $request->input('endDate');
+
+        $completedBatchData = CoachAttendance::where('coach_id', $coachId)
+            ->where('type', 'Batch')
+            ->where('status', 'COMPLETED')
+            ->whereHas('batch', function ($query) {
+                $query->where('is_one_to_one', true);
+            })
+            ->whereBetween('date', [$startDate, $endDate])
+            ->select('batch_id', \DB::raw('count(*) as count'), \DB::raw('GROUP_CONCAT(date) as dates'), \DB::raw('GROUP_CONCAT(time) as times'))
+            ->groupBy('batch_id')
+            ->get()
+            ->keyBy('batch_id');
+
+        $completedBatchIds = $completedBatchData->keys();
+        $batches = Batch::whereIn('id', $completedBatchIds)->where('is_one_to_one', true)->get();
+
+        $batchData = $batches->map(function ($batch) use ($completedBatchData) {
+            $activeStudentBatches = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
+            $levelNames = $activeStudentBatches->map(function ($studentBatch) {
+                return $studentBatch->level->name;
+            })->unique()->implode(', ');
+
+            $allStudentBatches = $batch->studentBatches()->get();
+            $allLevelNames = $allStudentBatches->map(function ($studentBatch) {
+                return $studentBatch->level->name;
+            })->unique()->implode(', ');
+
+            $timeline = $batch->start_date && $batch->end_date
+                ? Carbon::parse($batch->start_date)->format('j, M Y') . ' - ' . Carbon::parse($batch->end_date)->format('j, M Y')
+                : '';
+
+            $completedDates = explode(',', $completedBatchData[$batch->id]->dates ?? '');
+            $completedTimes = explode(',', $completedBatchData[$batch->id]->times ?? '');
+            $formattedDates = array_map(function ($date) {
+                return Carbon::parse($date)->format('j, M Y');
+            }, array_filter($completedDates));
+            $formattedTimes = array_map(function ($time) {
+                return Carbon::parse($time)->format('g:i A');
+            }, array_filter($completedTimes));
+
+            $badgeColor = 'secondary';
+            switch ($batch->status) {
+                case 'INACTIVE':
+                    $badgeColor = 'warning';
+                    break;
+                case 'STANDBY':
+                    $badgeColor = 'danger';
+                    break;
+                case 'ACTIVE':
+                    $badgeColor = 'success';
+                    break;
+            }
+
+            $statusButton = '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
+
+            return [
+                'id'                    => $batch->id,
+                'name'                  => $batch->name,
+                'version'               => $batch->version,
+                'country'               => is_array($batch->country) ? implode(', ', $batch->country) : $batch->country,
+                'status'                => $statusButton,
+                'level_names'           => $batch->status === 'INACTIVE' ? $allLevelNames : $levelNames,
+                'timeline'              => $timeline,
+                'completed_count'       => CoachAttendance::where('batch_id', $batch->id)->where('type', 'Batch')->where('status', 'COMPLETED')->count(),
+                'completed_dates'       => $formattedDates,
+                'completed_times'       => $formattedTimes,
+            ];
+        });
+
+        return response()->json([
+            'batchData' => $batchData,
+            'startDate' => Carbon::parse($startDate)->format('j, M Y'),
+            'endDate'   => Carbon::parse($endDate)->format('j, M Y'),
+        ]);
+    }
+
     public function coverupclassCompletedData(Request $request)
     {
         // dd($request->all());
@@ -588,7 +696,7 @@ class ReportController extends Controller
 
             // Generate status button HTML
             $statusButton        = '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 batch-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $batch->id . '" data-id="' . $batch->id . '"><i class="ti ti-analyze"></i> &nbsp;  ' . $batch->status . '</button>';
-            $totalActiveStudents = $batch->studentBatches()->where('status', 'ACTIVE')->count();
+            $totalActiveStudents = $batch->studentBatches()->eligibleOn($coverupclass->date)->count();
 
             return [
                 'id'                    => $batch->id,
@@ -919,9 +1027,7 @@ class ReportController extends Controller
 
         // dd($activeBatches);
 
-        $statuses = ['INACTIVE', 'STANDBY'];
-
-        $inactiveStandbyBatches = Batch::with(['batchSchedules' => function ($query) use ($dayName) {
+        $standbyBatches = Batch::with(['batchSchedules' => function ($query) use ($dayName) {
             $query->where('weekday', $dayName);
         }])
             // ->whereHas('studentBatches', function ($query) use ($date, $statuses) {
@@ -932,12 +1038,12 @@ class ReportController extends Controller
             ->where('start_date', '<=', $date)
                     ->where('end_date', '>=', $date)
             ->where('coach_id', $coachId)
-            ->whereIn('status', $statuses)
+            ->where('status', 'STANDBY')
             ->get();
 
-        // dd($inactiveStandbyBatches);
+        // dd($standbyBatches);
         // Merge the results
-        $batches      = $activeBatches->merge($inactiveStandbyBatches);
+        $batches      = $activeBatches->merge($standbyBatches);
         $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
@@ -983,7 +1089,7 @@ class ReportController extends Controller
                 }
 
                 $unique_student_count = StudentBatch::where('batch_id', $batch->id)
-                // ->where('status', 'ACTIVE')
+                    ->where('status', 'ACTIVE')
                     ->where('start_date', '<=', $date)
                     ->where('end_date', '>=', $date)
                     ->distinct('student_id')
@@ -1013,6 +1119,7 @@ class ReportController extends Controller
                         'active_students' => $unique_student_count,
                         'date'            => $date,
                         'batchStatus'     => $batch->status,
+                        'is_one_to_one'    => $batch->is_one_to_one,
                     ];
                 }
             }
@@ -1318,15 +1425,14 @@ class ReportController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        // Fetch batches with INACTIVE and STANDBY statuses
-        $statuses               = ['INACTIVE', 'STANDBY'];
-        $inactiveStandbyBatches = Batch::with(['batchSchedules', 'studentBatches'])
+        // Fetch batches with STANDBY status
+        $standbyBatches = Batch::with(['batchSchedules', 'studentBatches'])
             ->where('coach_id', $coachId)
-            ->whereIn('status', $statuses)
+            ->where('status', 'STANDBY')
             ->get();
 
         // Merge the results
-        $batches = $activeBatches->merge($inactiveStandbyBatches);
+        $batches = $activeBatches->merge($standbyBatches);
 
         // Fetch approved leave requests
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)
@@ -1352,16 +1458,25 @@ class ReportController extends Controller
         $calendarData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                $startOfWeek  = Carbon::now()->startOfWeek();
-                $endDate      = Carbon::now()->addYear();
-                $studentBatch = $batch->studentBatches->first();
-                if ($studentBatch) {
-                    $startOfWeek = Carbon::parse($studentBatch->start_date)->startOfWeek();
-                    $endDate     = Carbon::parse($studentBatch->end_date);
+                $batchStartDate = $batch->start_date
+                    ? Carbon::parse($batch->start_date)
+                    : Carbon::now();
+                $endDate = $batch->end_date
+                    ? Carbon::parse($batch->end_date)
+                    : Carbon::now()->addYear();
+
+                if ((! $batch->start_date || ! $batch->end_date) && $batch->studentBatches->isNotEmpty()) {
+                    $studentBatch = $batch->studentBatches->first();
+                    $batchStartDate = Carbon::parse($studentBatch->start_date);
+                    $endDate        = Carbon::parse($studentBatch->end_date);
                 }
-                $date = $startOfWeek->dayOfWeek === Carbon::parse($schedule->weekday)->dayOfWeek
-                ? $startOfWeek
-                : $startOfWeek->next($schedule->weekday);
+
+                $scheduleDay = Carbon::parse($schedule->weekday)->dayOfWeek;
+                $date = $batchStartDate->copy();
+                if ($date->dayOfWeek !== $scheduleDay) {
+                    $date = $date->next($schedule->weekday);
+                }
+
                 while ($date <= $endDate) {
                     $fromTimeCarbon    = Carbon::createFromFormat('H:i:s', $schedule->from_time);
                     $toTimeCarbon      = Carbon::createFromFormat('H:i:s', $schedule->to_time);
@@ -1390,7 +1505,7 @@ class ReportController extends Controller
                     }
 
                     if (! $isLeaveDate) {
-                        $color     = 'red';
+                        $color     = $batch->is_one_to_one ? '#0f766e' : 'red';
                         $textColor = 'white';
                         if ($batch->status === 'INACTIVE') {
                             $color = 'PURPLE';
@@ -1532,7 +1647,7 @@ class ReportController extends Controller
         if ($entityType === 'Batch' || $entityType === 'Coverup') {
             $batch                  = Batch::findOrFail($entityId);
             $batchSchedules         = $batch->batchSchedules;
-            $studentBatches         = $batch->studentBatches()->where('status', 'ACTIVE')->get();
+            $studentBatches         = $batch->studentBatches()->eligibleOn(Carbon::today())->get();
             $latestCompletedSession = CoachAttendance::where('batch_id', $batch->id)->where('status', 'COMPLETED')->orderByDesc('date')->first();
             $totalSessionsCompleted = $latestCompletedSession ? $latestCompletedSession->number_of_batch_sessions : 0;
             return view('Admin.CoachReports.batchshow', compact('batch', 'batchSchedules', 'studentBatches', 'totalSessionsCompleted'));
@@ -1596,7 +1711,7 @@ class ReportController extends Controller
         $data = Batch::where('id', $id)
         // ->where('coach_id', $coachId)
             ->with(['batchSchedules', 'studentBatches' => function ($query) use ($date) {
-                $query->distinct('student_id')->whereDate('start_date', '<=', $date)->whereDate('end_date', '>=', $date);
+                $query->eligibleOn($date)->with('student')->distinct('student_id');
             }, 'coach', 'parent'])
             ->first();
 
@@ -1890,6 +2005,7 @@ class ReportController extends Controller
 
         // Normalize studentStatus keys
         $studentIds = array_values(array_map('intval', $request->input('student_ids', [])));
+        $attendanceDate = Carbon::parse($request->input('date'))->toDateString();
         // dd($studentIds);
         $studentStatus = $request->input('studentStatus', []);
         $studentStatusKeys = array_map('intval', array_keys($studentStatus));
@@ -1910,19 +2026,18 @@ class ReportController extends Controller
 
         $validStudentIds = StudentBatch::where('batch_id', $batchId)
             ->whereIn('student_id', $studentIds)
-            ->where('status', 'ACTIVE')
+            ->eligibleOn($attendanceDate)
             ->pluck('student_id')
             ->toArray();
 
         $invalidStudents = array_values(array_diff($studentIds, $validStudentIds));
+        $studentIds = array_values(array_intersect($studentIds, $validStudentIds));
         // if (!empty($invalidStudents)) {
         //     return response()->json([
         //         'error' => 'Some students are not active in this batch',
         //         'invalid_students' => $invalidStudents
         //     ], 422);
         // }
-
-        $attendanceDate = Carbon::parse($request->input('date'))->toDateString();
 
         DB::beginTransaction();
         try {

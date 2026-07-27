@@ -127,19 +127,19 @@
                                             {{ isset($student) && $student->country == 'SOUTH AFRICA' ? 'selected' : '' }}>
                                             SOUTH AFRICA</option>
                                         <option value="QATAR"
-                                            {{ isset($student) && in_array('QATAR', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'QATAR' ? 'selected' : '' }}>
                                             QATAR</option>
                                         <option value="BAHRAIN"
-                                            {{ isset($student) && in_array('BAHRAIN', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'BAHRAIN' ? 'selected' : '' }}>
                                             BAHRAIN</option>
                                         <option value="KUWAIT"
-                                            {{ isset($student) && in_array('KUWAIT', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'KUWAIT' ? 'selected' : '' }}>
                                             KUWAIT</option>
                                         <option value="EUROPEAN UNION"
                                             {{ isset($student) && $student->country == 'EUROPEAN UNION' ? 'selected' : '' }}>
                                             EUROPEAN UNION</option>
                                             <option value="OMAN"
-                                            {{ isset($student) && in_array('OMAN', $student->countries ?? []) ? 'selected' : '' }}>
+                                            {{ isset($student) && $student->country == 'OMAN' ? 'selected' : '' }}>
                                             OMAN</option>
                                     @else
                                         @foreach ($allowedCountries as $country)
@@ -151,41 +151,7 @@
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-4">
-                                <label class="control-label col-form-label">
-                                    Fees Country <sup class="tcul-star-restrict">*</sup>
-                                </label>
-                                <select class="form-control" name="fees_country" id="fees_country-select">
-                                    <option value="">Select Fees Country</option>
-
-                                    {{-- @if ($isAdminOrSuperAdmin) --}}
-                                        @php
-                                            $countries = [
-                                                'USA',
-                                                'CANADA',
-                                                'AUSTRALIA',
-                                                'NEWZEALAND',
-                                                'INDIA',
-                                                'UAE',
-                                                'UK',
-                                                'SINGAPORE',
-                                                'SOUTH AFRICA',
-                                                'QATAR',
-                                                'BAHRAIN',
-                                                'KUWAIT',
-                                            ];
-                                        @endphp
-
-                                        @foreach ($countries as $country)
-                                            <option value="{{ $country }}"
-                                                {{ isset($student) && $student->fees_country === $country ? 'selected' : '' }}>
-                                                {{ str_replace('_', ' ', $country) }}
-                                            </option>
-                                        @endforeach
-                                    {{-- @endif --}}
-                                </select>
-                                <div id="fees_country-error" style="color: red"></div>
-                            </div>
+                            {{-- Fees Country now follows Country and is set in StudentController. --}}
 
                             <div class="col-sm-12 col-md-4">
                                 <label class="control-label col-form-label">Time Zone <sup

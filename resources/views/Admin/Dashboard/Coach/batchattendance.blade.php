@@ -77,11 +77,10 @@
             </tr>
         </thead>
         @php
-            $date = date('Y-m-d');
+            $date = isset($attendanceDate) ? $attendanceDate : date('Y-m-d');
             $studentBatches = app\Models\StudentBatch::where('batch_id', $data->id)
-                ->where('start_date', '<=', $date)
-                ->where('end_date', '>=', $date)
-                ->where('status', 'ACTIVE')
+                ->eligibleOn($date)
+                ->with('student')
                 ->select('student_id')
                 ->distinct()
             ->get();

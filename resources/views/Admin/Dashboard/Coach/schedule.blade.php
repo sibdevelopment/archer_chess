@@ -80,8 +80,12 @@
                 </td>
                 <td style="text-align: center;">{{ $schedule['slot'] }}</td>
                 <td style="text-align: center;">
-                    @if ($schedule['type'] == 'Batch' || $schedule['type'] == 'Coverup')
-                        <span class="badge" style="background-color: red;">{{ $schedule['type'] }}</span>
+                    @if (in_array($schedule['type'], ['Batch', 'BATCH', 'Coverup', 'COVERUP']))
+                        @if (($schedule['is_one_to_one'] ?? false) && in_array($schedule['type'], ['Batch', 'BATCH']))
+                            <span class="badge" style="background-color: #0f766e;">1-1 Batch</span>
+                        @else
+                            <span class="badge" style="background-color: red;">{{ $schedule['type'] }}</span>
+                        @endif
                     @elseif($schedule['type'] == 'Demo')
                         <span class="badge" style="background-color: blue;">{{ $schedule['type'] }}</span>
                     @else

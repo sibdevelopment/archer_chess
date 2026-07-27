@@ -21,10 +21,10 @@ Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
 Route::get('/event', [HomeController::class, 'event'])->name('event');
 Route::get('/blog', [HomeController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [HomeController::class, 'blogDetails'])->name('blog.details');
-Route::get('/online-chess-course-for-beginners', function () { return view('Frontend.CourseDetails.beginner'); })->name('explore.course.details.beginner');
-Route::get('/online-chess-course-for-intermediate', function () { return view('Frontend.CourseDetails.intermediate'); })->name('explore.course.details.intermediate');
-Route::get('/online-chess-course-for-advanced', function () { return view('Frontend.CourseDetails.advanced'); })->name('explore.course.details.advanced');
-Route::get('/online-chess-course-for-expert', function () { return view('Frontend.CourseDetails.expert'); })->name('explore.course.details.expert');
+Route::get('/online-chess-course-for-beginners', [HomeController::class, 'newBeginnerCourse'])->name('explore.course.details.beginner');
+Route::get('/online-chess-course-for-intermediate', [HomeController::class, 'newIntermediateCourse'])->name('explore.course.details.intermediate');
+Route::get('/online-chess-course-for-advanced', [HomeController::class, 'newAdvancedCourse'])->name('explore.course.details.advanced');
+Route::get('/online-chess-course-for-expert', [HomeController::class, 'newExpertCourse'])->name('explore.course.details.expert');
 
 
 // New design routes

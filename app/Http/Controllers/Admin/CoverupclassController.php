@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
 use App\Models\CoachAvailability;
 use App\Http\Controllers\Controller;
+use App\Services\CoachAvailabilityService;
 
 class CoverupclassController extends Controller
 {
@@ -155,23 +156,57 @@ class CoverupclassController extends Controller
             ->make(true);
     }
 
-    public function getCoach(Request $request)
+    public function getCoach(Request $request, CoachAvailabilityService $availability)
     {
         $coverup_class_id = $request->coverup_class_id;
         $coverup_class = Coverupclass::where('id',$coverup_class_id)->first();
         $schedule = BatchSchedule::where('id', $coverup_class->batchschedule_id)->first();
 
-        // $coaches = Coach::where('status', 'ACTIVE')->get();
-        // dd($coverup_class->schedule);
-        $coaches = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $coverup_class->date, $coverup_class->new_coach_id);
+        $countries = $coverup_class->batch?->country ?? [];
+        $coaches = Coach::where('status', 'ACTIVE')
+            ->with('user')
+            ->get()
+            ->filter(function ($coach) use ($availability, $coverup_class, $schedule, $countries) {
+                return $availability->validateCoachForSingleEvent(
+                    $coach->id,
+                    $coverup_class->date,
+                    $schedule->from_time,
+                    $schedule->to_time,
+                    $countries,
+                    'coverup',
+                    $coverup_class->id
+                )['ok'];
+            })
+            ->values();
 
 
         return View('Admin.Coverupclass.change_coach', compact('coaches', 'coverup_class_id'));
     }
 
-    public function changeCoach(Request $request)
+    public function changeCoach(Request $request, CoachAvailabilityService $availability)
     {
         $coverupclass = Coverupclass::find($request->coverupclass_id);
+        $schedule = BatchSchedule::where('id', $coverupclass->batchschedule_id)->first();
+        $countries = $coverupclass->batch?->country ?? [];
+
+        if (!$schedule) {
+            return response()->json(['error' => 'Coverup schedule not found.', 'status' => 'error'], 404);
+        }
+
+        $coachValidation = $availability->validateCoachForSingleEvent(
+            (int) $request->new_coach_id,
+            $coverupclass->date,
+            $schedule->from_time,
+            $schedule->to_time,
+            $countries,
+            'coverup',
+            $coverupclass->id
+        );
+
+        if (!$coachValidation['ok']) {
+            return response()->json(['error' => $coachValidation['message'], 'status' => 'error'], 422);
+        }
+
         $coverupclass->new_coach_id = $request->new_coach_id;
         $coverupclass->save();
 
@@ -251,7 +286,7 @@ class CoverupclassController extends Controller
     {
 
         $isBatchScheduleExist = BatchSchedule::whereHas('batch', function ($query) use ($coach) {
-            $query->where('coach_id', $coach->id)->where('status', '!=', 'INACTIVE');
+            $query->where('coach_id', $coach->id)->whereIn('status', ['ACTIVE', 'STANDBY']);
         })
             ->where('weekday', $weekday)
             ->where(function ($query) use ($from_time, $to_time) {

@@ -431,6 +431,7 @@ class HdfcPaymentController extends Controller
                     $studentfee->status            = 'ACTIVE';
                     $studentfee->currency          = $request->currency;
                     $studentfee->save();
+                    $studentBatchStartDate = Carbon::parse($studentfee->start_date)->toDateString();
 
                     $order->student_fee_id = $studentfee->id;
                     $order->save();
@@ -457,7 +458,7 @@ class HdfcPaymentController extends Controller
                                         $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                                         $sudentBatch->status = $student_batch->status;
                                         $sudentBatch->is_fees_due = 0;
-                                        $sudentBatch->start_date = Carbon::today();
+                                        $sudentBatch->start_date = $studentBatchStartDate;
                                         $sudentBatch->end_date = $student_batch->batch->end_date;
                                         $sudentBatch->status = 'ACTIVE';
                                         $sudentBatch->save();
@@ -472,7 +473,7 @@ class HdfcPaymentController extends Controller
                                         // $sudentBatch->status = $last_student->status;
                                         $sudentBatch->status = 'ACTIVE';
                                         $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                                        $sudentBatch->start_date = $last_student->start_date;
+                                        $sudentBatch->start_date = $studentBatchStartDate;
                                         $sudentBatch->end_date = $last_student->end_date;
                                         $sudentBatch->created_by = $last_student->created_by;
                                         $sudentBatch->updated_by = $last_student->updated_by;
@@ -491,7 +492,7 @@ class HdfcPaymentController extends Controller
                                         $sudentBatch->confirm_reassign = $student_batch->confirm_reassign;
                                         // $sudentBatch->status = $student_batch->status;
                                         $sudentBatch->is_fees_due = 0;
-                                        $sudentBatch->start_date = Carbon::today();
+                                        $sudentBatch->start_date = $studentBatchStartDate;
                                         $sudentBatch->end_date = $student_batch->batch->end_date;
                                         $sudentBatch->status = 'ACTIVE';
                                         $sudentBatch->save();
@@ -505,7 +506,7 @@ class HdfcPaymentController extends Controller
                                         $sudentBatch->confirm_reassign = $last_student->confirm_reassign;
                                         $sudentBatch->status = 'ACTIVE';
                                         $sudentBatch->is_fees_due = $last_student->is_fees_due;
-                                        $sudentBatch->start_date = $last_student->start_date;
+                                        $sudentBatch->start_date = $studentBatchStartDate;
                                         $sudentBatch->end_date = $last_student->end_date;
                                         $sudentBatch->created_by = $last_student->created_by;
                                         $sudentBatch->updated_by = $last_student->updated_by;

@@ -25,13 +25,39 @@ use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
 {
+    private function canViewStudentEvents(?Student $student): bool
+    {
+        return $student && $student->status === 'ACTIVE';
+    }
+
+    private function eligibleStudentBatch($studentId, $batchId, ?string $date = null)
+    {
+        $date = $date ?: Carbon::today()->toDateString();
+
+        return StudentBatch::where('student_id', $studentId)
+            ->where('batch_id', $batchId)
+            ->where('status', 'ACTIVE')
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date)
+            ->latest('id')
+            ->first();
+    }
+
     public function markAttendance(Request $request)
     {
         $batchId = $request->input('id');
         $studentId = $request->input('student_id');
+        $today = Carbon::now()->toDateString();
+
+        if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
+            return response()->json([
+                'message' => 'Class is not active for this student yet.',
+                'status' => 'error'
+            ], 403);
+        }
 
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)
-            ->where('date', Carbon::now()->toDateString())
+            ->where('date', $today)
             ->where('status','COMPLETED')
             ->first();
         // dd($coachAttendance);
@@ -39,7 +65,7 @@ class StudentDashboardController extends Controller
         if ($coachAttendance) {
             $studentAttendance = StudentAttendance::where('student_id', $studentId)
                 ->where('batch_id', $batchId)
-                ->where('date', Carbon::now()->toDateString())
+                ->where('date', $today)
                 ->first();
                 // dd($studentAttendance);
 
@@ -55,7 +81,7 @@ class StudentDashboardController extends Controller
             } else {
                 // dd(22);
                 $otherStudentAttendance = StudentAttendance::where('batch_id', $batchId)
-                    ->where('date', Carbon::now()->toDateString())
+                    ->where('date', $today)
                     ->first();
                 // dd($otherStudentAttendance);
 
@@ -66,7 +92,7 @@ class StudentDashboardController extends Controller
                     $studentAttendance->coach_id = $otherStudentAttendance->coach_id;
                     $studentAttendance->batch_id = $batchId;
                     $studentAttendance->level_id = $otherStudentAttendance->level_id;
-                    $studentAttendance->date = Carbon::now()->toDateString();
+                    $studentAttendance->date = $today;
                     $studentAttendance->time = Carbon::now()->toTimeString();
                     $studentAttendance->remark = '';
                     $studentAttendance->number_of_batch_sessions = $otherStudentAttendance->number_of_batch_sessions;
@@ -103,19 +129,24 @@ class StudentDashboardController extends Controller
         $batchId = $request->input('id');
         $studentId = $request->input('student_id');
         $joinUrl = $request->input('join_url');
+        $today = Carbon::now()->toDateString();
 
         if (!$batchId || !$studentId || !$joinUrl) {
             return redirect()->back()->with('error', 'Invalid join link.');
         }
 
+        if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
+            return redirect()->back()->with('error', 'Class is not active for this student yet.');
+        }
+
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)
-            ->where('date', Carbon::now()->toDateString())
+            ->where('date', $today)
             ->first();
 
         if ($coachAttendance) {
             $studentAttendance = StudentAttendance::where('student_id', $studentId)
                 ->where('batch_id', $batchId)
-                ->where('date', Carbon::now()->toDateString())
+                ->where('date', $today)
                 ->first();
 
             if ($studentAttendance) {
@@ -124,7 +155,7 @@ class StudentDashboardController extends Controller
                 $studentAttendance->save();
             } else {
                 $otherStudentAttendance = StudentAttendance::where('batch_id', $batchId)
-                    ->where('date', Carbon::now()->toDateString())
+                    ->where('date', $today)
                     ->first();
 
                 if ($otherStudentAttendance) {
@@ -133,7 +164,7 @@ class StudentDashboardController extends Controller
                     $studentAttendance->coach_id = $coachAttendance->coach_id;
                     $studentAttendance->batch_id = $batchId;
                     $studentAttendance->level_id = $coachAttendance->level_id;
-                    $studentAttendance->date = Carbon::now()->toDateString();
+                    $studentAttendance->date = $today;
                     $studentAttendance->time = Carbon::now()->toTimeString();
                     $studentAttendance->status = 'PRESENT';
                     $studentAttendance->save();
@@ -203,6 +234,8 @@ class StudentDashboardController extends Controller
                 })->whereHas('student', function ($query) {
                 $query->where('status', 'ACTIVE');
             })->where('status', 'ACTIVE')
+                ->whereDate('start_date', '<=', Carbon::today()->toDateString())
+                ->whereDate('end_date', '>=', Carbon::today()->toDateString())
                 ->first();
 
             if (! empty($studentbatch)) {
@@ -267,49 +300,35 @@ class StudentDashboardController extends Controller
             }
             // dd($latestBatchLevel, $latestBatch, $latestStduentBatch);
 
-            $country     = $student->country;
-            $recentBatch = $student->studentBatches()
-                ->whereHas('student', function ($query) {
-                    $query->where('status', '!=', 'INACTIVE');
-                })
-                ->orderBy('id', 'desc')
-                ->first();
+            if ($this->canViewStudentEvents($student)) {
+                $country     = $student->country;
+                $recentBatch = $student->studentBatches()
+                    ->whereHas('student', function ($query) {
+                        $query->where('status', 'ACTIVE');
+                    })
+                    ->orderBy('id', 'desc')
+                    ->first();
 
-            $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-            $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
+                $batchId   = $recentBatch ? [strval($recentBatch->batch_id)] : [];
+                $levelId   = $recentBatch ? [strval($recentBatch->batch->level_id)] : [];
+                $currentDate = Carbon::now()->toDateString();
 
-            $batchId   = array_map('strval', $batchId);
-            $levelId   = array_map('strval', $levelId);
-            $studentId = (string) $student->id;
+                $tournamentData = Tournament::where('status', 'ACTIVE')
+                    ->whereDate('date', '>=', $currentDate)
+                    ->whereJsonContains('country', $country)
+                    ->whereJsonContains('level_ids', $levelId)
+                    ->orderBy('date', 'asc')
+                    ->take(3)
+                    ->get();
 
-            $currentDate = Carbon::now()->toDateString();
-            $currentTime = Carbon::now();
-
-            $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-            $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
-
-            $batchId   = array_map('strval', $batchId); // Convert to strings
-            $levelId   = array_map('strval', $levelId);
-            $studentId = (string) $student->id;
-
-            $currentDate = Carbon::now()->toDateString();
-            $currentTime = Carbon::now();
-
-            $tournamentData = Tournament::where('status', 'ACTIVE')
-                ->whereDate('date', '>=', $currentDate)
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('level_ids', $levelId) // 🔥 Filter by level ID!
-                ->orderBy('date', 'asc')
-                ->take(3)
-                ->get();
-
-            $masterclassedata = Masterclass::where('status', 'ACTIVE')
-                ->whereDate('date', '>=', $currentDate)
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('level_ids', $levelId) // 🔥 Filter by level ID!
-                ->orderBy('date', 'asc')
-                ->take(3)
-                ->get();
+                $masterclassedata = Masterclass::where('status', 'ACTIVE')
+                    ->whereDate('date', '>=', $currentDate)
+                    ->whereJsonContains('country', $country)
+                    ->whereJsonContains('level_ids', $levelId)
+                    ->orderBy('date', 'asc')
+                    ->take(3)
+                    ->get();
+            }
 
             // dd($levelId, $masterclassedata->map->getAttributes());
 
@@ -700,7 +719,7 @@ class StudentDashboardController extends Controller
         $user      = Auth::user();
         $student   = Student::where('user_id', $user->id)->first();
         // dd($student);
-        if (empty($student)) {
+        if (! $this->canViewStudentEvents($student)) {
             $tournamentDatas = [];
             return view('Admin.StudentDashboard.tournaments', compact('tournamentDatas', 'student'));
         }
@@ -753,7 +772,7 @@ class StudentDashboardController extends Controller
         $user    = Auth::user();
         $student = Student::where('user_id', $user->id)->first();
         // dd($student);
-        if (empty($student)) {
+        if (! $this->canViewStudentEvents($student)) {
             $masterclassDatas = [];
             return view('Admin.StudentDashboard.masterclass', compact('masterclassDatas', 'student'));
         }
@@ -762,7 +781,7 @@ class StudentDashboardController extends Controller
         // dd($country);
         $recentBatch = $student->studentBatches()
             ->whereHas('student', function ($query) {
-                $query->where('status', '!=', 'INACTIVE');
+                $query->where('status', 'ACTIVE');
             })
             ->orderBy('id', 'desc')
             ->first();

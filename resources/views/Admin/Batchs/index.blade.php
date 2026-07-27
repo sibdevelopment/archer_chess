@@ -104,6 +104,7 @@
                                     aria-label=".form-select-sm example" @if ($isCoach) disabled @endif>
                                     <option value="">Select Status</option>
                                     <option value="ACTIVE" @if ($isCoach) selected @endif>Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
                                     <option value="INACTIVE">Inactive</option>
                                     <option value="STANDBY">Standby</option>
                                 </select>
@@ -222,6 +223,7 @@
                                 <select class="form-select" id="status" name="status">
                                     <option selected disabled hidden>select status ...</option>
                                     <option value="ACTIVE">Active</option>
+                                    <option value="UPCOMING">Upcoming</option>
                                     <option value="INACTIVE">Inactive</option>
                                     <option value="STANDBY">StandBy</option>
                                 </select>
@@ -282,6 +284,14 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal fade text-left" id="transferStudentsModal" tabindex="-1" role="dialog"
+        aria-labelledby="transferStudentsModalLabel" aria-hidden="true" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="transfer-students-modal-content">
+            </div>
         </div>
     </div>
 
@@ -562,11 +572,45 @@
             });
         });
 
+        $(document).on('click', '.batch-transfer-btn', function(e) {
+            e.preventDefault();
+            let batchId = $(this).data('batch-id');
+
+            $.ajax({
+                url: '/admin/batchs/' + batchId + '/transfer/student',
+                type: 'GET',
+                success: function(response) {
+                    $('#transfer-students-modal-content').html(response);
+                    $('#transferStudentsModal').modal('show');
+                    $('#transferStudentsModal .select2').select2({
+                        dropdownParent: $('#transferStudentsModal')
+                    });
+                },
+                error: function() {
+                    toastr.error('Unable to load transfer details. Please try again.', '', {
+                        showMethod: "slideDown",
+                        hideMethod: "slideUp",
+                        timeOut: 1500,
+                        closeButton: true,
+                    });
+                }
+            });
+        });
+
         $(document).on('click', '.batch-status-switch', function() {
             var id = $(this).data('id');
             var routeKey = $(this).data('routekey');
+            var currentStatus = $(this).data('status');
             $('#batchId').val(id);
             $('#routeKey').val(routeKey);
+            $('#status').val('');
+            $('#status option').show();
+
+            if (currentStatus === 'UPCOMING') {
+                $('#status option[value="ACTIVE"]').hide();
+                $('#status option[value="STANDBY"]').hide();
+                $('#status option[value="UPCOMING"]').hide();
+            }
         });
 
         $('#changeCoachForm').on('submit', function(e) {

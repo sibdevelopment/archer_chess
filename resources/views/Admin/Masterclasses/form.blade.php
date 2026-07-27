@@ -182,47 +182,6 @@
             @endif
         });
 
-
-
-        $(document).ready(function() {
-            // Event listener for #level-select
-            $('#level-select').on('change', function() {
-                const levelValue = $('#level-select').val(); // Get selected values
-                if (levelValue && levelValue.length > 0) {
-                    $('#batch-select').prop('disabled', true).val(null).trigger('change');
-                    $('#student-select').prop('disabled', true).val(null).trigger('change');
-                } else {
-                    $('#batch-select').prop('disabled', false);
-                    $('#student-select').prop('disabled', false);
-                }
-            });
-
-            // Event listener for #batch-select
-            $('#batch-select').on('change', function() {
-                const batchValue = $('#batch-select').val(); // Get selected values
-                if (batchValue && batchValue.length > 0) {
-                    $('#level-select').prop('disabled', true).val(null).trigger('change');
-                    $('#student-select').prop('disabled', true).val(null).trigger('change');
-                } else {
-                    $('#level-select').prop('disabled', false);
-                    $('#student-select').prop('disabled', false);
-                }
-            });
-
-            // Event listener for #student-select
-            $('#student-select').on('change', function() {
-                const studentValue = $('#student-select').val(); // Get selected values
-                if (studentValue && studentValue.length > 0) {
-                    $('#level-select').prop('disabled', true).val(null).trigger('change');
-                    $('#batch-select').prop('disabled', true).val(null).trigger('change');
-                } else {
-                    $('#level-select').prop('disabled', false);
-                    $('#batch-select').prop('disabled', false);
-                }
-            });
-        });
-
-
         $('#masterclass-form').submit(function(e) {
             e.preventDefault();
             $('div[id$="-error"]').empty();

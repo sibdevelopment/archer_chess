@@ -30,8 +30,8 @@ class BatchNotMarkedAttendance extends Command
                 $query->where('weekday', $todayWeekday)
                       ->where('to_time', '<=', $oneHourAgo);
             },
-            'studentBatches' => function ($query) {
-                $query->where('status', 'ACTIVE')->with('student');
+            'studentBatches' => function ($query) use ($todayDate) {
+                $query->eligibleOn($todayDate)->with('student');
             },
             'coach',
             'parent',
@@ -46,6 +46,10 @@ class BatchNotMarkedAttendance extends Command
         $batches->each(function ($batch) use ($now, $todayDate) {
             $batchId = $batch->id;
             $coachId = $batch->coach_id;
+
+            if ($batch->studentBatches->isEmpty()) {
+                return;
+            }
     
             // Fetch additional data for each batch
             $batchLevel = optional($batch->studentBatches->first())->level;

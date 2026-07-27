@@ -9,8 +9,8 @@
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
 
         // Get the countries the user can see
-        $allowedCountries = [];
-        if (!$isAdminOrSuperAdmin) {
+        $allowedCountries = $allowedCountries ?? [];
+        if (!$isAdminOrSuperAdmin && empty($allowedCountries)) {
             $userRole = $user->roles()->first();
             if ($userRole && $userRole->countries) {
                 $allowedCountries = json_decode($userRole->countries);
@@ -61,16 +61,18 @@
                             <h4 class="mb-0 fw-semibold lh-1"> {{ $activeStudents }} </h4>
                             <p class="mb-0 fs-4">Total Active Students</p>
                         </div>
-                        <div class="text-center">
-                            <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
-                            <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
-                            <p class="mb-0 fs-4">Total Active Coaches</p>
-                        </div>
-                        <div class="text-center">
-                            <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
-                            <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
-                            <p class="mb-0 fs-4">Total Active Employees</p>
-                        </div>
+                        @if ($isAdminOrSuperAdmin)
+                            <div class="text-center">
+                                <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
+                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
+                                <p class="mb-0 fs-4">Total Active Coaches</p>
+                            </div>
+                            <div class="text-center">
+                                <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
+                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
+                                <p class="mb-0 fs-4">Total Active Employees</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -78,21 +80,9 @@
                 $activeDashboardTab = request()->has('payment_report_date') || request()->has('payment_report_status')
                     ? 'payment_report'
                     : 'students';
-                $student_payments = App\Models\Order::with(['student', 'studentFee'])
-                    ->whereDate('created_at', now()->toDateString())
-                    ->whereNotNull('student_id')
-                    ->latest()
-                    ->get();
 
                 $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
                 $paymentReportStatus = request('payment_report_status', '');
-                $paymentReportQuery = App\Models\Order::with(['student', 'studentFee'])->whereNotNull('student_id');
-                $paymentReportStatuses = App\Models\Order::whereNotNull('student_id')
-                    ->whereNotNull('status')
-                    ->where('status', '!=', '')
-                    ->distinct()
-                    ->orderBy('status')
-                    ->pluck('status');
 
                 $paymentReportRangeParts = array_map('trim', explode(' - ', $paymentReportDateRange));
                 $parsePaymentReportDate = function ($date, $fallback) {
@@ -147,24 +137,26 @@
                         <span class="d-none d-md-block">Batches</span>
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-coach-tab" data-bs-toggle="pill" data-bs-target="#pills-followers" type="button"
-                        role="tab" aria-controls="pills-followers" aria-selected="false">
-                        <i class="ti ti-user-exclamation me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Coaches</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-employee-tab" data-bs-toggle="pill" data-bs-target="#pills-friends" type="button"
-                        role="tab" aria-controls="pills-friends" aria-selected="false">
-                        <i class="ti ti-user-circle me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Employees</span>
-                    </button>
-                </li>
+                @if ($isAdminOrSuperAdmin)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-coach-tab" data-bs-toggle="pill" data-bs-target="#pills-followers" type="button"
+                            role="tab" aria-controls="pills-followers" aria-selected="false">
+                            <i class="ti ti-user-exclamation me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Coaches</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-employee-tab" data-bs-toggle="pill" data-bs-target="#pills-friends" type="button"
+                            role="tab" aria-controls="pills-friends" aria-selected="false">
+                            <i class="ti ti-user-circle me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Employees</span>
+                        </button>
+                    </li>
+                @endif
                 <li class="nav-item" role="presentation">
                     <button
                         class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
@@ -440,75 +432,77 @@
             </section>
         </div>
         <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
-            tabindex="0">
-            <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Coaches </h4>
-            </div>
-            <div class="row">
-                @foreach ($coaches as $coach)
-                    @if ($coach->status === 'ACTIVE')
-                        <div class="col-md-6 col-xl-4">
-                            <div class="card">
-                                <div class="card-body p-4 d-flex align-items-center gap-3">
-                                    <i class="ti ti-user-exclamation me-2 fs-7 text-theme"></i>
-                                    <div>
-                                        <h5 class="fw-semibold mb-0">{{ $coach->user->first_name }}
-                                            {{ $coach->user->last_name }}
-                                        </h5>
-                                        <span class="fs-2 d-flex align-items-center mt-2">
-                                            <i class="ti ti-mail text-dark fs-3 me-1"></i>{{ $coach->user->email }}
-                                        </span>
+        @if ($isAdminOrSuperAdmin)
+            <div class="tab-pane fade" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
+                tabindex="0">
+                <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
+                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Coaches </h4>
+                </div>
+                <div class="row">
+                    @foreach ($coaches as $coach)
+                        @if ($coach->status === 'ACTIVE')
+                            <div class="col-md-6 col-xl-4">
+                                <div class="card">
+                                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                                        <i class="ti ti-user-exclamation me-2 fs-7 text-theme"></i>
+                                        <div>
+                                            <h5 class="fw-semibold mb-0">{{ $coach->user->first_name }}
+                                                {{ $coach->user->last_name }}
+                                            </h5>
+                                            <span class="fs-2 d-flex align-items-center mt-2">
+                                                <i class="ti ti-mail text-dark fs-3 me-1"></i>{{ $coach->user->email }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @endif
-                @endforeach
+                        @endif
+                    @endforeach
+                </div>
             </div>
-        </div>
-        <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade" id="pills-friends" role="tabpanel" aria-labelledby="pills-employee-tab"
-            tabindex="0">
-            <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Employees </h4>
-            </div>
-            <div class="row">
-                @foreach ($employees as $employee)
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="card hover-img">
-                            <div class="card-body p-4 text-center border-bottom">
-                                <i class="ti ti-user-circle me-2 fs-7 text-theme"></i>
-                                <h5 class="fw-semibold mb-0 mt-2">{{ $employee->user->first_name }}
-                                    {{ $employee->user->last_name }}
-                                </h5>
-                                <span class="text-dark fs-2">{{ $employee->user->mobile }} &nbsp; | &nbsp;
-                                    {{ $employee->user->email }}</span> <br>
-                                <span class="text-dark fs-2">
-                                    {{ implode(
-                                        ', ',
-                                        $employee->user->roles->flatMap(function ($role) {
-                                                return json_decode($role->countries, true);
-                                            })->toArray(),
-                                    ) }}
-                                </span>
+            <!-- ------------------------------------------------------------------ :: -->
+            <div class="tab-pane fade" id="pills-friends" role="tabpanel" aria-labelledby="pills-employee-tab"
+                tabindex="0">
+                <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
+                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Employees </h4>
+                </div>
+                <div class="row">
+                    @foreach ($employees as $employee)
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="card hover-img">
+                                <div class="card-body p-4 text-center border-bottom">
+                                    <i class="ti ti-user-circle me-2 fs-7 text-theme"></i>
+                                    <h5 class="fw-semibold mb-0 mt-2">{{ $employee->user->first_name }}
+                                        {{ $employee->user->last_name }}
+                                    </h5>
+                                    <span class="text-dark fs-2">{{ $employee->user->mobile }} &nbsp; | &nbsp;
+                                        {{ $employee->user->email }}</span> <br>
+                                    <span class="text-dark fs-2">
+                                        {{ implode(
+                                            ', ',
+                                            $employee->user->roles->flatMap(function ($role) {
+                                                    return json_decode($role->countries, true);
+                                                })->toArray(),
+                                        ) }}
+                                    </span>
+                                </div>
+                                <ul
+                                    class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
+                                    <li class="position-relative">
+                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
+                                            href="javascript:void(0)">
+                                            <i class="ti ti-user-check p-2 fs-5 text-theme"></i> &nbsp;
+                                            <span
+                                                class="text-center w-100">{{ implode(', ', $employee->user->roles->pluck('name')->toArray()) }}</span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
-                            <ul
-                                class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
-                                <li class="position-relative">
-                                    <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                        href="javascript:void(0)">
-                                        <i class="ti ti-user-check p-2 fs-5 text-theme"></i> &nbsp;
-                                        <span
-                                            class="text-center w-100">{{ implode(', ', $employee->user->roles->pluck('name')->toArray()) }}</span>
-                                    </a>
-                                </li>
-                            </ul>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
-        </div>
+        @endif
 
         <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-employee-tab"
             tabindex="0">

@@ -575,6 +575,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - SuperAdmin Payment Report status dropdown now reads distinct statuses from orders so CREATED/captured/FAILED/REJECTED and future stored statuses can all be filtered without changing payment flow.
 - Student dashboard home is blurred/blocked when the logged-in student is FEESDUE; the left navigation remains usable, the existing fee due popup still shows, and the lock clears automatically once payment/status makes the student active again.
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
+- Admin dashboard now keeps Admin/SuperAdmin global, but non-admin employee/CRE roles are scoped to assigned role countries for counts, students, missed sessions, batches, coach/student dropdowns, and payment data.
+- Confidential dashboard Coach and Employee list tabs/cards are hidden for non-admin employee/CRE roles.
 ```
 
 ## Student Listing Batch Display Notes

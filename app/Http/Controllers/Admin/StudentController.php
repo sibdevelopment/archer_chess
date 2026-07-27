@@ -189,19 +189,6 @@ class StudentController extends Controller
             });
         }
 
-        // Apply FEESDUE filter separately if needed
-        if ($request->status == 'FEESDUE') {
-            $query->whereHas('studentFees', function ($q) {
-                $q->where('student_fees.id', function ($subquery) {
-                    $subquery->selectRaw('MAX(id)')
-                        ->from('student_fees')
-                        ->whereColumn('student_fees.student_id', 'students.id');
-                });
-                $q->whereDate('end_date', '<', Carbon::today()->toDateString());
-            });
-        }
-
-
         if ($request->start_date) {
             // Extract start and end dates from the request
             [$startDate, $endDate] = explode(' - ', $request->start_date);

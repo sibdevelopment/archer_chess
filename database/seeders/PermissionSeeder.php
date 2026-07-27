@@ -56,6 +56,8 @@ class PermissionSeeder extends Seeder
                     'availabilityIndex',
                     'availability',
                 ],
+                'dashboard-student-payments-view' => [],
+                'dashboard-payment-report-view' => [],
             ],
         ],
         'Role' => [
@@ -998,6 +1000,8 @@ class PermissionSeeder extends Seeder
 
             #Dashboard
             'dashboard-view',
+            'dashboard-student-payments-view',
+            'dashboard-payment-report-view',
 
             #Roles
             'role-view',

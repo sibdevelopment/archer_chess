@@ -7,10 +7,15 @@
         $user = auth()->user();
         $role = $user->getRoleNames()->toArray();
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
+        $canViewStudents = $canViewStudents ?? ($isAdminOrSuperAdmin || $user->can('students-view'));
+        $canViewMissedSessions = $canViewMissedSessions ?? $canViewStudents;
+        $canViewCoaches = $canViewCoaches ?? ($isAdminOrSuperAdmin || $user->can('coachs-view'));
+        $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('dashboard-student-payments-view'));
+        $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('dashboard-payment-report-view'));
 
         // Get the countries the user can see
-        $allowedCountries = [];
-        if (!$isAdminOrSuperAdmin) {
+        $allowedCountries = $allowedCountries ?? [];
+        if (!$isAdminOrSuperAdmin && empty($allowedCountries)) {
             $userRole = $user->roles()->first();
             if ($userRole && $userRole->countries) {
                 $allowedCountries = json_decode($userRole->countries);
@@ -61,38 +66,31 @@
                             <h4 class="mb-0 fw-semibold lh-1"> {{ $activeStudents }} </h4>
                             <p class="mb-0 fs-4">Total Active Students</p>
                         </div>
-                        <div class="text-center">
-                            <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
-                            <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
-                            <p class="mb-0 fs-4">Total Active Coaches</p>
-                        </div>
-                        <div class="text-center">
-                            <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
-                            <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
-                            <p class="mb-0 fs-4">Total Active Employees</p>
-                        </div>
+                        @if ($canViewCoaches)
+                            <div class="text-center">
+                                <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
+                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
+                                <p class="mb-0 fs-4">Total Active Coaches</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
             @php
-                $activeDashboardTab = request()->has('payment_report_date') || request()->has('payment_report_status')
+                $dashboardTabs = collect([
+                    $canViewStudents ? 'students' : null,
+                    $canViewMissedSessions ? 'missed_sessions' : null,
+                    $canViewCoaches ? 'coaches' : null,
+                    $canViewStudentPayments ? 'student_payments' : null,
+                    $canViewPaymentReport ? 'payment_report' : null,
+                ])->filter()->values();
+
+                $activeDashboardTab = $canViewPaymentReport && (request()->has('payment_report_date') || request()->has('payment_report_status'))
                     ? 'payment_report'
-                    : 'students';
-                $student_payments = App\Models\Order::with(['student', 'studentFee'])
-                    ->whereDate('created_at', now()->toDateString())
-                    ->whereNotNull('student_id')
-                    ->latest()
-                    ->get();
+                    : ($dashboardTabs->first() ?? '');
 
                 $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
                 $paymentReportStatus = request('payment_report_status', '');
-                $paymentReportQuery = App\Models\Order::with(['student', 'studentFee'])->whereNotNull('student_id');
-                $paymentReportStatuses = App\Models\Order::whereNotNull('student_id')
-                    ->whereNotNull('status')
-                    ->where('status', '!=', '')
-                    ->distinct()
-                    ->orderBy('status')
-                    ->pluck('status');
 
                 $paymentReportRangeParts = array_map('trim', explode(' - ', $paymentReportDateRange));
                 $parsePaymentReportDate = function ($date, $fallback) {
@@ -120,70 +118,62 @@
             @endphp
             <!-- ------------------------------------------------------------------ :: -->
             <ul class="nav nav-pills user-profile-tab justify-content-end rounded-2" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'students' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button"
-                        role="tab" aria-controls="pills-profile" aria-selected="{{ $activeDashboardTab === 'students' ? 'true' : 'false' }}">
-                        <i class="ti ti-school me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Students</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-missed-sessions-tab" data-bs-toggle="pill" data-bs-target="#pills-missed-sessions" type="button"
-                        role="tab" aria-controls="pills-missed-sessions" aria-selected="false">
-                        <i class="ti ti-color-swatch me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Missed Sessions</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-batch-tab" data-bs-toggle="pill" data-bs-target="#pills-batch" type="button"
-                        role="tab" aria-controls="pills-batch" aria-selected="false">
-                        <i class="ti ti-color-swatch me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Batches</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-coach-tab" data-bs-toggle="pill" data-bs-target="#pills-followers" type="button"
-                        role="tab" aria-controls="pills-followers" aria-selected="false">
-                        <i class="ti ti-user-exclamation me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Coaches</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-employee-tab" data-bs-toggle="pill" data-bs-target="#pills-friends" type="button"
-                        role="tab" aria-controls="pills-friends" aria-selected="false">
-                        <i class="ti ti-user-circle me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Employees</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-payment" type="button"
-                        role="tab" aria-controls="pills-payment" aria-selected="true">
-                        <i class="ti ti-credit-card me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Student Payments <span
-                                class="text-danger">({{ $student_payments->count() }})</span></span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button
-                        class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'payment_report' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                        id="pills-payment-report-tab" data-bs-toggle="pill" data-bs-target="#pills-payment-report" type="button"
-                        role="tab" aria-controls="pills-payment-report" aria-selected="{{ $activeDashboardTab === 'payment_report' ? 'true' : 'false' }}">
-                        <i class="ti ti-report-money me-2 fs-6"></i>
-                        <span class="d-none d-md-block">Payment Report</span>
-                    </button>
-                </li>
+                @if ($canViewStudents)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'students' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button"
+                            role="tab" aria-controls="pills-profile" aria-selected="{{ $activeDashboardTab === 'students' ? 'true' : 'false' }}">
+                            <i class="ti ti-school me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Students</span>
+                        </button>
+                    </li>
+                @endif
+                @if ($canViewMissedSessions)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'missed_sessions' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-missed-sessions-tab" data-bs-toggle="pill" data-bs-target="#pills-missed-sessions" type="button"
+                            role="tab" aria-controls="pills-missed-sessions" aria-selected="{{ $activeDashboardTab === 'missed_sessions' ? 'true' : 'false' }}">
+                            <i class="ti ti-color-swatch me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Missed Sessions</span>
+                        </button>
+                    </li>
+                @endif
+                @if ($canViewCoaches)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'coaches' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-coach-tab" data-bs-toggle="pill" data-bs-target="#pills-followers" type="button"
+                            role="tab" aria-controls="pills-followers" aria-selected="{{ $activeDashboardTab === 'coaches' ? 'true' : 'false' }}">
+                            <i class="ti ti-user-exclamation me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Coaches</span>
+                        </button>
+                    </li>
+                @endif
+                @if ($canViewStudentPayments)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'student_payments' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-payment-tab" data-bs-toggle="pill" data-bs-target="#pills-payment" type="button"
+                            role="tab" aria-controls="pills-payment" aria-selected="{{ $activeDashboardTab === 'student_payments' ? 'true' : 'false' }}">
+                            <i class="ti ti-credit-card me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Student Payments <span
+                                    class="text-danger">({{ $student_payments->count() }})</span></span>
+                        </button>
+                    </li>
+                @endif
+                @if ($canViewPaymentReport)
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'payment_report' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                            id="pills-payment-report-tab" data-bs-toggle="pill" data-bs-target="#pills-payment-report" type="button"
+                            role="tab" aria-controls="pills-payment-report" aria-selected="{{ $activeDashboardTab === 'payment_report' ? 'true' : 'false' }}">
+                            <i class="ti ti-report-money me-2 fs-6"></i>
+                            <span class="d-none d-md-block">Payment Report</span>
+                        </button>
+                    </li>
+                @endif
             </ul>
         </div>
     </div>
@@ -191,9 +181,10 @@
     <!-- ------------------------------------------------------------------ :: -->
     <div class="tab-content" id="pills-tabContent">
         <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade {{ $activeDashboardTab === 'students' ? 'show active' : '' }}" id="pills-profile" role="tabpanel" aria-labelledby="pills-student-tab"
-            tabindex="0">
-            <section>
+        @if ($canViewStudents)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'students' ? 'show active' : '' }}" id="pills-profile" role="tabpanel" aria-labelledby="pills-student-tab"
+                tabindex="0">
+                <section>
                 <div class="row">
                     <div class="col-12">
                         <div class="card w-100 position-relative overflow-hidden">
@@ -291,12 +282,14 @@
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
+                </section>
+            </div>
+        @endif
          <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade " id="pills-missed-sessions" role="tabpanel" aria-labelledby="pills-missed-sessions-tab"
-            tabindex="0">
-            <section>
+        @if ($canViewMissedSessions)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'missed_sessions' ? 'show active' : '' }}" id="pills-missed-sessions" role="tabpanel" aria-labelledby="pills-missed-sessions-tab"
+                tabindex="0">
+                <section>
                 <div class="row">
                     <div class="col-12">
                         <div class="card w-100 position-relative overflow-hidden">
@@ -342,334 +335,203 @@
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
+                </section>
+            </div>
+        @endif
         <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade" id="pills-batch" role="tabpanel" aria-labelledby="pills-batch-tab" tabindex="0">
-            <section>
+        @if ($canViewCoaches)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'coaches' ? 'show active' : '' }}" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
+                tabindex="0">
+                <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
+                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Coaches </h4>
+                </div>
                 <div class="row">
-                    <div class="col-12">
-                        <div class="card w-100 position-relative overflow-hidden">
-                            <div class="card-header px-4 py-3 border-bottom">
-                                <div class="row">
-                                    <div class="col-4 d-flex justify-content-start">
-                                        <h5 class="card-title fw-semibold mb-0 lh-sm">Batches </h5>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end ">
-                                        <select name="status" id="batch-status"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Status</option>
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="INACTIVE">Inactive</option>
-                                            <option value="STANDBY" selected>Standby</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="level" id="batch-level"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Level</option>
-                                            @foreach ($levels as $level)
-                                                <option value="{{ $level->id }}">{{ $level->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="coach" id="batch-coach"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Coach</option>
-                                            @foreach ($coaches as $coach)
-                                                <option value="{{ $coach->id }}">{{ $coach->user->first_name }}
-                                                    {{ $coach->user->last_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select name="student" id="batch-student"
-                                            class="select2 form-select form-select-sm pure-white"
-                                            aria-label=".form-select-sm example">
-                                            <option value="">Select Student</option>
-                                            @foreach ($students as $student)
-                                                <option value="{{ $student->id }}">
-                                                    {{ $student->first_name }}{{ $student->last_name }}</option>
-                                            @endforeach
-                                        </select>
+                    @foreach ($coaches as $coach)
+                        @if ($coach->status === 'ACTIVE')
+                            <div class="col-md-6 col-xl-4">
+                                <div class="card">
+                                    <div class="card-body p-4 d-flex align-items-center gap-3">
+                                        <i class="ti ti-user-exclamation me-2 fs-7 text-theme"></i>
+                                        <div>
+                                            <h5 class="fw-semibold mb-0">{{ $coach->user->first_name }}
+                                                {{ $coach->user->last_name }}
+                                            </h5>
+                                            <span class="fs-2 d-flex align-items-center mt-2">
+                                                <i class="ti ti-mail text-dark fs-3 me-1"></i>{{ $coach->user->email }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-body p-4">
-                                <div class="table-responsive rounded-2 mb-4">
-                                    <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle"
-                                        id="batch-datatable" style="width: 100% !important;">
-                                        <thead class="text-dark fs-3">
-                                            <tr>
-                                                <th width="1%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">#</h6>
-                                                </th>
-                                                <th width="5%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">Action</h6>
-                                                </th>
-                                                <th width="5%">
-                                                    <h6 class="fs-3 fw-semibold mb-0">Status</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Batch</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Total Kids</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Kids Zone Name</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Completed Session</h6>
-                                                </th>
-                                                <th>
-                                                    <h6 class="fs-3 fw-semibold mb-0">Timeline</h6>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                    </table>
+                        @endif
+                    @endforeach
+                </div>
+            </div>
+        @endif
+        @if ($canViewStudentPayments)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'student_payments' ? 'show active' : '' }}" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab"
+                tabindex="0">
+                {{-- <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
+                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Student Payments </h4>
+                </div> --}}
+                @php
+                    // dd($student_payments);
+                @endphp
+                <div class="row">
+                    @foreach ($student_payments as $student_payment)
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="card hover-img">
+                                <div class="card-body p-4 text-center border-bottom">
+                                    <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name ?? '' }}
+                                        {{ $student_payment->student->last_name ?? '' }} ({{ $student_payment->student->country ?? 'N/A' }})
+                                    </h5>
+                                    <span class="text-dark fs-2">{{ $student_payment->student->mobile ?? 'N/A' }} &nbsp; | &nbsp;
+                                        {{ $student_payment->student->email ?? 'N/A' }}</span> <br>
+                                    <span class="text-dark fs-2">
+                                        Start Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->start_date) : 'N/A' }} &nbsp; | &nbsp;
+                                        End Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->end_date) : 'N/A' }}
+                                    </span><br>
+                                    <span class="text-dark fs-2">
+                                        Payment Date: {{ toIndianDate($student_payment->created_at) }}
+                                    </span><br>
+                                    <span class="text-dark fs-3">
+                                        Fees Paid: <span style="color: green;">{{ $student_payment->amount }}
+                                            {{ $student_payment->currency }}</span>
+                                    </span><br>
+                                    <span class="badge {{ strtoupper($student_payment->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                        {{ $student_payment->status }}
+                                    </span>
                                 </div>
+                                <ul
+                                    class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
+                                    <li class="position-relative">
+                                        @if ($student_payment->studentFee)
+                                            <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
+                                                href="/admin/students/{{ $student_payment->student_id }}/student_fees"
+                                                target="_blank">
+                                                <span class="text-center w-100"> Check Fees Details</span>
+                                            </a>
+                                        @else
+                                            <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
+                                                No fee created
+                                            </span>
+                                        @endif
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-        <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
-            tabindex="0">
-            <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Coaches </h4>
-            </div>
-            <div class="row">
-                @foreach ($coaches as $coach)
-                    @if ($coach->status === 'ACTIVE')
-                        <div class="col-md-6 col-xl-4">
+                    @endforeach
+                    @if ($student_payments->isEmpty())
+                        <div class="col-12">
                             <div class="card">
-                                <div class="card-body p-4 d-flex align-items-center gap-3">
-                                    <i class="ti ti-user-exclamation me-2 fs-7 text-theme"></i>
-                                    <div>
-                                        <h5 class="fw-semibold mb-0">{{ $coach->user->first_name }}
-                                            {{ $coach->user->last_name }}
-                                        </h5>
-                                        <span class="fs-2 d-flex align-items-center mt-2">
-                                            <i class="ti ti-mail text-dark fs-3 me-1"></i>{{ $coach->user->email }}
-                                        </span>
-                                    </div>
+                                <div class="card-body text-center">
+                                    <h5 class="mb-0">No student payments received today.</h5>
                                 </div>
                             </div>
                         </div>
                     @endif
-                @endforeach
+                </div>
             </div>
-        </div>
-        <!-- ------------------------------------------------------------------ :: -->
-        <div class="tab-pane fade" id="pills-friends" role="tabpanel" aria-labelledby="pills-employee-tab"
-            tabindex="0">
-            <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Active Employees </h4>
-            </div>
-            <div class="row">
-                @foreach ($employees as $employee)
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="card hover-img">
-                            <div class="card-body p-4 text-center border-bottom">
-                                <i class="ti ti-user-circle me-2 fs-7 text-theme"></i>
-                                <h5 class="fw-semibold mb-0 mt-2">{{ $employee->user->first_name }}
-                                    {{ $employee->user->last_name }}
-                                </h5>
-                                <span class="text-dark fs-2">{{ $employee->user->mobile }} &nbsp; | &nbsp;
-                                    {{ $employee->user->email }}</span> <br>
-                                <span class="text-dark fs-2">
-                                    {{ implode(
-                                        ', ',
-                                        $employee->user->roles->flatMap(function ($role) {
-                                                return json_decode($role->countries, true);
-                                            })->toArray(),
-                                    ) }}
-                                </span>
-                            </div>
-                            <ul
-                                class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
-                                <li class="position-relative">
-                                    <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                        href="javascript:void(0)">
-                                        <i class="ti ti-user-check p-2 fs-5 text-theme"></i> &nbsp;
-                                        <span
-                                            class="text-center w-100">{{ implode(', ', $employee->user->roles->pluck('name')->toArray()) }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
+        @endif
 
-        <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-employee-tab"
-            tabindex="0">
-            {{-- <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Student Payments </h4>
-            </div> --}}
-            @php
-                // dd($student_payments);
-            @endphp
-            <div class="row">
-                @foreach ($student_payments as $student_payment)
-                    <div class="col-sm-6 col-lg-4">
-                        <div class="card hover-img">
-                            <div class="card-body p-4 text-center border-bottom">
-                                <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name ?? '' }}
-                                    {{ $student_payment->student->last_name ?? '' }} ({{ $student_payment->student->country ?? 'N/A' }})
-                                </h5>
-                                <span class="text-dark fs-2">{{ $student_payment->student->mobile ?? 'N/A' }} &nbsp; | &nbsp;
-                                    {{ $student_payment->student->email ?? 'N/A' }}</span> <br>
-                                <span class="text-dark fs-2">
-                                    Start Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->start_date) : 'N/A' }} &nbsp; | &nbsp;
-                                    End Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->end_date) : 'N/A' }}
-                                </span><br>
-                                <span class="text-dark fs-2">
-                                    Payment Date: {{ toIndianDate($student_payment->created_at) }}
-                                </span><br>
-                                <span class="text-dark fs-3">
-                                    Fees Paid: <span style="color: green;">{{ $student_payment->amount }}
-                                        {{ $student_payment->currency }}</span>
-                                </span><br>
-                                <span class="badge {{ strtoupper($student_payment->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
-                                    {{ $student_payment->status }}
-                                </span>
-                            </div>
-                            <ul
-                                class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
-                                <li class="position-relative">
-                                    @if ($student_payment->studentFee)
-                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                            href="/admin/students/{{ $student_payment->student_id }}/student_fees"
-                                            target="_blank">
-                                            <span class="text-center w-100"> Check Fees Details</span>
-                                        </a>
-                                    @else
-                                        <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
-                                            No fee created
-                                        </span>
-                                    @endif
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                @endforeach
-                @if ($student_payments->isEmpty())
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h5 class="mb-0">No student payments received today.</h5>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <div class="tab-pane fade {{ $activeDashboardTab === 'payment_report' ? 'show active' : '' }}" id="pills-payment-report" role="tabpanel" aria-labelledby="pills-payment-report-tab"
-            tabindex="0">
-            <section>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card w-100 position-relative overflow-hidden">
-                            <div class="card-header px-4 py-3 border-bottom">
-                                <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
-                                    <div class="col-md-4">
-                                        <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="input-group input-group-sm">
-                                            <input name="payment_report_date" id="payment_report_date" type="text"
-                                                class="form-control payment-report-daterange pure-white"
-                                                value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
-                                            <span class="input-group-text">
-                                                <i class="ti ti-calendar fs-5"></i>
-                                            </span>
+        @if ($canViewPaymentReport)
+            <div class="tab-pane fade {{ $activeDashboardTab === 'payment_report' ? 'show active' : '' }}" id="pills-payment-report" role="tabpanel" aria-labelledby="pills-payment-report-tab"
+                tabindex="0">
+                <section>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card w-100 position-relative overflow-hidden">
+                                <div class="card-header px-4 py-3 border-bottom">
+                                    <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
+                                        <div class="col-md-4">
+                                            <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
                                         </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select name="payment_report_status" class="form-select form-select-sm pure-white">
-                                            <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
-                                            @foreach ($paymentReportStatuses as $status)
-                                                <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
-                                                    {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="table-responsive rounded-2 mb-4">
-                                    <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle">
-                                        <thead class="text-dark fs-4">
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Payment Date</th>
-                                                <th>Student</th>
-                                                <th>Country</th>
-                                                <th>Amount</th>
-                                                <th>Status</th>
-                                                <th>Fee Window</th>
-                                                <th>Payment ID</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($payment_report_orders as $payment_order)
+                                        <div class="col-md-3">
+                                            <div class="input-group input-group-sm">
+                                                <input name="payment_report_date" id="payment_report_date" type="text"
+                                                    class="form-control payment-report-daterange pure-white"
+                                                    value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
+                                                <span class="input-group-text">
+                                                    <i class="ti ti-calendar fs-5"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select name="payment_report_status" class="form-select form-select-sm pure-white">
+                                                <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
+                                                @foreach ($paymentReportStatuses as $status)
+                                                    <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
+                                                        {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="table-responsive rounded-2 mb-4">
+                                        <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle">
+                                            <thead class="text-dark fs-4">
                                                 <tr>
-                                                    <td>{{ $loop->iteration }}</td>
-                                                    <td>{{ toIndianDate($payment_order->created_at) }}</td>
-                                                    <td>
-                                                        {{ $payment_order->student->first_name ?? '' }}
-                                                        {{ $payment_order->student->last_name ?? '' }}
-                                                        @if ($payment_order->student)
-                                                            ({{ $payment_order->student->student_id }})
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $payment_order->student->country ?? 'N/A' }}</td>
-                                                    <td>{{ $payment_order->amount }} {{ $payment_order->currency }}</td>
-                                                    <td>
-                                                        <span class="badge {{ strtoupper($payment_order->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
-                                                            {{ $payment_order->status }}
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        @if ($payment_order->studentFee)
-                                                            {{ toIndianDate($payment_order->studentFee->start_date) }}
-                                                            -
-                                                            {{ toIndianDate($payment_order->studentFee->end_date) }}
-                                                        @else
-                                                            N/A
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $payment_order->razorpay_payment_id ?? 'N/A' }}</td>
+                                                    <th>#</th>
+                                                    <th>Payment Date</th>
+                                                    <th>Student</th>
+                                                    <th>Country</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                    <th>Fee Window</th>
+                                                    <th>Payment ID</th>
                                                 </tr>
-                                            @endforeach
-                                            @if ($payment_report_orders->isEmpty())
-                                                <tr>
-                                                    <td colspan="8" class="text-center">No payment records found.</td>
-                                                </tr>
-                                            @endif
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($payment_report_orders as $payment_order)
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ toIndianDate($payment_order->created_at) }}</td>
+                                                        <td>
+                                                            {{ $payment_order->student->first_name ?? '' }}
+                                                            {{ $payment_order->student->last_name ?? '' }}
+                                                            @if ($payment_order->student)
+                                                                ({{ $payment_order->student->student_id }})
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $payment_order->student->country ?? 'N/A' }}</td>
+                                                        <td>{{ $payment_order->amount }} {{ $payment_order->currency }}</td>
+                                                        <td>
+                                                            <span class="badge {{ strtoupper($payment_order->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                                                {{ $payment_order->status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            @if ($payment_order->studentFee)
+                                                                {{ toIndianDate($payment_order->studentFee->start_date) }}
+                                                                -
+                                                                {{ toIndianDate($payment_order->studentFee->end_date) }}
+                                                            @else
+                                                                N/A
+                                                            @endif
+                                                        </td>
+                                                        <td>{{ $payment_order->razorpay_payment_id ?? 'N/A' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                @if ($payment_report_orders->isEmpty())
+                                                    <tr>
+                                                        <td colspan="8" class="text-center">No payment records found.</td>
+                                                    </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-        </div>
+                </section>
+            </div>
+        @endif
     </div>
 
     <script src="/backend/dist/libs/bootstrap-material-datetimepicker/node_modules/moment/moment.js"></script>
@@ -705,6 +567,7 @@
 
     <script>
         // ------------------- Student Data List :: ---------------------
+        @if ($canViewStudents)
         $(function() {
             var dataTable = $('#student-datatable').DataTable({
                 dom: "Bfrtip",
@@ -792,7 +655,9 @@
                 dataTable.ajax.reload(null, false);
             });
         });
+        @endif
 
+        @if ($canViewMissedSessions)
         $(function() {
             var dataTable = $('#student-missed-sessions').DataTable({
                 dom: "Bfrtip",
@@ -880,96 +745,8 @@
                 dataTable.ajax.reload(null, false);
             });
         });
+        @endif
 
-
-        // ------------------- Batch Data List :: ---------------------
-        $(function() {
-            var dataTable = $('#batch-datatable').DataTable({
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-                processing: true,
-                serverSide: true,
-                scrollCollapse: true,
-                scrollX: false,
-                pageLength: 50,
-                ajax: {
-                    url: '{!! route('admin.dashboard.get.batches') !!}',
-                    type: 'POST',
-                    data: function(d) {
-                        d._token = $('meta[name=csrf-token]').attr('content');
-                        d.status = $('#batch-status').val();
-                        d.coach = $('#batch-coach').val();
-                        d.level = $('#batch-level').val();
-                        d.student = $('#batch-student').val();
-                    }
-                },
-                columns: [{
-                        data: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'action',
-                        name: 'batchs.id',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'status',
-                        name: 'batchs.id',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'name',
-                        name: 'batchs.name',
-                        orderable: false
-                    },
-                    {
-                        data: 'total_active_students',
-                        name: 'batchs.total_active_students',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'kids_zone_name',
-                        name: 'batchs.kids_zone_name',
-                        orderable: false
-                    },
-                    {
-                        data: 'total_sessions_completed',
-                        name: 'batchs.total_sessions_completed',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'timeline',
-                        name: 'batchs.timeline',
-                        orderable: false,
-                        searchable: false
-                    },
-                ],
-                order: [],
-                columnDefs: [{
-                    targets: [0, 1],
-                    className: "text-center"
-                }, ],
-            });
-            $(".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel").addClass(
-                "btn btn-primary mr-1");
-            $('#batch-status').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-coach').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-level').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-student').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-        });
     </script>
     <script>
         // document.addEventListener('DOMContentLoaded', function() {

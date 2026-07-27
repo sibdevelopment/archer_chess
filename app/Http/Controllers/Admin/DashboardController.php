@@ -78,6 +78,15 @@ class DashboardController extends Controller
         });
     }
 
+    private function dashboardPlainCountryValues(array $countries): array
+    {
+        return collect(normalizeCountryValues($countries))
+            ->flatMap(fn ($country) => countryComparisonValues($country))
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
     private function dashboardStudentBatchLabel(Student $student, bool $activeOnlyForCoach = false): string
     {
         $query = $student->studentBatches()->with('batch');
@@ -1934,6 +1943,11 @@ class DashboardController extends Controller
         $user = auth()->user();
         $isAdminOrSuperAdmin = $user->hasRole('Admin') || $user->hasRole('SuperAdmin');
         $allowedCountries = $this->dashboardAllowedCountries($user);
+        $countryValues = $this->dashboardPlainCountryValues($allowedCountries);
+        $canViewCoaches = $isAdminOrSuperAdmin || $user->can('coachs-view');
+        $canViewEmployees = $isAdminOrSuperAdmin || $user->can('employee-view');
+        $canViewStudentPayments = $isAdminOrSuperAdmin || $user->can('studentfee-view');
+        $canViewPaymentReport = $isAdminOrSuperAdmin || $user->can('reports-view');
 
         $systemRoles = getSystemRoles();
         $users       = User::whereHas("roles", function ($q) use ($systemRoles) {
@@ -1946,29 +1960,40 @@ class DashboardController extends Controller
 
         if (! $isAdminOrSuperAdmin) {
             $this->applyDashboardCountryScope($coachQuery, 'coachs.country', $allowedCountries);
-            $studentQuery->whereIn('country', normalizeCountryValues($allowedCountries));
-            $studentsQuery->whereIn('country', normalizeCountryValues($allowedCountries));
+            $studentQuery->whereIn('country', $countryValues);
+            $studentsQuery->whereIn('country', $countryValues);
         }
 
         // Fetch all data from Coach and Employee tables
-        $employees = $isAdminOrSuperAdmin
+        $employees = $canViewEmployees
         ? Employee::whereHas('user', function ($query) {
             $query->where('status', 'ACTIVE');
         })->with(['user.roles'])->get()
         : collect();
 
+        if (! $isAdminOrSuperAdmin && $canViewEmployees) {
+            $employees = $employees->filter(function ($employee) use ($countryValues) {
+                $employeeCountries = $employee->user->roles
+                    ->flatMap(fn ($role) => normalizeCountryValues($role->countries ?? []))
+                    ->flatMap(fn ($country) => countryComparisonValues($country))
+                    ->unique()
+                    ->values()
+                    ->toArray();
+
+                return ! empty(array_intersect($employeeCountries, $countryValues));
+            });
+        }
+
         $systemRoles = getSystemRoles();
         $roles       = Role::whereNotIn('name', $systemRoles)->get();
 
         // Active Counts ::
-        $activeEmployees = $isAdminOrSuperAdmin ? Employee::whereHas('user', function ($q) {
-            $q->where('status', 'ACTIVE');
-        })->count() : 0;
+        $activeEmployees = $canViewEmployees ? $employees->count() : 0;
         // $activeCoaches = Coach::whereHas('user', function ($q) {
         //     $q->where('status', 'ACTIVE');
         // })->count();
 
-        $activeCoaches = $isAdminOrSuperAdmin ? $coachQuery->count() : 0;
+        $activeCoaches = $canViewCoaches ? (clone $coachQuery)->count() : 0;
         $activeStudents = $studentQuery->count();
 
         $levels   = Level::where('status', 'ACTIVE')->get();
@@ -1986,8 +2011,16 @@ class DashboardController extends Controller
             ->whereNotNull('status')
             ->where('status', '!=', '');
 
+        if (! $canViewStudentPayments) {
+            $studentPaymentsQuery->whereRaw('1 = 0');
+        }
+
+        if (! $canViewPaymentReport) {
+            $paymentReportQuery->whereRaw('1 = 0');
+            $paymentReportStatusesQuery->whereRaw('1 = 0');
+        }
+
         if (! $isAdminOrSuperAdmin) {
-            $countryValues = normalizeCountryValues($allowedCountries);
             $studentPaymentsQuery->whereHas('student', fn ($query) => $query->whereIn('country', $countryValues));
             $paymentReportQuery->whereHas('student', fn ($query) => $query->whereIn('country', $countryValues));
             $paymentReportStatusesQuery->whereHas('student', fn ($query) => $query->whereIn('country', $countryValues));
@@ -1999,7 +2032,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'employees', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'employees', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewCoaches', 'canViewEmployees', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)
@@ -2009,6 +2042,7 @@ class DashboardController extends Controller
         $isCoach = in_array("Coach", $role);
         $isAdminOrSuperAdmin = $user->hasRole('Admin') || $user->hasRole('SuperAdmin');
         $allowedCountries = $this->dashboardAllowedCountries($user);
+        $countryValues = $this->dashboardPlainCountryValues($allowedCountries);
 
         // Join with StudentFee table and order by the end_date of the most recently created StudentFee
         $query = Student::leftJoin('student_fees', function ($join) {
@@ -2020,7 +2054,7 @@ class DashboardController extends Controller
             ->select('students.*');
 
         if (! $isAdminOrSuperAdmin) {
-            $query->whereIn('students.country', normalizeCountryValues($allowedCountries));
+            $query->whereIn('students.country', $countryValues);
         }
 
         // Apply filters based on request parameters
@@ -2028,7 +2062,7 @@ class DashboardController extends Controller
             $query->where('students.status', $request->status); // Specify the table name to avoid ambiguity
         }
         if ($request->country) {
-            $query->where('students.country', $request->country);
+            $query->whereIn('students.country', countryComparisonValues($request->country));
         }
         if ($request->batch) {
             $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
@@ -2167,6 +2201,7 @@ class DashboardController extends Controller
         $isCoach = in_array("Coach", $role);
         $isAdminOrSuperAdmin = $user->hasRole('Admin') || $user->hasRole('SuperAdmin');
         $allowedCountries = $this->dashboardAllowedCountries($user);
+        $countryValues = $this->dashboardPlainCountryValues($allowedCountries);
 
 
         
@@ -2242,7 +2277,7 @@ class DashboardController extends Controller
 
 
         if (! $isAdminOrSuperAdmin) {
-            $query->whereIn('country', normalizeCountryValues($allowedCountries));
+            $query->whereIn('country', $countryValues);
         }
 
 

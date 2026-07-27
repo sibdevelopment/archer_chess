@@ -1,6 +1,22 @@
 @extends('layouts.revamp')
 @section('title', 'Home')
 @section('content')
+    <style>
+        #coaches .tutor-image-frame {
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            overflow: hidden;
+            background: #f6f6f6;
+        }
+
+        #coaches .tutor-image-frame .tutor-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+        }
+    </style>
 
     <!--  ======= banner section start  ======= -->
     <section class="bg-main-two-200 pt-74 pb-120 position-relative z-3 overflow-hidden">
@@ -539,9 +555,9 @@
                         @endphp
                         <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="{{ $delay }}">
                             <div class="our-teacher-thumb {{ $rotationClasses[$index % count($rotationClasses)] }}">
-                                <div class="position-relative bg-img">
-                                    <a href="#0" class="bg-img">
-                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}" class="bg-img">
+                                <div class="position-relative tutor-image-frame">
+                                    <a href="#0" class="d-block h-100">
+                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}" class="tutor-image">
                                     </a>
                                     <div class="our-teacher-link">
                                         <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">

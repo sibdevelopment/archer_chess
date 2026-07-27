@@ -576,8 +576,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Student dashboard home is blurred/blocked when the logged-in student is FEESDUE; the left navigation remains usable, the existing fee due popup still shows, and the lock clears automatically once payment/status makes the student active again.
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
 - Admin dashboard now keeps Admin/SuperAdmin global, but non-admin employee/CRE roles are scoped to assigned role countries for counts, students, missed sessions, batches, coach/student dropdowns, and payment data.
-- Dashboard Coach/Employee cards and tabs follow their own view permissions; employee/CRE users see only permitted sections, with visible coach/employee data still country-scoped.
-- Dashboard Student Payments and Payment Report tabs are permission-based; when visible for non-admin roles, both today's payments and report filters are restricted to the user's assigned countries.
+- Confidential dashboard Coach and Employee list tabs/cards are hidden for non-admin employee/CRE roles.
 ```
 
 ## Student Listing Batch Display Notes

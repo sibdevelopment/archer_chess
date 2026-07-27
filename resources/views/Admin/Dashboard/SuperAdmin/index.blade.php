@@ -7,10 +7,6 @@
         $user = auth()->user();
         $role = $user->getRoleNames()->toArray();
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
-        $canViewCoaches = $canViewCoaches ?? ($isAdminOrSuperAdmin || $user->can('coachs-view'));
-        $canViewEmployees = $canViewEmployees ?? ($isAdminOrSuperAdmin || $user->can('employee-view'));
-        $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('studentfee-view'));
-        $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('reports-view'));
 
         // Get the countries the user can see
         $allowedCountries = $allowedCountries ?? [];
@@ -65,14 +61,12 @@
                             <h4 class="mb-0 fw-semibold lh-1"> {{ $activeStudents }} </h4>
                             <p class="mb-0 fs-4">Total Active Students</p>
                         </div>
-                        @if ($canViewCoaches)
+                        @if ($isAdminOrSuperAdmin)
                             <div class="text-center">
                                 <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
                                 <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
                                 <p class="mb-0 fs-4">Total Active Coaches</p>
                             </div>
-                        @endif
-                        @if ($canViewEmployees)
                             <div class="text-center">
                                 <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
                                 <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
@@ -83,7 +77,7 @@
                 </div>
             </div>
             @php
-                $activeDashboardTab = $canViewPaymentReport && (request()->has('payment_report_date') || request()->has('payment_report_status'))
+                $activeDashboardTab = request()->has('payment_report_date') || request()->has('payment_report_status')
                     ? 'payment_report'
                     : 'students';
 
@@ -143,7 +137,7 @@
                         <span class="d-none d-md-block">Batches</span>
                     </button>
                 </li>
-                @if ($canViewCoaches)
+                @if ($isAdminOrSuperAdmin)
                     <li class="nav-item" role="presentation">
                         <button
                             class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
@@ -153,8 +147,6 @@
                             <span class="d-none d-md-block">Coaches</span>
                         </button>
                     </li>
-                @endif
-                @if ($canViewEmployees)
                     <li class="nav-item" role="presentation">
                         <button
                             class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
@@ -165,29 +157,25 @@
                         </button>
                     </li>
                 @endif
-                @if ($canViewStudentPayments)
-                    <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                            id="pills-payment-tab" data-bs-toggle="pill" data-bs-target="#pills-payment" type="button"
-                            role="tab" aria-controls="pills-payment" aria-selected="false">
-                            <i class="ti ti-credit-card me-2 fs-6"></i>
-                            <span class="d-none d-md-block">Student Payments <span
-                                    class="text-danger">({{ $student_payments->count() }})</span></span>
-                        </button>
-                    </li>
-                @endif
-                @if ($canViewPaymentReport)
-                    <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'payment_report' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
-                            id="pills-payment-report-tab" data-bs-toggle="pill" data-bs-target="#pills-payment-report" type="button"
-                            role="tab" aria-controls="pills-payment-report" aria-selected="{{ $activeDashboardTab === 'payment_report' ? 'true' : 'false' }}">
-                            <i class="ti ti-report-money me-2 fs-6"></i>
-                            <span class="d-none d-md-block">Payment Report</span>
-                        </button>
-                    </li>
-                @endif
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link position-relative rounded-0 d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                        id="pills-student-tab" data-bs-toggle="pill" data-bs-target="#pills-payment" type="button"
+                        role="tab" aria-controls="pills-payment" aria-selected="true">
+                        <i class="ti ti-credit-card me-2 fs-6"></i>
+                        <span class="d-none d-md-block">Student Payments <span
+                                class="text-danger">({{ $student_payments->count() }})</span></span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button
+                        class="nav-link position-relative rounded-0 {{ $activeDashboardTab === 'payment_report' ? 'active' : '' }} d-flex align-items-center justify-content-center bg-transparent fs-3 py-6"
+                        id="pills-payment-report-tab" data-bs-toggle="pill" data-bs-target="#pills-payment-report" type="button"
+                        role="tab" aria-controls="pills-payment-report" aria-selected="{{ $activeDashboardTab === 'payment_report' ? 'true' : 'false' }}">
+                        <i class="ti ti-report-money me-2 fs-6"></i>
+                        <span class="d-none d-md-block">Payment Report</span>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
@@ -444,7 +432,7 @@
             </section>
         </div>
         <!-- ------------------------------------------------------------------ :: -->
-        @if ($canViewCoaches)
+        @if ($isAdminOrSuperAdmin)
             <div class="tab-pane fade" id="pills-followers" role="tabpanel" aria-labelledby="pills-coach-tab"
                 tabindex="0">
                 <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
@@ -472,9 +460,7 @@
                     @endforeach
                 </div>
             </div>
-        @endif
             <!-- ------------------------------------------------------------------ :: -->
-        @if ($canViewEmployees)
             <div class="tab-pane fade" id="pills-friends" role="tabpanel" aria-labelledby="pills-employee-tab"
                 tabindex="0">
                 <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
@@ -518,170 +504,166 @@
             </div>
         @endif
 
-        @if ($canViewStudentPayments)
-            <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab"
-                tabindex="0">
-                {{-- <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Student Payments </h4>
-                </div> --}}
-                @php
-                    // dd($student_payments);
-                @endphp
-                <div class="row">
-                    @foreach ($student_payments as $student_payment)
-                        <div class="col-sm-6 col-lg-4">
-                            <div class="card hover-img">
-                                <div class="card-body p-4 text-center border-bottom">
-                                    <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name ?? '' }}
-                                        {{ $student_payment->student->last_name ?? '' }} ({{ $student_payment->student->country ?? 'N/A' }})
-                                    </h5>
-                                    <span class="text-dark fs-2">{{ $student_payment->student->mobile ?? 'N/A' }} &nbsp; | &nbsp;
-                                        {{ $student_payment->student->email ?? 'N/A' }}</span> <br>
-                                    <span class="text-dark fs-2">
-                                        Start Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->start_date) : 'N/A' }} &nbsp; | &nbsp;
-                                        End Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->end_date) : 'N/A' }}
-                                    </span><br>
-                                    <span class="text-dark fs-2">
-                                        Payment Date: {{ toIndianDate($student_payment->created_at) }}
-                                    </span><br>
-                                    <span class="text-dark fs-3">
-                                        Fees Paid: <span style="color: green;">{{ $student_payment->amount }}
-                                            {{ $student_payment->currency }}</span>
-                                    </span><br>
-                                    <span class="badge {{ strtoupper($student_payment->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
-                                        {{ $student_payment->status }}
-                                    </span>
-                                </div>
-                                <ul
-                                    class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
-                                    <li class="position-relative">
-                                        @if ($student_payment->studentFee)
-                                            <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
-                                                href="/admin/students/{{ $student_payment->student_id }}/student_fees"
-                                                target="_blank">
-                                                <span class="text-center w-100"> Check Fees Details</span>
-                                            </a>
-                                        @else
-                                            <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
-                                                No fee created
-                                            </span>
-                                        @endif
-                                    </li>
-                                </ul>
+        <div class="tab-pane fade" id="pills-payment" role="tabpanel" aria-labelledby="pills-employee-tab"
+            tabindex="0">
+            {{-- <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
+                <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Student Payments </h4>
+            </div> --}}
+            @php
+                // dd($student_payments);
+            @endphp
+            <div class="row">
+                @foreach ($student_payments as $student_payment)
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card hover-img">
+                            <div class="card-body p-4 text-center border-bottom">
+                                <h5 class="fw-semibold mb-0 mt-2">{{ $student_payment->student->first_name ?? '' }}
+                                    {{ $student_payment->student->last_name ?? '' }} ({{ $student_payment->student->country ?? 'N/A' }})
+                                </h5>
+                                <span class="text-dark fs-2">{{ $student_payment->student->mobile ?? 'N/A' }} &nbsp; | &nbsp;
+                                    {{ $student_payment->student->email ?? 'N/A' }}</span> <br>
+                                <span class="text-dark fs-2">
+                                    Start Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->start_date) : 'N/A' }} &nbsp; | &nbsp;
+                                    End Date: {{ $student_payment->studentFee ? toIndianDate($student_payment->studentFee->end_date) : 'N/A' }}
+                                </span><br>
+                                <span class="text-dark fs-2">
+                                    Payment Date: {{ toIndianDate($student_payment->created_at) }}
+                                </span><br>
+                                <span class="text-dark fs-3">
+                                    Fees Paid: <span style="color: green;">{{ $student_payment->amount }}
+                                        {{ $student_payment->currency }}</span>
+                                </span><br>
+                                <span class="badge {{ strtoupper($student_payment->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                    {{ $student_payment->status }}
+                                </span>
+                            </div>
+                            <ul
+                                class="px-2 py-2 bg-light-theme list-unstyled d-flex align-items-center justify-content-center mb-0">
+                                <li class="position-relative">
+                                    @if ($student_payment->studentFee)
+                                        <a class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold"
+                                            href="/admin/students/{{ $student_payment->student_id }}/student_fees"
+                                            target="_blank">
+                                            <span class="text-center w-100"> Check Fees Details</span>
+                                        </a>
+                                    @else
+                                        <span class="d-flex align-items-center justify-content-center p-2 fs-3 rounded-circle fw-semibold text-muted">
+                                            No fee created
+                                        </span>
+                                    @endif
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                @endforeach
+                @if ($student_payments->isEmpty())
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="mb-0">No student payments received today.</h5>
                             </div>
                         </div>
-                    @endforeach
-                    @if ($student_payments->isEmpty())
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <h5 class="mb-0">No student payments received today.</h5>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
-        @endif
+        </div>
 
-        @if ($canViewPaymentReport)
-            <div class="tab-pane fade {{ $activeDashboardTab === 'payment_report' ? 'show active' : '' }}" id="pills-payment-report" role="tabpanel" aria-labelledby="pills-payment-report-tab"
-                tabindex="0">
-                <section>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card w-100 position-relative overflow-hidden">
-                                <div class="card-header px-4 py-3 border-bottom">
-                                    <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
-                                        <div class="col-md-4">
-                                            <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="input-group input-group-sm">
-                                                <input name="payment_report_date" id="payment_report_date" type="text"
-                                                    class="form-control payment-report-daterange pure-white"
-                                                    value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
-                                                <span class="input-group-text">
-                                                    <i class="ti ti-calendar fs-5"></i>
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <select name="payment_report_status" class="form-select form-select-sm pure-white">
-                                                <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
-                                                @foreach ($paymentReportStatuses as $status)
-                                                    <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
-                                                        {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="card-body p-4">
-                                    <div class="table-responsive rounded-2 mb-4">
-                                        <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle">
-                                            <thead class="text-dark fs-4">
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Payment Date</th>
-                                                    <th>Student</th>
-                                                    <th>Country</th>
-                                                    <th>Amount</th>
-                                                    <th>Status</th>
-                                                    <th>Fee Window</th>
-                                                    <th>Payment ID</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($payment_report_orders as $payment_order)
-                                                    <tr>
-                                                        <td>{{ $loop->iteration }}</td>
-                                                        <td>{{ toIndianDate($payment_order->created_at) }}</td>
-                                                        <td>
-                                                            {{ $payment_order->student->first_name ?? '' }}
-                                                            {{ $payment_order->student->last_name ?? '' }}
-                                                            @if ($payment_order->student)
-                                                                ({{ $payment_order->student->student_id }})
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $payment_order->student->country ?? 'N/A' }}</td>
-                                                        <td>{{ $payment_order->amount }} {{ $payment_order->currency }}</td>
-                                                        <td>
-                                                            <span class="badge {{ strtoupper($payment_order->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
-                                                                {{ $payment_order->status }}
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            @if ($payment_order->studentFee)
-                                                                {{ toIndianDate($payment_order->studentFee->start_date) }}
-                                                                -
-                                                                {{ toIndianDate($payment_order->studentFee->end_date) }}
-                                                            @else
-                                                                N/A
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ $payment_order->razorpay_payment_id ?? 'N/A' }}</td>
-                                                    </tr>
-                                                @endforeach
-                                                @if ($payment_report_orders->isEmpty())
-                                                    <tr>
-                                                        <td colspan="8" class="text-center">No payment records found.</td>
-                                                    </tr>
-                                                @endif
-                                            </tbody>
-                                        </table>
+        <div class="tab-pane fade {{ $activeDashboardTab === 'payment_report' ? 'show active' : '' }}" id="pills-payment-report" role="tabpanel" aria-labelledby="pills-payment-report-tab"
+            tabindex="0">
+            <section>
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card w-100 position-relative overflow-hidden">
+                            <div class="card-header px-4 py-3 border-bottom">
+                                <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
+                                    <div class="col-md-4">
+                                        <h5 class="card-title fw-semibold mb-0 lh-sm">Payment Report</h5>
                                     </div>
+                                    <div class="col-md-3">
+                                        <div class="input-group input-group-sm">
+                                            <input name="payment_report_date" id="payment_report_date" type="text"
+                                                class="form-control payment-report-daterange pure-white"
+                                                value="{{ $paymentReportDateRange }}" placeholder="Payment Date Range" />
+                                            <span class="input-group-text">
+                                                <i class="ti ti-calendar fs-5"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select name="payment_report_status" class="form-select form-select-sm pure-white">
+                                            <option value="" {{ $paymentReportStatus === '' ? 'selected' : '' }}>All Status</option>
+                                            @foreach ($paymentReportStatuses as $status)
+                                                <option value="{{ $status }}" {{ $paymentReportStatus === $status ? 'selected' : '' }}>
+                                                    {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="table-responsive rounded-2 mb-4">
+                                    <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle">
+                                        <thead class="text-dark fs-4">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Payment Date</th>
+                                                <th>Student</th>
+                                                <th>Country</th>
+                                                <th>Amount</th>
+                                                <th>Status</th>
+                                                <th>Fee Window</th>
+                                                <th>Payment ID</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($payment_report_orders as $payment_order)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ toIndianDate($payment_order->created_at) }}</td>
+                                                    <td>
+                                                        {{ $payment_order->student->first_name ?? '' }}
+                                                        {{ $payment_order->student->last_name ?? '' }}
+                                                        @if ($payment_order->student)
+                                                            ({{ $payment_order->student->student_id }})
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $payment_order->student->country ?? 'N/A' }}</td>
+                                                    <td>{{ $payment_order->amount }} {{ $payment_order->currency }}</td>
+                                                    <td>
+                                                        <span class="badge {{ strtoupper($payment_order->status) === 'FAILED' ? 'bg-danger' : 'bg-success' }}">
+                                                            {{ $payment_order->status }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @if ($payment_order->studentFee)
+                                                            {{ toIndianDate($payment_order->studentFee->start_date) }}
+                                                            -
+                                                            {{ toIndianDate($payment_order->studentFee->end_date) }}
+                                                        @else
+                                                            N/A
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $payment_order->razorpay_payment_id ?? 'N/A' }}</td>
+                                                </tr>
+                                            @endforeach
+                                            @if ($payment_report_orders->isEmpty())
+                                                <tr>
+                                                    <td colspan="8" class="text-center">No payment records found.</td>
+                                                </tr>
+                                            @endif
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
-        @endif
+                </div>
+            </section>
+        </div>
     </div>
 
     <script src="/backend/dist/libs/bootstrap-material-datetimepicker/node_modules/moment/moment.js"></script>

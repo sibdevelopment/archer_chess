@@ -577,6 +577,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Existing point about edited fee duration not reflecting in dashboard is resolved by moving dashboard/report display to orders and linked student_fee rows instead of missing-currency active fee rows.
 - Admin dashboard now keeps Admin/SuperAdmin global, but non-admin employee/CRE roles are scoped to assigned role countries for counts, students, missed sessions, coach dropdowns, and payment data.
 - Dashboard Coaches and Employees tabs/cards are intentionally removed for every role; Coach/Employee master modules remain separate and permission-controlled from their own screens.
+- SuperAdmin still sees top summary counts for Total Active Coaches and Total Active Employees; those are counts only, not dashboard tabs/lists.
 - Dashboard Batches tab is visible by `batchs-view` (Admin/SuperAdmin always visible), and non-admin/CRE users see only batches matching their assigned role countries; batch coach/student filter dropdowns follow the same region scope.
 - Dashboard Student Payments and Payment Report tabs use dedicated Dashboard permissions (`dashboard-student-payments-view`, `dashboard-payment-report-view`); when visible for non-admin roles, both today's payments and report filters are restricted to the user's assigned countries.
 - Dashboard Students/Missed Sessions tabs follow `students-view`; their AJAX endpoints return no data if permission is missing.

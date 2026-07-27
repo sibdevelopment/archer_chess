@@ -156,6 +156,7 @@ Purpose:
   - duplicate/overlapping active fee rows are inactivated when the student has a later fee row by `student_fees.id`, including future end-date conflicts.
   The latest fee row by `student_fees.id` is the source of truth and is left for the normal schedule/no-class cutoff logic so the student can still be marked `FEESDUE` correctly.
   Cleanup is non-blocking: if invalid active fee cleanup fails, the error is logged and normal fee-due marking continues.
+- Old region-wise fee due schedules are commented in `app/Console/Kernel.php`; production should run only the new single command from direct `www-data` crontab unless the full scheduler is intentionally reviewed/enabled later.
 ```
 
 Old region-wise commands were also hardened so one bad student/batch should not break the full command.

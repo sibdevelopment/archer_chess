@@ -13,6 +13,7 @@ use App\Models\Coverupclass;
 use App\Models\DelayedBatch;
 use App\Models\DemoLead;
 use App\Models\DemoSession;
+use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Models\Level;
@@ -1974,6 +1975,13 @@ class DashboardController extends Controller
 
         // Active Counts ::
         $activeStudents = $studentQuery->count();
+        $showSuperAdminTotals = $user->hasRole('SuperAdmin');
+        $activeCoaches = $showSuperAdminTotals ? (clone $coachQuery)->count() : 0;
+        $activeEmployees = $showSuperAdminTotals
+            ? Employee::whereHas('user', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })->count()
+            : 0;
 
         $levels   = Level::where('status', 'ACTIVE')->get();
         $coaches  = $coachQuery->get();
@@ -2011,7 +2019,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeStudents', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)

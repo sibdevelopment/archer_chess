@@ -12,6 +12,7 @@
         $canViewBatches = $canViewBatches ?? ($isAdminOrSuperAdmin || $user->can('batchs-view'));
         $canViewStudentPayments = $canViewStudentPayments ?? ($isAdminOrSuperAdmin || $user->can('dashboard-student-payments-view'));
         $canViewPaymentReport = $canViewPaymentReport ?? ($isAdminOrSuperAdmin || $user->can('dashboard-payment-report-view'));
+        $showSuperAdminTotals = $showSuperAdminTotals ?? $user->hasRole('SuperAdmin');
 
         // Get the countries the user can see
         $allowedCountries = $allowedCountries ?? [];
@@ -66,6 +67,18 @@
                             <h4 class="mb-0 fw-semibold lh-1"> {{ $activeStudents }} </h4>
                             <p class="mb-0 fs-4">Total Active Students</p>
                         </div>
+                        @if ($showSuperAdminTotals)
+                            <div class="text-center">
+                                <i class="ti ti-user-exclamation fs-7 d-block mb-2 text-theme"></i>
+                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeCoaches }}</h4>
+                                <p class="mb-0 fs-4">Total Active Coaches</p>
+                            </div>
+                            <div class="text-center">
+                                <i class="ti ti-user-circle fs-7 d-block mb-2 text-theme"></i>
+                                <h4 class="mb-0 fw-semibold lh-1">{{ $activeEmployees }}</h4>
+                                <p class="mb-0 fs-4">Total Active Employees</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

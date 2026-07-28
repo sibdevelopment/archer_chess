@@ -1,9 +1,3 @@
-<script>
-    $(document).ready(function() {
-        $('#delayedBatchNoticeModal').modal('show');
-    });
-</script>
-
 <div class="row">
     <div class="col-12">
         <div class="card" style="margin-bottom: 10px !important;">
@@ -203,10 +197,12 @@
     <!-- ------------------------------------------------------------------------------ :: -->
 </form>
 
-@if ($isDelayed)
+@if ($isDelayed && isset($delayedBatchNotice) && $delayedBatchNotice)
     <div class="modal fade" id="delayedBatchNoticeModal" tabindex="-1"
         aria-labelledby="delayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static"
-        data-bs-keyboard="false" style="z-index: 1060;">
+        data-bs-keyboard="false" style="z-index: 1060;"
+        data-delayed-batch-id="{{ $delayedBatchNotice->id }}"
+        data-ack-url="{{ route('admin.dashboard.delayed-batch-notice.acknowledge') }}">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content border-danger">
                 <div class="modal-header bg-danger text-white">

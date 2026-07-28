@@ -8,6 +8,7 @@ class DelayedBatch extends BaseModel
 {
     protected $fillable = [
         'batch_id',
+        'batchschedule_id',
         'coach_id',
         'coach_attendance_id',
         'batch_name',
@@ -20,6 +21,7 @@ class DelayedBatch extends BaseModel
         'penalty_type',
         'fine_amount',
         'fine_currency',
+        'late_popup_acknowledged_at',
         'date',
         'time',
         'created_by',
@@ -30,6 +32,7 @@ class DelayedBatch extends BaseModel
         'date' => 'date',
         'country' => 'array',
         'canceled_date' => 'date',
+        'late_popup_acknowledged_at' => 'datetime',
     ];
 
     public function batch()

@@ -582,6 +582,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Dashboard Student Payments and Payment Report tabs use dedicated Dashboard permissions (`dashboard-student-payments-view`, `dashboard-payment-report-view`); when visible for non-admin roles, both today's payments and report filters are restricted to the user's assigned countries.
 - Dashboard Student Payments shows today's payments with a status filter; default status is `captured`, while All Status can be selected to include created/failed/other order statuses.
 - Dashboard Students/Missed Sessions tabs follow `students-view`; their AJAX endpoints return no data if permission is missing.
+- Coach late/cancel penalty rule is exclusive: late class is `LATE`/INR 150, cancelled class is `CANCELLED`/INR 350, and cancelled overrides late for the same batch/date/schedule in reports.
+- Coach late popup is shown only for `LATE` penalties, only once per delayed batch row after coach acknowledgement; cancelled penalties do not show the popup and remain report-only.
 ```
 
 ## Student Listing Batch Display Notes

@@ -1083,6 +1083,7 @@ class DashboardController extends Controller
 
             $isDelayed = false;
             $delayTime = 0;
+            $delayedBatchNotice = null;
             // if ($todaysSchedule) {
             //     $scheduledStart = Carbon::parse($date . ' ' . Carbon::parse($todaysSchedule->from_time)->format('H:i:s'));
             //     $now = Carbon::now();
@@ -1122,6 +1123,7 @@ class DashboardController extends Controller
             $activeSlot = $data->batchSchedules->firstWhere('status', 'ACTIVE');
             $fromTime   = $activeSlot ? Carbon::parse($activeSlot->from_time)->format('h:i A') : null;
             $toTime     = $activeSlot ? Carbon::parse($activeSlot->to_time)->format('h:i A') : null;
+            $noticeSchedule = $todaysSchedule ?: $activeSlot;
 
             // LOAD EXACT PENDING ATTENDANCE — FIXED
             if(empty($attendanceId)) {
@@ -1144,6 +1146,23 @@ class DashboardController extends Controller
                 $todaysCoachAttendance = CoachAttendance::where('id', $attendanceId)->first();
             }   
 
+            if ($noticeSchedule) {
+                $delayedBatchNotice = DelayedBatch::where('batch_id', $id)
+                    ->where('batchschedule_id', $noticeSchedule->id)
+                    ->whereDate('date', $date)
+                    ->where('coach_id', $coachId)
+                    ->where('penalty_type', 'LATE')
+                    ->whereNull('late_popup_acknowledged_at')
+                    ->orderByDesc('id')
+                    ->first();
+
+                if ($delayedBatchNotice) {
+                    $scheduledStart = Carbon::parse($date . ' ' . $noticeSchedule->from_time);
+                    $isDelayed = true;
+                    $delayTime = max(0, $scheduledStart->diffInMinutes(now(), false));
+                }
+            }
+
             return view('Admin.Dashboard.Coach.batchattendance', [
                 'type'                  => strtoupper($type),
                 'coachId'               => $coachId,
@@ -1160,7 +1179,8 @@ class DashboardController extends Controller
                 'attendanceDate'        => $attendanceDate,
                 'attendanceTime'        => $attendanceTime,
                 'isDelayed'             => $isDelayed,
-                'delayTime'             => $delayTime
+                'delayTime'             => $delayTime,
+                'delayedBatchNotice'    => $delayedBatchNotice,
             ]);
         }
 
@@ -1195,6 +1215,31 @@ class DashboardController extends Controller
                 'attendanceTime'    => $attendanceTime
             ]);
         }
+    }
+
+    public function acknowledgeDelayedBatchNotice(Request $request)
+    {
+        $request->validate([
+            'delayed_batch_id' => ['required', 'integer'],
+        ]);
+
+        $coach = Coach::where('user_id', auth()->id())->first();
+
+        if (! $coach) {
+            return response()->json(['message' => 'Coach not found'], 404);
+        }
+
+        $delayedBatch = DelayedBatch::where('id', $request->delayed_batch_id)
+            ->where('coach_id', $coach->id)
+            ->where('penalty_type', 'LATE')
+            ->firstOrFail();
+
+        if (! $delayedBatch->late_popup_acknowledged_at) {
+            $delayedBatch->late_popup_acknowledged_at = now();
+            $delayedBatch->save();
+        }
+
+        return response()->json(['status' => 'success']);
     }
 
     // public function getAttendanceData(Request $request, $coachId)
@@ -1469,31 +1514,47 @@ class DashboardController extends Controller
             $actualAt = $this->actualAttendanceDateTime($attendanceDate, $request->input('time'));
 
             if ($actualAt->gt($scheduledStart->copy()->addMinutes(3))) {
-                DelayedBatch::updateOrCreate(
-                    [
-                        'batch_id' => $batchId,
-                        'date' => $attendanceDate,
-                    ],
-                    [
-                        'coach_id' => $request->coach_id,
-                        'coach_attendance_id' => $coachAttendance->id,
-                        'time' => $actualAt->format('H:i:s'),
-                        'batch_name' => $batch->name,
-                        'country' => $batch->country,
-                        'batch_status' => $batch->status,
-                        'level_name' => optional($batch->level)->name,
-                        'timeline' => sprintf(
-                            'Scheduled start: %s | Marked at: %s',
-                            $scheduledStart->format('d-M-Y h:i:s A'),
-                            $actualAt->format('d-M-Y h:i:s A')
-                        ),
-                        'canceled_date' => $request->status === 'CANCELLED' ? $attendanceDate : null,
-                        'canceled_time' => $request->status === 'CANCELLED' ? $actualAt->format('H:i:s') : null,
-                        'penalty_type' => $request->status === 'CANCELLED' ? 'CANCELLED' : 'LATE',
-                        'fine_amount' => $request->status === 'CANCELLED' ? 350 : 150,
-                        'fine_currency' => 'INR',
-                    ]
-                );
+                $delayedBatchKey = [
+                    'batch_id' => $batchId,
+                    'batchschedule_id' => $schedule->id,
+                    'date' => $attendanceDate,
+                ];
+
+                if ($request->status === 'CANCELLED') {
+                    DelayedBatch::where($delayedBatchKey)
+                        ->where('penalty_type', 'LATE')
+                        ->delete();
+                }
+
+                $cancelledPenaltyExists = DelayedBatch::where($delayedBatchKey)
+                    ->where('penalty_type', 'CANCELLED')
+                    ->exists();
+
+                if ($request->status === 'CANCELLED' || ! $cancelledPenaltyExists) {
+                    DelayedBatch::updateOrCreate(
+                        $delayedBatchKey,
+                        [
+                            'coach_id' => $request->coach_id,
+                            'coach_attendance_id' => $coachAttendance->id,
+                            'time' => $actualAt->format('H:i:s'),
+                            'batch_name' => $batch->name,
+                            'country' => $batch->country,
+                            'batch_status' => $batch->status,
+                            'level_name' => optional($batch->level)->name,
+                            'timeline' => sprintf(
+                                'Scheduled start: %s | Marked at: %s',
+                                $scheduledStart->format('d-M-Y h:i:s A'),
+                                $actualAt->format('d-M-Y h:i:s A')
+                            ),
+                            'canceled_date' => $request->status === 'CANCELLED' ? $attendanceDate : null,
+                            'canceled_time' => $request->status === 'CANCELLED' ? $actualAt->format('H:i:s') : null,
+                            'penalty_type' => $request->status === 'CANCELLED' ? 'CANCELLED' : 'LATE',
+                            'fine_amount' => $request->status === 'CANCELLED' ? 350 : 150,
+                            'fine_currency' => 'INR',
+                            'late_popup_acknowledged_at' => null,
+                        ]
+                    );
+                }
             }
         }
 

@@ -279,13 +279,43 @@
                 }
                 $modal.appendTo('body');
 
+                function acknowledgeDelayedBatchNotice(callback) {
+                    var delayedBatchId = $modal.data('delayed-batch-id');
+                    var acknowledgeUrl = $modal.data('ack-url');
+
+                    if (!delayedBatchId || !acknowledgeUrl) {
+                        if (typeof callback === 'function') {
+                            callback();
+                        }
+                        return;
+                    }
+
+                    $.ajax({
+                        url: acknowledgeUrl,
+                        type: 'POST',
+                        data: {
+                            _token: $('meta[name=csrf-token]').attr('content'),
+                            delayed_batch_id: delayedBatchId
+                        },
+                        complete: function() {
+                            if (typeof callback === 'function') {
+                                callback();
+                            }
+                        }
+                    });
+                }
+
                 $modal.find('#delayedBatchConfirmBtn').off('click.delayedBatch').on('click.delayedBatch', function() {
-                    $modal.modal('hide');
+                    acknowledgeDelayedBatchNotice(function() {
+                        $modal.modal('hide');
+                    });
                 });
 
                 $modal.find('#delayedBatchDontStartBtn').off('click.delayedBatch').on('click.delayedBatch', function() {
-                    $modal.modal('hide');
-                    $('#AttendanceModal').modal('hide');
+                    acknowledgeDelayedBatchNotice(function() {
+                        $modal.modal('hide');
+                        $('#AttendanceModal').modal('hide');
+                    });
                 });
 
                 $modal.on('hidden.bs.modal', function() {

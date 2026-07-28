@@ -659,8 +659,15 @@ class DashboardController extends Controller
             return strtotime($aStartTime) - strtotime($bStartTime);
         });
 
-        $schedules = $combinedData; 
-        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules'));
+        $schedules = $combinedData;
+        $pendingDelayedBatchNotices = DelayedBatch::where('coach_id', $coachId)
+            ->whereDate('date', $todayDate)
+            ->where('penalty_type', 'LATE')
+            ->whereNull('late_popup_acknowledged_at')
+            ->orderBy('time')
+            ->get();
+
+        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules', 'pendingDelayedBatchNotices'));
     }
 
     public function getSchedule(Request $request, $coachId)
@@ -1227,6 +1234,10 @@ class DashboardController extends Controller
         $coach = Coach::where('user_id', auth()->id())->first();
 
         if (! $coach) {
+            if (! $request->expectsJson()) {
+                return back()->with('error', 'Coach not found');
+            }
+
             return response()->json(['message' => 'Coach not found'], 404);
         }
 
@@ -1237,6 +1248,10 @@ class DashboardController extends Controller
             ->values();
 
         if ($delayedBatchIds->isEmpty()) {
+            if (! $request->expectsJson()) {
+                return back()->with('error', 'Delayed batch notice not found');
+            }
+
             return response()->json(['message' => 'Delayed batch notice not found'], 422);
         }
 
@@ -1245,6 +1260,10 @@ class DashboardController extends Controller
             ->where('penalty_type', 'LATE')
             ->whereNull('late_popup_acknowledged_at')
             ->update(['late_popup_acknowledged_at' => now()]);
+
+        if (! $request->expectsJson()) {
+            return back()->with('success', 'Delayed batch notice acknowledged');
+        }
 
         return response()->json(['status' => 'success']);
     }

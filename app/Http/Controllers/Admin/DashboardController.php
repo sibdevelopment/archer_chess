@@ -660,8 +660,14 @@ class DashboardController extends Controller
         });
 
         $schedules = $combinedData; 
+        $pendingDelayedBatchNotices = DelayedBatch::where('coach_id', $coachId)
+            ->whereDate('date', $todayDate)
+            ->where('penalty_type', 'LATE')
+            ->whereNull('late_popup_acknowledged_at')
+            ->orderBy('time')
+            ->get();
 
-        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules'));
+        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules', 'pendingDelayedBatchNotices'));
     }
 
     public function getSchedule(Request $request, $coachId)
@@ -1220,7 +1226,9 @@ class DashboardController extends Controller
     public function acknowledgeDelayedBatchNotice(Request $request)
     {
         $request->validate([
-            'delayed_batch_id' => ['required', 'integer'],
+            'delayed_batch_id' => ['nullable', 'integer'],
+            'delayed_batch_ids' => ['nullable', 'array'],
+            'delayed_batch_ids.*' => ['integer'],
         ]);
 
         $coach = Coach::where('user_id', auth()->id())->first();
@@ -1229,15 +1237,21 @@ class DashboardController extends Controller
             return response()->json(['message' => 'Coach not found'], 404);
         }
 
-        $delayedBatch = DelayedBatch::where('id', $request->delayed_batch_id)
+        $delayedBatchIds = collect($request->input('delayed_batch_ids', []))
+            ->push($request->input('delayed_batch_id'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($delayedBatchIds->isEmpty()) {
+            return response()->json(['message' => 'Delayed batch notice not found'], 422);
+        }
+
+        DelayedBatch::whereIn('id', $delayedBatchIds)
             ->where('coach_id', $coach->id)
             ->where('penalty_type', 'LATE')
-            ->firstOrFail();
-
-        if (! $delayedBatch->late_popup_acknowledged_at) {
-            $delayedBatch->late_popup_acknowledged_at = now();
-            $delayedBatch->save();
-        }
+            ->whereNull('late_popup_acknowledged_at')
+            ->update(['late_popup_acknowledged_at' => now()]);
 
         return response()->json(['status' => 'success']);
     }

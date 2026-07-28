@@ -240,6 +240,51 @@
 
     <!-- ------------------------------------------------------------------------------------------ :: -->
 
+    @if (isset($pendingDelayedBatchNotices) && $pendingDelayedBatchNotices->isNotEmpty())
+        <div class="modal fade" id="delayedBatchNoticeModal" tabindex="-1"
+            aria-labelledby="delayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static"
+            data-bs-keyboard="false" style="z-index: 1060;"
+            data-delayed-batch-ids='@json($pendingDelayedBatchNotices->pluck('id')->values())'
+            data-ack-url="{{ route('admin.dashboard.delayed-batch-notice.acknowledge') }}">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content border-danger">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title" id="delayedBatchNoticeModalLabel">Delayed batch notice</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">The following class has been marked late:</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Batch</th>
+                                        <th>Penalty</th>
+                                        <th>Fine</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($pendingDelayedBatchNotices as $notice)
+                                        <tr>
+                                            <td>{{ $notice->batch_name }}</td>
+                                            <td>{{ $notice->penalty_type }}</td>
+                                            <td>{{ $notice->fine_currency ?? 'INR' }} {{ number_format((float) $notice->fine_amount, 2) }}</td>
+                                            <td>{{ $notice->time ? \Carbon\Carbon::parse($notice->time)->format('g:i A') : 'N/A' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="mb-0 mt-3 text-muted small">This notice will be shown only once. You can see the details later in your report.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary w-100"
+                            id="delayedBatchConfirmBtn">OK, understood</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <script src="/backend/dist/libs/fullcalendar/index.global.min.js"></script>
     <script src="/backend/dist/js/apps/calendar-init.js"></script>
@@ -281,9 +326,14 @@
 
                 function acknowledgeDelayedBatchNotice(callback) {
                     var delayedBatchId = $modal.data('delayed-batch-id');
+                    var delayedBatchIds = $modal.data('delayed-batch-ids');
                     var acknowledgeUrl = $modal.data('ack-url');
 
-                    if (!delayedBatchId || !acknowledgeUrl) {
+                    if (!delayedBatchIds && delayedBatchId) {
+                        delayedBatchIds = [delayedBatchId];
+                    }
+
+                    if (!delayedBatchIds || !delayedBatchIds.length || !acknowledgeUrl) {
                         if (typeof callback === 'function') {
                             callback();
                         }
@@ -295,7 +345,7 @@
                         type: 'POST',
                         data: {
                             _token: $('meta[name=csrf-token]').attr('content'),
-                            delayed_batch_id: delayedBatchId
+                            delayed_batch_ids: delayedBatchIds
                         },
                         complete: function() {
                             if (typeof callback === 'function') {
@@ -318,6 +368,10 @@
                     });
                 });
 
+                $modal.off('hide.bs.modal.delayedBatch').on('hide.bs.modal.delayedBatch', function() {
+                    acknowledgeDelayedBatchNotice();
+                });
+
                 $modal.on('hidden.bs.modal', function() {
                     $(this).remove();
                 });
@@ -330,6 +384,8 @@
                     });
                 }, 350);
             }
+
+            initDelayedBatchPopup();
 
             // -------------------------------------------------------------------- ::
             $(document).on('click', '.status-btn', function() {

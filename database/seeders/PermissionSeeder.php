@@ -51,6 +51,8 @@ class PermissionSeeder extends Seeder
                     'preBatchAttendance',
                     'missedSessionsData',
                     'getUnmarkedAttendance',
+                    'pendingDelayedBatchNotices',
+                    'acknowledgeDelayedBatchNotice',
                 ],
                 'availability-view' => [
                     'availabilityIndex',

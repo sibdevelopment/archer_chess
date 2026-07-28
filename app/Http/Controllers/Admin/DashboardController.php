@@ -660,14 +660,7 @@ class DashboardController extends Controller
         });
 
         $schedules = $combinedData; 
-        $pendingDelayedBatchNotices = DelayedBatch::where('coach_id', $coachId)
-            ->whereDate('date', $todayDate)
-            ->where('penalty_type', 'LATE')
-            ->whereNull('late_popup_acknowledged_at')
-            ->orderBy('time')
-            ->get();
-
-        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules', 'pendingDelayedBatchNotices'));
+        return view('Admin.Dashboard.Coach.coachindex', compact('coach', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek', 'holidays', 'schedules'));
     }
 
     public function getSchedule(Request $request, $coachId)
@@ -1254,6 +1247,37 @@ class DashboardController extends Controller
             ->update(['late_popup_acknowledged_at' => now()]);
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function pendingDelayedBatchNotices()
+    {
+        $coach = Coach::where('user_id', auth()->id())->first();
+
+        if (! $coach) {
+            return response()->json(['notices' => []]);
+        }
+
+        $notices = DelayedBatch::where('coach_id', $coach->id)
+            ->whereDate('date', Carbon::now()->toDateString())
+            ->where('penalty_type', 'LATE')
+            ->whereNull('late_popup_acknowledged_at')
+            ->orderBy('time')
+            ->get()
+            ->map(function (DelayedBatch $notice) {
+                return [
+                    'id' => $notice->id,
+                    'batch_name' => $notice->batch_name,
+                    'penalty_type' => $notice->penalty_type,
+                    'fine' => trim(($notice->fine_currency ?? 'INR') . ' ' . number_format((float) $notice->fine_amount, 2)),
+                    'time' => $notice->time ? Carbon::parse($notice->time)->format('g:i A') : 'N/A',
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'notices' => $notices,
+            'ack_url' => route('admin.dashboard.delayed-batch-notice.acknowledge'),
+        ]);
     }
 
     // public function getAttendanceData(Request $request, $coachId)

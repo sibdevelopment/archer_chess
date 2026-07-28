@@ -352,6 +352,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::get('dashboard/{coachId}/schedule', [DashboardController::class, 'getSchedule'])->name('dashboard.getSchedule');
         Route::get('dashboard/{coachId}/calendar', [DashboardController::class, 'getCalendarData'])->name('dashboard.calendar');
         Route::get('dashboard/{coachId}/attendance', [DashboardController::class, 'getAttendanceData'])->name('dashboard.getAttendanceData');
+        Route::get('dashboard/delayed-batch-notice/pending', [DashboardController::class, 'pendingDelayedBatchNotices'])->name('dashboard.delayed-batch-notice.pending');
         Route::post('dashboard/delayed-batch-notice/acknowledge', [DashboardController::class, 'acknowledgeDelayedBatchNotice'])->name('dashboard.delayed-batch-notice.acknowledge');
         Route::post('dashboard/{coachId}/demo-attendance', [DashboardController::class, 'demoAttendance'])->name('dashboard.demoAttendance');
         Route::post('dashboard/{coachId}/batch-attendance', [DashboardController::class, 'batchAttendance'])->name('dashboard.batchAttendance');

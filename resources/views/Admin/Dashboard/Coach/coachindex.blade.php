@@ -240,106 +240,6 @@
 
     <!-- ------------------------------------------------------------------------------------------ :: -->
 
-    @if (isset($pendingDelayedBatchNotices) && $pendingDelayedBatchNotices->isNotEmpty())
-        <div class="modal fade" id="dashboardDelayedBatchNoticeModal" tabindex="-1"
-            aria-labelledby="dashboardDelayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static"
-            data-bs-keyboard="false" style="z-index: 1060;"
-            data-delayed-batch-ids='@json($pendingDelayedBatchNotices->pluck('id')->values())'
-            data-ack-url="{{ route('admin.dashboard.delayed-batch-notice.acknowledge') }}">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content border-danger">
-                    <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title" id="dashboardDelayedBatchNoticeModalLabel">Delayed batch notice</h5>
-                    </div>
-                    <div class="modal-body">
-                        <p class="mb-3">The following class has been marked late:</p>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Batch</th>
-                                        <th>Penalty</th>
-                                        <th>Fine</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($pendingDelayedBatchNotices as $notice)
-                                        <tr>
-                                            <td>{{ $notice->batch_name }}</td>
-                                            <td>{{ $notice->penalty_type }}</td>
-                                            <td>{{ $notice->fine_currency ?? 'INR' }} {{ number_format((float) $notice->fine_amount, 2) }}</td>
-                                            <td>{{ $notice->time ? \Carbon\Carbon::parse($notice->time)->format('g:i A') : 'N/A' }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        <p class="mb-0 mt-3 text-muted small">This notice will be shown only once. You can see the details later in your report.</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary w-100"
-                            id="dashboardDelayedBatchConfirmBtn">OK, understood</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            $(document).ready(function() {
-                var $dashboardLateModal = $('#dashboardDelayedBatchNoticeModal');
-
-                function acknowledgeDashboardDelayedBatches(callback) {
-                    $.ajax({
-                        url: $dashboardLateModal.data('ack-url'),
-                        type: 'POST',
-                        data: {
-                            _token: $('meta[name=csrf-token]').attr('content'),
-                            delayed_batch_ids: $dashboardLateModal.data('delayed-batch-ids')
-                        },
-                        complete: function() {
-                            if (typeof callback === 'function') {
-                                callback();
-                            }
-                        }
-                    });
-                }
-
-                $dashboardLateModal.appendTo('body');
-                $dashboardLateModal.find('#dashboardDelayedBatchConfirmBtn').on('click', function() {
-                    acknowledgeDashboardDelayedBatches(function() {
-                        if ($.fn.modal) {
-                            $dashboardLateModal.modal('hide');
-                            return;
-                        }
-
-                        if (window.bootstrap && bootstrap.Modal) {
-                            bootstrap.Modal.getOrCreateInstance($dashboardLateModal[0]).hide();
-                        }
-                    });
-                });
-
-                setTimeout(function() {
-                    if ($.fn.modal) {
-                        $dashboardLateModal.modal({
-                            backdrop: 'static',
-                            keyboard: false,
-                            show: true
-                        });
-                        return;
-                    }
-
-                    if (window.bootstrap && bootstrap.Modal) {
-                        bootstrap.Modal.getOrCreateInstance($dashboardLateModal[0], {
-                            backdrop: 'static',
-                            keyboard: false
-                        }).show();
-                    }
-                }, 350);
-            });
-        </script>
-    @endif
-
     <script src="/backend/dist/libs/fullcalendar/index.global.min.js"></script>
     <script src="/backend/dist/js/apps/calendar-init.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
@@ -351,6 +251,7 @@
         $(document).ready(function() {
             // $('#HomeworkAttendanceModal').modal('show');
 
+            fetchDashboardDelayedBatchNotices();
             getMasterClass();
             @if (isset($coach))
                 const coachId = '{{ $coach->id }}';
@@ -370,6 +271,110 @@
                 const today = moment.tz("Asia/Kolkata").format('YYYY-MM-DD');
                 fetchScheduleData(today);
             @endif
+
+            function fetchDashboardDelayedBatchNotices() {
+                $.ajax({
+                    url: '{{ route('admin.dashboard.delayed-batch-notice.pending') }}',
+                    type: 'GET',
+                    success: function(response) {
+                        var notices = response.notices || [];
+                        if (!notices.length) {
+                            return;
+                        }
+
+                        showDashboardDelayedBatchNotice(notices, response.ack_url);
+                    },
+                    error: function(error) {
+                        console.error('Error fetching delayed batch notices:', error);
+                    }
+                });
+            }
+
+            function showDashboardDelayedBatchNotice(notices, acknowledgeUrl) {
+                $('#dashboardDelayedBatchNoticeModal').remove();
+
+                var delayedBatchIds = notices.map(function(notice) {
+                    return notice.id;
+                });
+                var $modal = $(
+                    '<div class="modal fade" id="dashboardDelayedBatchNoticeModal" tabindex="-1" aria-labelledby="dashboardDelayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 1060;">' +
+                        '<div class="modal-dialog modal-dialog-centered" role="document">' +
+                            '<div class="modal-content border-danger">' +
+                                '<div class="modal-header bg-danger text-white">' +
+                                    '<h5 class="modal-title" id="dashboardDelayedBatchNoticeModalLabel">Delayed batch notice</h5>' +
+                                '</div>' +
+                                '<div class="modal-body">' +
+                                    '<p class="mb-3">The following class has been marked late:</p>' +
+                                    '<div class="table-responsive">' +
+                                        '<table class="table table-sm table-bordered mb-0">' +
+                                            '<thead><tr><th>Batch</th><th>Penalty</th><th>Fine</th><th>Time</th></tr></thead>' +
+                                            '<tbody></tbody>' +
+                                        '</table>' +
+                                    '</div>' +
+                                    '<p class="mb-0 mt-3 text-muted small">This notice will be shown only once. You can see the details later in your report.</p>' +
+                                '</div>' +
+                                '<div class="modal-footer">' +
+                                    '<button type="button" class="btn btn-primary w-100" id="dashboardDelayedBatchConfirmBtn">OK, understood</button>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+
+                notices.forEach(function(notice) {
+                    $('<tr>')
+                        .append($('<td>').text(notice.batch_name || 'N/A'))
+                        .append($('<td>').text(notice.penalty_type || 'LATE'))
+                        .append($('<td>').text(notice.fine || 'INR 150.00'))
+                        .append($('<td>').text(notice.time || 'N/A'))
+                        .appendTo($modal.find('tbody'));
+                });
+
+                $modal.appendTo('body');
+
+                $modal.find('#dashboardDelayedBatchConfirmBtn').on('click', function() {
+                    $.ajax({
+                        url: acknowledgeUrl,
+                        type: 'POST',
+                        data: {
+                            _token: $('meta[name=csrf-token]').attr('content'),
+                            delayed_batch_ids: delayedBatchIds
+                        },
+                        complete: function() {
+                            hideDashboardDelayedBatchNotice($modal);
+                        }
+                    });
+                });
+
+                setTimeout(function() {
+                    if ($.fn.modal) {
+                        $modal.modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true
+                        });
+                        return;
+                    }
+
+                    if (window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance($modal[0], {
+                            backdrop: 'static',
+                            keyboard: false
+                        }).show();
+                    }
+                }, 350);
+            }
+
+            function hideDashboardDelayedBatchNotice($modal) {
+                if ($.fn.modal) {
+                    $modal.modal('hide');
+                    return;
+                }
+
+                if (window.bootstrap && bootstrap.Modal) {
+                    bootstrap.Modal.getOrCreateInstance($modal[0]).hide();
+                }
+            }
 
             function initDelayedBatchPopup() {
                 var $modal = $('#delayedBatchNoticeModal');

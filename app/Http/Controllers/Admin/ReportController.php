@@ -155,13 +155,9 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate])
             ->count();
 
-        $delayedBatchesCount = DelayedBatch::where('coach_id', $coachId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->count();
-
-        $delayedBatchesFineTotal = DelayedBatch::where('coach_id', $coachId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->sum('fine_amount');
+        $delayedBatchRows = $this->finalDelayedBatchRows($coachId, $startDate, $endDate);
+        $delayedBatchesCount = $delayedBatchRows->count();
+        $delayedBatchesFineTotal = $delayedBatchRows->sum('fine_amount');
 
         // Return the view with the calculated data
         return view('Admin.CoachReports.getcount', compact('completedDemosCount', 'completedBatchesCount', 'approvedLeavesCount', 'totalStudentsBatchesCount', 'coachId', 'startDate', 'endDate', 'masterclassCount', 'coverupclassCount', 'oneToOneClassCount', 'delayedBatchesCount', 'delayedBatchesFineTotal'));
@@ -410,11 +406,7 @@ class ReportController extends Controller
             return response()->json(['message' => 'Invalid parameters'], 400);
         }
 
-        $delayedBatchData = DelayedBatch::where('coach_id', $coachId)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->orderByDesc('date')
-            ->orderByDesc('id')
-            ->get()
+        $delayedBatchData = $this->finalDelayedBatchRows($coachId, $startDate, $endDate)
             ->map(function (DelayedBatch $row) {
                 $country = $row->country;
                 $countryStr = is_array($country) ? implode(', ', array_filter($country)) : (string) $country;
@@ -445,6 +437,32 @@ class ReportController extends Controller
             'startDate'        => $startDate,
             'endDate'          => $endDate,
         ]);
+    }
+
+    private function finalDelayedBatchRows($coachId, $startDate, $endDate)
+    {
+        return DelayedBatch::where('coach_id', $coachId)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy(function (DelayedBatch $row) {
+                $date = $row->date ? Carbon::parse($row->date)->toDateString() : '';
+                return implode('|', [
+                    $row->batch_id,
+                    $date,
+                    $row->batchschedule_id ?: 'legacy',
+                ]);
+            })
+            ->map(function ($rows) {
+                return $rows
+                    ->sortByDesc(function (DelayedBatch $row) {
+                        return (($row->penalty_type === 'CANCELLED' ? 1 : 0) * 1000000000) + (int) $row->id;
+                    })
+                    ->first();
+            })
+            ->sortByDesc(fn (DelayedBatch $row) => optional($row->date)->timestamp ?? 0)
+            ->values();
     }
 
     public function batchCompletedData(Request $request)

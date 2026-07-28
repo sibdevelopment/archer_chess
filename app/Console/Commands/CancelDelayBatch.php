@@ -42,6 +42,11 @@ class CancelDelayBatch extends Command
             $lateTime = $scheduledStart->copy()->addMinutes(3);
             $cutoffTime = $scheduledStart->copy()->addMinutes(8);
             $batchId = $schedule->batch_id;
+            $delayedBatchKey = [
+                'batch_id' => $batchId,
+                'batchschedule_id' => $schedule->id,
+                'date' => $date,
+            ];
             
             $coverupExists = \App\Models\Coverupclass::where('batchschedule_id', $schedule->id)
                 ->where('date', $date)
@@ -65,30 +70,34 @@ class CancelDelayBatch extends Command
                     continue;
                 }
 
-                DelayedBatch::updateOrCreate(
-                    [
-                        'batch_id' => $batchId,
-                        'date' => $date,
-                    ],
-                    [
-                        'coach_id' => $batch->coach_id,
-                        'time' => $now->format('H:i:s'),
-                        'batch_name' => $batch->name,
-                        'country' => $batch->country,
-                        'batch_status' => $batch->status,
-                        'level_name' => optional($batch->level)->name,
-                        'timeline' => sprintf(
-                            'Scheduled start: %s | Marked late at: %s',
-                            $scheduledStart->format('d-M-Y h:i:s A'),
-                            $now->format('d-M-Y h:i:s A')
-                        ),
-                        'penalty_type' => 'LATE',
-                        'fine_amount' => 150,
-                        'fine_currency' => 'INR',
-                        'canceled_date' => null,
-                        'canceled_time' => null,
-                    ]
-                );
+                $cancelledPenaltyExists = DelayedBatch::where($delayedBatchKey)
+                    ->where('penalty_type', 'CANCELLED')
+                    ->exists();
+
+                if (! $cancelledPenaltyExists) {
+                    DelayedBatch::updateOrCreate(
+                        $delayedBatchKey,
+                        [
+                            'coach_id' => $batch->coach_id,
+                            'time' => $now->format('H:i:s'),
+                            'batch_name' => $batch->name,
+                            'country' => $batch->country,
+                            'batch_status' => $batch->status,
+                            'level_name' => optional($batch->level)->name,
+                            'timeline' => sprintf(
+                                'Scheduled start: %s | Marked late at: %s',
+                                $scheduledStart->format('d-M-Y h:i:s A'),
+                                $now->format('d-M-Y h:i:s A')
+                            ),
+                            'penalty_type' => 'LATE',
+                            'fine_amount' => 150,
+                            'fine_currency' => 'INR',
+                            'late_popup_acknowledged_at' => null,
+                            'canceled_date' => null,
+                            'canceled_time' => null,
+                        ]
+                    );
+                }
             }
 
             if ($now->greaterThanOrEqualTo($cutoffTime)) {
@@ -185,11 +194,12 @@ class CancelDelayBatch extends Command
                             'status' => 'CANCELLED',
                         ]);
 
+                        DelayedBatch::where($delayedBatchKey)
+                            ->where('penalty_type', 'LATE')
+                            ->delete();
+
                         DelayedBatch::updateOrCreate(
-                            [
-                                'batch_id' => $batchId,
-                                'date' => $date,
-                            ],
+                            $delayedBatchKey,
                             [
                                 'coach_id' => $batch->coach_id,
                                 'coach_attendance_id' => $coachAttendance->id,
@@ -208,6 +218,7 @@ class CancelDelayBatch extends Command
                                 'penalty_type' => 'CANCELLED',
                                 'fine_amount' => 350,
                                 'fine_currency' => 'INR',
+                                'late_popup_acknowledged_at' => null,
                             ]
                         );
 

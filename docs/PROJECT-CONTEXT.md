@@ -580,6 +580,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - SuperAdmin still sees top summary counts for Total Active Coaches and Total Active Employees; those are counts only, not dashboard tabs/lists.
 - Dashboard Batches tab is visible by `batchs-view` (Admin/SuperAdmin always visible), and non-admin/CRE users see only batches matching their assigned role countries; batch coach/student filter dropdowns follow the same region scope.
 - Dashboard Student Payments and Payment Report tabs use dedicated Dashboard permissions (`dashboard-student-payments-view`, `dashboard-payment-report-view`); when visible for non-admin roles, both today's payments and report filters are restricted to the user's assigned countries.
+- Dashboard Student Payments shows today's payments with a status filter; default status is `captured`, while All Status can be selected to include created/failed/other order statuses.
 - Dashboard Students/Missed Sessions tabs follow `students-view`; their AJAX endpoints return no data if permission is missing.
 ```
 

@@ -241,15 +241,15 @@
     <!-- ------------------------------------------------------------------------------------------ :: -->
 
     @if (isset($pendingDelayedBatchNotices) && $pendingDelayedBatchNotices->isNotEmpty())
-        <div class="modal fade" id="delayedBatchNoticeModal" tabindex="-1"
-            aria-labelledby="delayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static"
+        <div class="modal fade" id="dashboardDelayedBatchNoticeModal" tabindex="-1"
+            aria-labelledby="dashboardDelayedBatchNoticeModalLabel" aria-hidden="true" data-bs-backdrop="static"
             data-bs-keyboard="false" style="z-index: 1060;"
             data-delayed-batch-ids='@json($pendingDelayedBatchNotices->pluck('id')->values())'
             data-ack-url="{{ route('admin.dashboard.delayed-batch-notice.acknowledge') }}">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content border-danger">
                     <div class="modal-header bg-danger text-white">
-                        <h5 class="modal-title" id="delayedBatchNoticeModalLabel">Delayed batch notice</h5>
+                        <h5 class="modal-title" id="dashboardDelayedBatchNoticeModalLabel">Delayed batch notice</h5>
                     </div>
                     <div class="modal-body">
                         <p class="mb-3">The following class has been marked late:</p>
@@ -279,11 +279,65 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary w-100"
-                            id="delayedBatchConfirmBtn">OK, understood</button>
+                            id="dashboardDelayedBatchConfirmBtn">OK, understood</button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <script>
+            $(document).ready(function() {
+                var $dashboardLateModal = $('#dashboardDelayedBatchNoticeModal');
+
+                function acknowledgeDashboardDelayedBatches(callback) {
+                    $.ajax({
+                        url: $dashboardLateModal.data('ack-url'),
+                        type: 'POST',
+                        data: {
+                            _token: $('meta[name=csrf-token]').attr('content'),
+                            delayed_batch_ids: $dashboardLateModal.data('delayed-batch-ids')
+                        },
+                        complete: function() {
+                            if (typeof callback === 'function') {
+                                callback();
+                            }
+                        }
+                    });
+                }
+
+                $dashboardLateModal.appendTo('body');
+                $dashboardLateModal.find('#dashboardDelayedBatchConfirmBtn').on('click', function() {
+                    acknowledgeDashboardDelayedBatches(function() {
+                        if ($.fn.modal) {
+                            $dashboardLateModal.modal('hide');
+                            return;
+                        }
+
+                        if (window.bootstrap && bootstrap.Modal) {
+                            bootstrap.Modal.getOrCreateInstance($dashboardLateModal[0]).hide();
+                        }
+                    });
+                });
+
+                setTimeout(function() {
+                    if ($.fn.modal) {
+                        $dashboardLateModal.modal({
+                            backdrop: 'static',
+                            keyboard: false,
+                            show: true
+                        });
+                        return;
+                    }
+
+                    if (window.bootstrap && bootstrap.Modal) {
+                        bootstrap.Modal.getOrCreateInstance($dashboardLateModal[0], {
+                            backdrop: 'static',
+                            keyboard: false
+                        }).show();
+                    }
+                }, 350);
+            });
+        </script>
     @endif
 
     <script src="/backend/dist/libs/fullcalendar/index.global.min.js"></script>

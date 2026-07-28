@@ -1986,6 +1986,7 @@ class DashboardController extends Controller
         $levels   = Level::where('status', 'ACTIVE')->get();
         $coaches  = $coachQuery->get();
         $students = $studentsQuery->get();
+        $studentPaymentStatus = $request->input('student_payment_status', 'captured');
 
         $studentPaymentsQuery = Order::with(['student', 'studentFee'])
             ->whereDate('created_at', now()->toDateString())
@@ -2002,8 +2003,15 @@ class DashboardController extends Controller
             $studentPaymentsQuery->whereRaw('1 = 0');
         }
 
+        if ($studentPaymentStatus !== '') {
+            $studentPaymentsQuery->where('status', $studentPaymentStatus);
+        }
+
         if (! $canViewPaymentReport) {
             $paymentReportQuery->whereRaw('1 = 0');
+        }
+
+        if (! $canViewPaymentReport && ! $canViewStudentPayments) {
             $paymentReportStatusesQuery->whereRaw('1 = 0');
         }
 
@@ -2019,7 +2027,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'studentPaymentStatus', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)

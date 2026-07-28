@@ -91,10 +91,15 @@
                     $canViewPaymentReport ? 'payment_report' : null,
                 ])->filter()->values();
 
-                $activeDashboardTab = $canViewPaymentReport && (request()->has('payment_report_date') || request()->has('payment_report_status'))
-                    ? 'payment_report'
-                    : ($dashboardTabs->first() ?? '');
+                if ($canViewPaymentReport && (request()->has('payment_report_date') || request()->has('payment_report_status'))) {
+                    $activeDashboardTab = 'payment_report';
+                } elseif ($canViewStudentPayments && request()->has('student_payment_status')) {
+                    $activeDashboardTab = 'student_payments';
+                } else {
+                    $activeDashboardTab = $dashboardTabs->first() ?? '';
+                }
 
+                $studentPaymentStatus = $studentPaymentStatus ?? request('student_payment_status', 'captured');
                 $paymentReportDateRange = request('payment_report_date', now()->format('m/d/Y') . ' - ' . now()->format('m/d/Y'));
                 $paymentReportStatus = request('payment_report_status', '');
 
@@ -445,12 +450,28 @@
         @if ($canViewStudentPayments)
             <div class="tab-pane fade {{ $activeDashboardTab === 'student_payments' ? 'show active' : '' }}" id="pills-payment" role="tabpanel" aria-labelledby="pills-payment-tab"
                 tabindex="0">
-                {{-- <div class="d-sm-flex align-items-center justify-content-between mt-3 mb-4">
-                    <h4 class="mb-3 mb-sm-0 fw-semibold d-flex align-items-center">Student Payments </h4>
-                </div> --}}
-                @php
-                    // dd($student_payments);
-                @endphp
+                <div class="card w-100 position-relative overflow-hidden">
+                    <div class="card-header px-4 py-3 border-bottom">
+                        <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
+                            <div class="col-md-7">
+                                <h5 class="card-title fw-semibold mb-0 lh-sm">Student Payments</h5>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="student_payment_status" class="form-select form-select-sm pure-white">
+                                    <option value="" {{ $studentPaymentStatus === '' ? 'selected' : '' }}>All Status</option>
+                                    @foreach ($paymentReportStatuses as $status)
+                                        <option value="{{ $status }}" {{ $studentPaymentStatus === $status ? 'selected' : '' }}>
+                                            {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                 <div class="row">
                     @foreach ($student_payments as $student_payment)
                         <div class="col-sm-6 col-lg-4">

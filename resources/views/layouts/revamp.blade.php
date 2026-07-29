@@ -1220,6 +1220,8 @@
                                     <option value="SINGAPORE">Singapore</option>
                                     <option value="SOUTH AFRICA">South Africa</option>
                                     <option value="QATAR">Qatar</option>
+                                    <option value="EUROPEAN UNION">European Union</option>
+                                    <option value="OMAN">Oman</option>
                                     <option value="BAHRAIN">Bahrain</option>
                                     <option value="KUWAIT">Kuwait</option>
                                 </select>
@@ -1794,6 +1796,8 @@
                 'SINGAPORE': ['Singapore Standard Time'],
                 'SOUTH AFRICA': ['South Africa Standard Time'],
                 'QATAR': ['Arabian Standard Time'],
+                'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
+                'OMAN': ['Arabian Standard Time'],
                 'BAHRAIN': ['Arabian Standard Time'],
                 'KUWAIT': ['Arabian Standard Time']
             };
@@ -1809,6 +1813,8 @@
                 'SINGAPORE': '+65',
                 'SOUTH AFRICA': '+27',
                 'QATAR': '+974',
+                'EUROPEAN UNION': '+358',
+                'OMAN': '+968',
                 'BAHRAIN': '+973',
                 'KUWAIT': '+965'
             };

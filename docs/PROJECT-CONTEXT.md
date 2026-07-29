@@ -632,6 +632,13 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - New Enrollment manage now has an additional batch start-date range filter, separate from the enrollment created-date range filter.
 ```
 
+## Batch Standby / Reassignment Notes
+
+```text
+- Batch master active-student badge uses today eligibility for live ACTIVE batches, but STANDBY batches show assigned active student rows so ended batches do not display as empty.
+- Reassigned/versioned batches ignore both the current new batch id and confirm_reassign_batch_id during coach availability validation, preventing the previous STANDBY version from blocking the same coach/timing reassignment.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

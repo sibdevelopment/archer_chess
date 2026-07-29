@@ -78,7 +78,7 @@ class CoachAvailabilityService
         return $this->ok();
     }
 
-    public function validateCoachForBatchAssignment(int $coachId, array $schedules, string $startDate, string $endDate, ?int $currentBatchId = null, array $countries = []): array
+    public function validateCoachForBatchAssignment(int $coachId, array $schedules, string $startDate, string $endDate, ?int $currentBatchId = null, array $countries = [], array $extraIgnoredBatchIds = []): array
     {
         $coach = Coach::find($coachId);
         if (!$coach || $coach->status !== 'ACTIVE') {
@@ -107,7 +107,8 @@ class CoachAvailabilityService
                     [],
                     'batch',
                     $currentBatchId,
-                    false
+                    false,
+                    $extraIgnoredBatchIds
                 );
 
                 if (!$validation['ok']) {
@@ -127,7 +128,8 @@ class CoachAvailabilityService
         array $countries = [],
         ?string $ignoreType = null,
         ?int $ignoreId = null,
-        bool $useMidJoinerWindowForBatchConflict = true
+        bool $useMidJoinerWindowForBatchConflict = true,
+        array $extraIgnoredBatchIds = []
     ): array {
         $date = Carbon::parse($date)->toDateString();
         $weekday = Carbon::parse($date)->format('l');
@@ -154,7 +156,8 @@ class CoachAvailabilityService
             $toTime,
             $date,
             $ignoreType === 'batch' ? $ignoreId : null,
-            $useMidJoinerWindowForBatchConflict
+            $useMidJoinerWindowForBatchConflict,
+            $extraIgnoredBatchIds
         );
         if ($batchConflict) {
             return $this->blocked("Coach already has reserved batch {$batchConflict->batch->name} on {$date} {$batchConflict->from_time} - {$batchConflict->to_time}.");
@@ -226,18 +229,27 @@ class CoachAvailabilityService
         string $toTime,
         ?string $date = null,
         ?int $currentBatchId = null,
-        bool $useMidJoinerWindow = false
+        bool $useMidJoinerWindow = false,
+        array $extraIgnoredBatchIds = []
     ): ?BatchSchedule
     {
+        $ignoredBatchIds = collect([$currentBatchId])
+            ->merge($extraIgnoredBatchIds)
+            ->filter()
+            ->map(fn ($batchId) => (int) $batchId)
+            ->unique()
+            ->values()
+            ->all();
+
         return BatchSchedule::with('batch')
             ->where('weekday', $weekday)
             ->where('status', 'ACTIVE')
             ->whereTime('from_time', '<', $toTime)
             ->whereTime('to_time', '>', $fromTime)
-            ->whereHas('batch', function ($query) use ($coachId, $date, $currentBatchId, $useMidJoinerWindow) {
+            ->whereHas('batch', function ($query) use ($coachId, $date, $ignoredBatchIds, $useMidJoinerWindow) {
                 $query->where('coach_id', $coachId)
                     ->whereIn('status', ['ACTIVE', 'STANDBY'])
-                    ->when($currentBatchId, fn ($q) => $q->where('id', '!=', $currentBatchId))
+                    ->when(! empty($ignoredBatchIds), fn ($q) => $q->whereNotIn('id', $ignoredBatchIds))
                     ->when($useMidJoinerWindow && $date, function ($q) use ($date) {
                         $q->whereHas('studentBatches', fn ($studentBatchQuery) => $studentBatchQuery->eligibleOn($date));
                     });

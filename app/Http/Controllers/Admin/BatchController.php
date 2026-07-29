@@ -554,23 +554,30 @@ class BatchController extends Controller
             ->editColumn('name', function ($batch) {
                 $today = Carbon::today()->toDateString();
 
-                $regularActiveCount = $batch->studentBatches()
+                $regularActiveQuery = $batch->studentBatches()
                     ->where('coach_id', $batch->coach_id)
-                    ->eligibleOn($today)
-                    ->get()
-                    ->unique('student_id')
-                    ->count();
+                    ->where('status', 'ACTIVE');
+
+                if ($batch->status !== 'STANDBY') {
+                    $regularActiveQuery->eligibleOn($today);
+                }
+
+                $regularActiveCount = $regularActiveQuery->get()->unique('student_id')->count();
 
                 $totalActiveStudentsBadge = '<span class="badge bg-warning fs-1">' .
                 $regularActiveCount . ' &nbsp; <i class="ti ti-user-shield"></i> </span>';
 
-                $lateJoinerCount = $batch->studentBatches()
+                $lateJoinerQuery = $batch->studentBatches()
                     ->where('coach_id', $batch->coach_id)
-                    ->where('status', 'ACTIVE')
-                    ->whereDate('start_date', '>', $today)
-                    ->get()
-                    ->unique('student_id')
-                    ->count();
+                    ->where('status', 'ACTIVE');
+
+                if ($batch->status !== 'STANDBY') {
+                    $lateJoinerQuery->whereDate('start_date', '>', $today);
+                }
+
+                $lateJoinerCount = $batch->status === 'STANDBY'
+                    ? 0
+                    : $lateJoinerQuery->get()->unique('student_id')->count();
 
                 $lateJoinerBadge = '<span class="badge bg-info fs-1">' . $lateJoinerCount . ' late &nbsp; <i class="ti ti-user-plus"></i> </span>';
 
@@ -991,8 +998,10 @@ class BatchController extends Controller
             ? (int) $request->input('coach_id', $batch->coach_id)
             : (int) $batch->coach_id;
 
+        $extraIgnoredBatchIds = array_filter([(int) $batch->confirm_reassign_batch_id ?: null]);
+
         $coachValidation = $batch->status !== 'UPCOMING' && $batch->start_date && $batch->end_date
-            ? $availability->validateCoachForBatchAssignment($coachId, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries)
+            ? $availability->validateCoachForBatchAssignment($coachId, $schedules, $batch->start_date, $batch->end_date, $batch->id, $countries, $extraIgnoredBatchIds)
             : $availability->validateRawBatchCoach($coachId, $countries, $schedules, $batch->id);
 
         if (!$coachValidation['ok']) {
@@ -1473,7 +1482,15 @@ class BatchController extends Controller
 
         $coachValidation = $isTransfer
             ? ['ok' => true]
-            : $availability->validateCoachForBatchAssignment((int) $coachId, $schedules, $startDate, $endDate, $batch->id, $batch->country ?? []);
+            : $availability->validateCoachForBatchAssignment(
+                (int) $coachId,
+                $schedules,
+                $startDate,
+                $endDate,
+                $batch->id,
+                $batch->country ?? [],
+                array_filter([(int) $batch->confirm_reassign_batch_id ?: null])
+            );
         if (!$coachValidation['ok']) {
             return response()->json([
                 'message' => 'Selected coach is not available.',

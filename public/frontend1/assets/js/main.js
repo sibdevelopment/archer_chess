@@ -66,13 +66,17 @@
 
     // ========================== add active class to navbar menu current page Js Start =====================
     function dynamicActiveMenuClass(selector) {
-      let FileName = window.location.pathname.split("/").reverse()[0];
+      if (selector.find(".activePage").length) {
+        return;
+      }
+
+      let currentPath = window.location.pathname.replace(/\/+$/, "") || "/";
 
       // If we are at the root path ("/" or no file name), keep the activePage class on the Home item
-      if (FileName === "" || FileName === "index.html") {
+      if (currentPath === "/" || currentPath === "/index.html") {
         // Keep the activePage class on the Home link
         selector
-          .find("li.nav-menu__item.has-submenu")
+          .find("li.nav-menu__item")
           .eq(0)
           .addClass("activePage");
       } else {
@@ -82,7 +86,13 @@
         // Add activePage class to the correct li based on the current URL
         selector.find("li").each(function () {
           let anchor = $(this).find("a");
-          if ($(anchor).attr("href") == FileName) {
+          let href = $(anchor).attr("href");
+          if (!href || href === "javascript:void(0)") {
+            return;
+          }
+
+          let linkPath = new URL(href, window.location.origin).pathname.replace(/\/+$/, "") || "/";
+          if (linkPath === currentPath) {
             $(this).addClass("activePage");
           }
         });

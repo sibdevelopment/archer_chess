@@ -735,7 +735,7 @@ function getTimezones()
             'Arabian Standard Time' => 'Arabian Standard Time',
         ],
         'OMAN'   => [
-            'Arabian Standard Time' => 'Arabian Standard Time',
+            'Gulf Standard Time' => 'Gulf Standard Time',
         ],
     ];
 }

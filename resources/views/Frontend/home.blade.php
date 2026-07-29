@@ -2413,7 +2413,7 @@
             'BAHRAIN': ['Arabian Standard Time'],
             'KUWAIT': ['Arabian Standard Time'],
             'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
-            'OMAN': ['Arabian Standard Time']
+            'OMAN': ['Gulf Standard Time']
         };
 
 

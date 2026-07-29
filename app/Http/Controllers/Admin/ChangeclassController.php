@@ -11,7 +11,6 @@ use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\Changeclass;
 use App\Models\StudentBatch;
-use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -130,9 +129,8 @@ class ChangeclassController extends Controller
     {
         $user           = auth()->user();
         $batches        = Batch::get();
-        $payment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
         $employees      = Employee::get();
-        return view('Admin.ChangeClass.index', compact('user', 'batches', 'payment_levels', 'employees'));
+        return view('Admin.ChangeClass.index', compact('user', 'batches', 'employees'));
     }
 
     public function data(Request $request)
@@ -163,12 +161,6 @@ class ChangeclassController extends Controller
             $query->where('batch_id', $request->batch_id);
         }
 
-        if ($request->filled('payment_level_id')) {
-            $query->whereHas('student', function ($q) use ($request) {
-                $q->where('lastpayment_level_id', $request->payment_level_id);
-            });
-        }
-
         if ($request->filled('start_date')) {
             $query->where('start_date', '=', $request->start_date);
         }
@@ -188,13 +180,6 @@ class ChangeclassController extends Controller
             })
             ->editColumn('country', function ($change_class) {
                 return $change_class->student->country;
-            })
-            ->editColumn('payment_level', function ($change_class) {
-                if ($change_class->student->lastpayment_level_id == null) {
-                    return 'N/A';
-                }
-                $lastpayment_level = Paymentlevel::find($change_class->student->lastpayment_level_id);
-                return $lastpayment_level->name;
             })
             ->editColumn('batch', function ($change_class) {
                 if ($change_class->batch_id == null) {
@@ -284,7 +269,7 @@ class ChangeclassController extends Controller
             })
 
             ->addIndexColumn()
-            ->rawColumns(['name', 'mobile', 'email', 'country', 'action', 'student_id', 'payment_level', 'batch', 'employee', 'start_date', 'end_date', 'fees', 'received_fees', 'currency', 'remark'])
+            ->rawColumns(['name', 'mobile', 'email', 'country', 'action', 'student_id', 'batch', 'employee', 'start_date', 'end_date', 'fees', 'received_fees', 'currency', 'remark'])
             ->setRowId('id')
             ->make(true);
     }
@@ -359,7 +344,7 @@ class ChangeclassController extends Controller
                 // 'end_date'      => 'required|date|after_or_equal:start_date',
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
-                'currency'      => 'required',
+                'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'nullable',
             ], [
                 'employee_ids.required'     => 'Please select a Employee.',
@@ -411,7 +396,7 @@ class ChangeclassController extends Controller
                 'receive_date' => 'required|date',
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
-                'currency'      => 'required',
+                'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'required',
             ], [
                 'employee_ids.required'     => 'Please select a Employee.',

@@ -176,7 +176,7 @@ class StudentFeeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate($this->rules, $this->customMessages);
+        $request->validate($this->rules(), $this->customMessages);
 
         $activeFeeExists = StudentFee::where('student_id', $request->student_id)
             ->orderBy('end_date', 'desc')
@@ -319,7 +319,7 @@ class StudentFeeController extends Controller
     public function update(Student $student, Request $request, StudentFee $student_fee)
     {
         //dd($request->all());
-        $request->validate($this->rules, $this->customMessages);
+        $request->validate($this->rules(), $this->customMessages);
         $student_fee->fill($request->all());
         $today = Carbon::today();
         $endDate = Carbon::parse($request->input('end_date'));
@@ -413,15 +413,18 @@ class StudentFeeController extends Controller
         }
     }
 
-    private $rules = [
-        'student_id' => 'required',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'receive_date' => 'required|date',
-        'currency' => 'required|string',
-        'monthly_fees' => 'required|numeric|min:0',
-        'total_amount_paid' => 'required|numeric|min:0',
-    ];
+    private function rules(): array
+    {
+        return [
+            'student_id' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'receive_date' => 'required|date',
+            'currency' => 'required|string|in:' . implode(',', availableCurrencyCodes()),
+            'monthly_fees' => 'required|numeric|min:0',
+            'total_amount_paid' => 'required|numeric|min:0',
+        ];
+    }
 
     private $customMessages = [
         'student_id.required' => 'StudentFee ID is required',

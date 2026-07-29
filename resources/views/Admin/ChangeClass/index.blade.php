@@ -58,16 +58,6 @@
                                         </select>
                                     </div>
                                     <div class="col-3 d-flex justify-content-end">
-                                        <select class="form-control select2" name="payment_level_id" id="payment_level_id">
-                                            <option value="">Select a Payment Level</option>
-                                            @foreach ($payment_levels as $payment_level)
-                                                <option value="{{ $payment_level->id }}">
-                                                    {{ $payment_level->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="col-3 d-flex justify-content-end">
                                         <input type="date" class="form-control" name="start_date" id="start_date">
                                     </div>
                                 </div>
@@ -102,9 +92,6 @@
                                         </th>
                                         <th width="5%">
                                             <h6 class="fs-3 fw-semibold mb-0">Country</h6>
-                                        </th>
-                                        <th width="5%">
-                                            <h6 class="fs-3 fw-semibold mb-0">Payment Level</h6>
                                         </th>
                                         <th width="5%">
                                             <h6 class="fs-3 fw-semibold mb-0">Batch</h6>
@@ -161,7 +148,6 @@
                     data: function(d) {
                         d._token = $('meta[name="csrf-token"]').attr('content');
                         d.batch_id = $('#batch_id').val();
-                        d.payment_level_id = $('#payment_level_id').val();
                         d.start_date = $('#start_date').val();
                         d.employee_id = $('#employee_id').val();
                     }
@@ -194,11 +180,6 @@
                     },
                     {
                         data: 'country',
-                        name: 'changeclasses.id',
-                        orderable: false
-                    },
-                    {
-                        data: 'payment_level',
                         name: 'changeclasses.id',
                         orderable: false
                     },
@@ -258,9 +239,6 @@
             $(".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel").addClass(
                 "btn btn-primary mr-1");
             $('#batch_id').on('change', function() {
-                dataTable.ajax.reload(null, false);
-            });
-            $('#payment_level_id').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
             $('#start_date').on('change', function() {

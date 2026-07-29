@@ -122,21 +122,21 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-2 d-flex justify-content-end">
-                                        <select class="form-control select2" name="payment_level_id" id="payment_level_id">
-                                            <option value="">Select a Payment Level</option>
-                                            @foreach ($payment_levels as $payment_level)
-                                                <option value="{{ $payment_level->id }}">
-                                                    {{ $payment_level->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
                                     <div class="col-3 d-flex justify-content-end">
                                         <div class="input-group">
                                             <input name="start_date" id="start_date" type="text"
                                                 class="form-control daterange" value=""
-                                                placeholder="Select a start date range" />
+                                                placeholder="Select enrollment date range" />
+                                            <span class="input-group-text">
+                                                <i class="ti ti-calendar fs-5"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-3 d-flex justify-content-end">
+                                        <div class="input-group">
+                                            <input name="batch_start_date" id="batch_start_date" type="text"
+                                                class="form-control daterange" value=""
+                                                placeholder="Select batch start date range" />
                                             <span class="input-group-text">
                                                 <i class="ti ti-calendar fs-5"></i>
                                             </span>
@@ -172,9 +172,6 @@
                                         </th>
                                         <th width="5%">
                                             <h6 class="fs-3 fw-semibold mb-0">Country</h6>
-                                        </th>
-                                        <th width="5%">
-                                            <h6 class="fs-3 fw-semibold mb-0">Payment Level</h6>
                                         </th>
                                         <th width="5%">
                                             <h6 class="fs-3 fw-semibold mb-0">Batch</h6>
@@ -227,6 +224,7 @@
             });
             $('#date').val('');
             $('#start_date').val('');
+            $('#batch_start_date').val('');
         });
         $(function() {
             var dataTable = $('#datatable').DataTable({
@@ -243,8 +241,8 @@
                     data: function(d) {
                         d._token = $('meta[name="csrf-token"]').attr('content');
                         d.batch_id = $('#batch_id').val();
-                        d.payment_level_id = $('#payment_level_id').val();
                         d.start_date = $('#start_date').val();
+                        d.batch_start_date = $('#batch_start_date').val();
                         d.employee_id = $('#employee_id').val();
                         d.country = $('#country').val();
                         d.created_by = $('#created_by').val();
@@ -280,11 +278,6 @@
                     {
                         data: 'country',
                         name: 'students.country',
-                        orderable: false
-                    },
-                    {
-                        data: 'payment_level',
-                        name: 'payment_level',
                         orderable: false
                     },
                     {
@@ -355,10 +348,10 @@
             $('#batch_id').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
-            $('#payment_level_id').on('change', function() {
+            $('#start_date').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
-            $('#start_date').on('change', function() {
+            $('#batch_start_date').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
             $('#employee_id').on('change', function() {

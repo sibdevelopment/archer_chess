@@ -677,7 +677,7 @@ Archer Chess Academy";
             'receive_date' => 'required|date',
             'fees'          => 'required|numeric|min:0',
             'received_fees' => 'required|numeric|min:0',
-            'currency'      => 'required',
+            'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
             'remark'        => 'required',
         ];
         $this->customMessages = [

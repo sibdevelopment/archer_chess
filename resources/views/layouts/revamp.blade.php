@@ -808,7 +808,7 @@
                                 </li>
                             </ul>
                         </li>
-                        <li class="nav-menu__item has-submenu position-relative {{ Route::is('about', 'gallery') ? 'activePage' : '' }}">
+                        <li class="nav-menu__item has-submenu position-relative {{ Route::is('about', 'gallery', 'event') ? 'activePage' : '' }}">
                             <a href="{{ route('about') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">About</a>
                             <ul
@@ -828,6 +828,11 @@
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Gallery</a>
                                 </li>
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('event') ? 'activePage' : '' }}">
+                                    <a href="{{ route('event') }}"
+                                        class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
+                                        Events</a>
+                                </li>
                                 <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
                                     <a href="{{ route('home') }}#faq"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
@@ -843,6 +848,10 @@
                         <li class="nav-menu__item {{ Route::is('contact') ? 'activePage' : '' }}">
                             <a href="{{ route('contact') }}"
                                 class="nav-menu__link text-neutral-950 tw-py-5 fw-medium w-100">Contact</a>
+                        </li>
+                        <li class="nav-menu__item {{ Route::is('blog', 'blog.details') ? 'activePage' : '' }}">
+                            <a href="{{ route('blog') }}"
+                                class="nav-menu__link text-neutral-950 tw-py-5 fw-medium w-100">Blog</a>
                         </li>
                     </ul>
                     <!-- Nav menu End  -->
@@ -1925,6 +1934,7 @@
     <!-- main js -->
     <script src="/frontend1/assets/js/main.js"></script>
 
+    @stack('scripts')
 
 </body>
 

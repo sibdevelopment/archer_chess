@@ -614,6 +614,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Blog details description is rendered inside an auto-height iframe sourced from a template, so admin-authored blog HTML/CSS stays isolated from the revamp page header/sidebar while keeping the blog's own design.
 - Revamp header/nav JS uses .js-revamp-site-header as its scope so page-wide header/nav scripts do not mutate editor-rendered blog content.
 - Revamp homepage Meet Our Archer Kids now reads ACTIVE Meet Our Kids records instead of hardcoded child cards.
+- Revamp homepage Testimonials now read ACTIVE Testimonial master records instead of hardcoded cards; the migration seeds the current three static testimonials as initial editable records and the Blade keeps the same static cards as fallback if the table is empty.
 - Revamp homepage Latest Blogs and footer Recent Posts now read ACTIVE/home-featured Blog records instead of hardcoded post cards.
 - Revamp gallery and event pages now render ACTIVE Gallery/Gallery Image and Event master records; /design preview routes use the same dynamic data.
 - Revamp upload validation ratios: Meet Our Tutors 4:5 portrait, Gallery Images 1:1 square, Blogs 16:9, Events 16:9; Meet Our Kids already requires 304x304 square.

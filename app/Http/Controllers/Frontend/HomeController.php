@@ -18,6 +18,7 @@ use App\Models\Timezone;
 use App\Mail\EnquiryMail;
 use App\Models\MeetOurKid;
 use App\Models\StudentFee;
+use App\Models\Testimonial;
 use App\Models\DemoSession;
 use App\Models\Coverupclass;
 use App\Models\LeaveRequest;
@@ -50,8 +51,9 @@ class HomeController extends Controller
         $blogs = Blog::where('home_featured', 'ACTIVE')->take(6)->orderBy('date', 'desc')->get();
         $meetourkids = MeetOurKid::where('status', 'ACTIVE')->get();
         $meetourtutors = MeetOurTutor::where('status', 'ACTIVE')->orderBy('id', 'desc')->get();
+        $testimonials = Testimonial::where('status', 'ACTIVE')->orderBy('display_order')->orderByDesc('id')->get();
 
-        return view('Frontend.Design.home', compact('country', 'blogs', 'meetourkids', 'meetourtutors'));
+        return view('Frontend.Design.home', compact('country', 'blogs', 'meetourkids', 'meetourtutors', 'testimonials'));
     }
 
     public function newHome()
@@ -59,8 +61,9 @@ class HomeController extends Controller
         $blogs = Blog::where('home_featured', 'ACTIVE')->take(6)->orderBy('date', 'desc')->get();
         $meetourkids = MeetOurKid::where('status', 'ACTIVE')->get();
         $meetourtutors = MeetOurTutor::where('status', 'ACTIVE')->orderBy('id', 'desc')->get();
+        $testimonials = Testimonial::where('status', 'ACTIVE')->orderBy('display_order')->orderByDesc('id')->get();
 
-        return view('Frontend.Design.home', compact('blogs', 'meetourkids', 'meetourtutors'));
+        return view('Frontend.Design.home', compact('blogs', 'meetourkids', 'meetourtutors', 'testimonials'));
     }
     public function newAbout()
     {

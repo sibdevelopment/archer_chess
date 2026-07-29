@@ -1056,138 +1056,79 @@
                             data-aos-delay="200">Our success comes from the happiness and <br> growth of our students.</h2>
                     </div>
 
+                    @php
+                        $testimonialCards = isset($testimonials) && $testimonials->isNotEmpty()
+                            ? $testimonials
+                            : collect([
+                                (object) [
+                                    'name' => 'John Smith',
+                                    'designation' => 'Student Father',
+                                    'review' => 'My Sanchi has been Learning Chess with ACA since she was 6 years and won Mumbai District Championship Under 6 Category. She has also won so many tournaments in his category and the interschool Chess Championship 2022, all thanks to ACA! Now She is preparing for Fide Rated Tournament, and ACA gives all details of the official tournament and guides from time to time.',
+                                    'rating' => 5,
+                                    'image' => '/frontend1/assets/images/thumbs/testimonial-img1.png',
+                                    'card_class' => 'bg-main-600',
+                                ],
+                                (object) [
+                                    'name' => 'William John',
+                                    'designation' => 'Student Father',
+                                    'review' => 'The instructors have been incredibly knowledgeable and skilled, and they have done an amazing job of conveying their expertise in a way that is easy to understand and follow. The lessons are well-planned and organized, and the materials provided are informative and helpful.',
+                                    'rating' => 5,
+                                    'image' => '/frontend1/assets/images/thumbs/testimonial-img2.png',
+                                    'card_class' => 'bg-pink-600',
+                                ],
+                                (object) [
+                                    'name' => 'Michel Smith',
+                                    'designation' => 'Student Father',
+                                    'review' => 'My son Raghul is only 6 years, and now he has won so many tournaments in his category and wants to become Grandmaster, all thanks to ACA! Regular classes, practice tournaments, and a structured curriculum is the opportunity to approach learning chess in the best way possible.',
+                                    'rating' => 5,
+                                    'image' => '/frontend1/assets/images/thumbs/testimonial-img3.png',
+                                    'card_class' => 'bg-main-two-600',
+                                ],
+                            ]);
+                        $testimonialCardClasses = ['bg-main-600', 'bg-pink-600', 'bg-main-two-600'];
+                    @endphp
+
                     <div class="swiper testimonial-swiper-slider">
                         <div class="swiper-wrapper">
-                            <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600"
-                                data-aos-delay="100">
-                                <div>
-                                    <div
-                                        class="tw-py-11 tw-px-10 bg-main-600 tw-rounded-top-bottom-38-px tw-mb-4 position-relative">
-                                        <ul class="d-flex align-items-center tw-gap-1 tw-mb-4">
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                        </ul>
-                                        <p class="fw-medium line-height-32-px tw-text-405 text-white">My Sanchi has been Learning Chess with ACA since she was 6 years and won
-                                            Mumbai District Championship Under 6 Category. She has also won so many
-                                            tournaments in his category and the interschool Chess Championship 2022,
-                                            all thanks to ACA! Now She is preparing for Fide Rated Tournament, and
-                                            ACA gives all details of the official tournament and guides from time to
-                                            time.</p>
-                                        <img src="/frontend1/assets/images/icon/testimonial-icon1.png"
-                                            alt="icon"
-                                            class="position-absolute bottom-0 tw-end-0 tw-mb--38-px tw-me-11">
-                                    </div>
-                                    <div class="d-flex align-items-center tw-gap-3">
-                                        <span>
-                                            <img src="/frontend1/assets/images/thumbs/testimonial-img1.png"
-                                                alt="img">
-                                        </span>
-                                        <div>
-                                            <span class="fw-bold tw-text-405 text-neutral-950 tw-mb-1 d-block ">John
-                                                Smith</span>
-                                            <span class="fw-normal tw-text-405 text-neutral-600">Student Father</span>
+                            @foreach ($testimonialCards as $testimonialIndex => $testimonial)
+                                @php
+                                    $testimonialImage = $testimonial->image ?? '';
+                                    $testimonialImageUrl = $testimonialImage && (str_starts_with($testimonialImage, '/') || str_starts_with($testimonialImage, 'http'))
+                                        ? $testimonialImage
+                                        : ($testimonialImage ? asset(Storage::url($testimonialImage)) : '/frontend1/assets/images/thumbs/testimonial-img1.png');
+                                    $testimonialCardClass = $testimonial->card_class ?: $testimonialCardClasses[$testimonialIndex % count($testimonialCardClasses)];
+                                    $testimonialRating = max(1, min(5, (int) round($testimonial->rating ?? 5)));
+                                @endphp
+                                <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600"
+                                    data-aos-delay="{{ 100 + (($testimonialIndex % 3) * 100) }}">
+                                    <div>
+                                        <div
+                                            class="tw-py-11 tw-px-10 {{ $testimonialCardClass }} tw-rounded-top-bottom-38-px tw-mb-4 position-relative">
+                                            <ul class="d-flex align-items-center tw-gap-1 tw-mb-4">
+                                                @for ($star = 1; $star <= $testimonialRating; $star++)
+                                                    <li class="tw-text-6 text-white ">
+                                                        <i class="ph-fill ph-star"></i>
+                                                    </li>
+                                                @endfor
+                                            </ul>
+                                            <p class="fw-medium line-height-32-px tw-text-405 text-white">{{ $testimonial->review }}</p>
+                                            <img src="/frontend1/assets/images/icon/testimonial-icon1.png"
+                                                alt="icon"
+                                                class="position-absolute bottom-0 tw-end-0 tw-mb--38-px tw-me-11">
+                                        </div>
+                                        <div class="d-flex align-items-center tw-gap-3">
+                                            <span>
+                                                <img src="{{ $testimonialImageUrl }}" alt="img"
+                                                    style="width: 76px; height: 76px; object-fit: cover; border-radius: 50%;">
+                                            </span>
+                                            <div>
+                                                <span class="fw-bold tw-text-405 text-neutral-950 tw-mb-1 d-block ">{{ $testimonial->name }}</span>
+                                                <span class="fw-normal tw-text-405 text-neutral-600">{{ $testimonial->designation }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600"
-                                data-aos-delay="200">
-                                <div>
-                                    <div
-                                        class="tw-py-11 tw-px-10 bg-pink-600 tw-rounded-top-bottom-38-px tw-mb-4 position-relative">
-                                        <ul class="d-flex align-items-center tw-gap-1 tw-mb-4">
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                        </ul>
-                                        <p class="fw-medium line-height-32-px tw-text-405 text-white">The instructors have been incredibly knowledgeable and skilled, and they
-                                            have done an amazing job of conveying their expertise in a way that is easy to understand and follow. The lessons are well-planned and organized, and the materials provided are informative and helpful.</p> <br/><br/>
-                                        <img src="/frontend1/assets/images/icon/testimonial-icon1.png"
-                                            alt="icon"
-                                            class="position-absolute bottom-0 tw-end-0 tw-mb--38-px tw-me-11">
-                                    </div>
-                                    <div class="d-flex align-items-center tw-gap-3">
-                                        <span>
-                                            <img src="/frontend1/assets/images/thumbs/testimonial-img2.png"
-                                                alt="img">
-                                        </span>
-                                        <div>
-                                            <span
-                                                class="fw-bold tw-text-405 text-neutral-950 tw-mb-1 d-block ">William
-                                                John</span>
-                                            <span class="fw-normal tw-text-405 text-neutral-600">Student Father</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600"
-                                data-aos-delay="300">
-                                <div>
-                                    <div
-                                        class="tw-py-11 tw-px-10 bg-main-two-600 tw-rounded-top-bottom-38-px tw-mb-4 position-relative">
-                                        <ul class="d-flex align-items-center tw-gap-1 tw-mb-4">
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                            <li class="tw-text-6 text-white ">
-                                                <i class="ph-fill ph-star"></i>
-                                            </li>
-                                        </ul>
-                                        <p class="fw-medium line-height-32-px tw-text-405 text-white">My son Raghul is only 6 years, and now he has won so many tournaments in
-                                            his category and wants to become Grandmaster, all thanks to ACA! Regular
-                                            classes, practice tournaments, and a structured curriculum is the
-                                            opportunity to approach learning chess in the best way possible.</p>
-                                        <img src="/frontend1/assets/images/icon/testimonial-icon1.png"
-                                            alt="icon"
-                                            class="position-absolute bottom-0 tw-end-0 tw-mb--38-px tw-me-11">
-                                    </div>
-                                    <div class="d-flex align-items-center tw-gap-3">
-                                        <span>
-                                            <img src="/frontend1/assets/images/thumbs/testimonial-img3.png"
-                                                alt="img">
-                                        </span>
-                                        <div>
-                                            <span class="fw-bold tw-text-405 text-neutral-950 tw-mb-1 d-block ">Michel
-                                                Smith</span>
-                                            <span class="fw-normal tw-text-405 text-neutral-600">Student Father</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

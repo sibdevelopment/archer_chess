@@ -885,6 +885,25 @@ class PermissionSeeder extends Seeder
                 ],
             ],
         ],
+        'Testimonial' => [
+            'controller' => 'Admin\TestimonialController',
+            'permissions' => [
+                'testimonials-view' => [
+                    'index',
+                    'data',
+                    'show',
+                ],
+                'testimonials-store' => [
+                    'create',
+                    'store',
+                ],
+                'testimonials-update' => [
+                    'edit',
+                    'update',
+                    'changeStatus',
+                ],
+            ],
+        ],
         'Gallery' => [
             'controller' => 'Admin\GalleryController',
             'permissions' => [
@@ -1157,10 +1176,10 @@ class PermissionSeeder extends Seeder
             'meetourtutors-store',
             'meetourtutors-update',
 
-            #MeetOurKid
-            'meetourkids-view',
-            'meetourkids-store',
-            'meetourkids-update',
+            #Testimonial
+            'testimonials-view',
+            'testimonials-store',
+            'testimonials-update',
 
             #Gallery
             'galleries-view',

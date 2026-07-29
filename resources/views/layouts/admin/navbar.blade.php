@@ -224,7 +224,7 @@
             @endcan
 
             <!-- MASTER :: -->
-            @canany(['holidays-view', 'levels-view'])
+            @canany(['holidays-view', 'levels-view', 'blogs-view', 'meetourkids-view', 'meetourtutors-view', 'testimonials-view', 'galleries-view', 'events-view'])
                 <li class="nav-small-cap mt-2">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Master </span>
@@ -323,6 +323,18 @@
                             <i class="ti ti-topology-star-3"></i>
                         </span>
                         <span class="hide-menu capitalize">Meet Our Tutors</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('testimonials-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.testimonials.*')) active @endif"
+                        href="{{ route('admin.testimonials.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="ti ti-message-star"></i>
+                        </span>
+                        <span class="hide-menu capitalize">Testimonials</span>
                     </a>
                 </li>
             @endcan

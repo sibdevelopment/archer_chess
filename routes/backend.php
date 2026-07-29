@@ -32,6 +32,7 @@ use App\Http\Controllers\Admin\TimezoneController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MeetOurKidController;
 use App\Http\Controllers\Admin\StudentFeeController;
+use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\TournamentController;
 use App\Http\Controllers\Admin\ChangeclassController;
 use App\Http\Controllers\Admin\LeadEnquiryController;
@@ -309,6 +310,11 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::resource('meet-our-tutors', MeetOurTutorController::class);
         Route::post('meet-our-tutors/data', [MeetOurTutorController::class, 'data'])->name('meet-our-tutors.data');
         Route::post('meet-our-tutors/change-status', [MeetOurTutorController::class, 'changeStatus'])->name('meet-our-tutors.change.status');
+
+        // Testimonials ------------------------------
+        Route::resource('testimonials', TestimonialController::class);
+        Route::post('testimonials/data', [TestimonialController::class, 'data'])->name('testimonials.data');
+        Route::post('testimonials/change-status', [TestimonialController::class, 'changeStatus'])->name('testimonials.change.status');
 
         // Gallery ------------------------------
         Route::resource('galleries', GalleryController::class);

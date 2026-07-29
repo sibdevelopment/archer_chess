@@ -16,6 +16,21 @@
             object-position: center top;
             display: block;
         }
+
+        .revamp-intro-video-popup {
+            max-width: 960px;
+            width: 90vw;
+            background: #000;
+            padding: 0;
+            margin: 0 auto;
+        }
+
+        .revamp-intro-video-player {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            display: block;
+            background: #000;
+        }
     </style>
 
     <!--  ======= banner section start  ======= -->
@@ -183,8 +198,8 @@
                                 </a>
                                 <div class="position-relative">
                                     <div class="d-flex align-items-center tw-gap-4 flex-wrap">
-                                        <a href="https://www.youtube.com/watch?v=MFLVmAE4cqg"
-                                            class="play-button tw-w-15 tw-h-15 border-main-two-600 border rounded-circle d-flex align-items-center justify-content-center">
+                                        <a href="#revampIntroVideo"
+                                            class="play-button intro-video-trigger tw-w-15 tw-h-15 border-main-two-600 border rounded-circle d-flex align-items-center justify-content-center">
                                             <span
                                                 class="tw-w-11 tw-h-11 bg-main-two-600 rounded-circle d-flex align-items-center justify-content-center tw-text-4 text-white">
                                                 <i class="ph-fill ph-play"></i>
@@ -200,6 +215,13 @@
             </div>
         </div>
     </section>
+
+    <div id="revampIntroVideo" class="mfp-hide revamp-intro-video-popup">
+        <video controls autoplay muted playsinline class="revamp-intro-video-player" tabindex="-1">
+            <source src="/frontend/india/images/videos/archerchess.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
 
     <!--   slider section start   -->
     <div class="pb-110 position-relative">
@@ -1756,5 +1778,33 @@
             }
         });
     </script>
+
+    @push('scripts')
+        <script>
+            $(function () {
+                $('.intro-video-trigger').magnificPopup({
+                    type: 'inline',
+                    removalDelay: 300,
+                    mainClass: 'mfp-fade',
+                    callbacks: {
+                        open: function () {
+                            const video = document.querySelector('#revampIntroVideo video');
+                            if (video) {
+                                video.currentTime = 0;
+                                video.play().catch(function () {});
+                            }
+                        },
+                        close: function () {
+                            document.querySelectorAll('.revamp-intro-video-player').forEach(function (video) {
+                                video.pause();
+                                video.currentTime = 0;
+                                video.muted = true;
+                            });
+                        }
+                    }
+                });
+            });
+        </script>
+    @endpush
 
 @endsection

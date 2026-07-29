@@ -618,6 +618,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp gallery and event pages now render ACTIVE Gallery/Gallery Image and Event master records; /design preview routes use the same dynamic data.
 - Revamp upload validation ratios: Meet Our Tutors 4:5 portrait, Gallery Images 1:1 square, Blogs 16:9, Events 16:9; Meet Our Kids already requires 304x304 square.
 - Frontend GTM coverage is standardized: revamp and old frontend layouts carry GTM head + noscript, standalone country pages now include missing GTM noscript, and the standalone India template includes GTM head + noscript.
+- Revamp header now exposes Events under About and Blog after Contact; homepage Intro-Video keeps the small CTA UI but opens the same local intro video popup used by the landing pages.
 ```
 
 Known route/test caveats from prior analysis:

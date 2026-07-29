@@ -1797,7 +1797,7 @@
                 'SOUTH AFRICA': ['South Africa Standard Time'],
                 'QATAR': ['Arabian Standard Time'],
                 'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
-                'OMAN': ['Arabian Standard Time'],
+                'OMAN': ['Gulf Standard Time'],
                 'BAHRAIN': ['Arabian Standard Time'],
                 'KUWAIT': ['Arabian Standard Time']
             };

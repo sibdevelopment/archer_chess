@@ -620,6 +620,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Frontend GTM coverage is standardized: revamp and old frontend layouts carry GTM head + noscript, standalone country pages now include missing GTM noscript, and the standalone India template includes GTM head + noscript.
 - Revamp header now exposes Events under About and Blog after Contact; homepage Intro-Video keeps the small CTA UI but opens the same local intro video popup used by the landing pages.
 - Revamp trial/register forms now include EUROPEAN UNION and OMAN with timezone/dial-code mappings; homepage testimonial videos play inline like landing pages instead of forcing fullscreen.
+- Oman timezone display is aligned with UAE as Gulf Standard Time (UTC+4) in frontend/register and ERP timezone mappings.
 ```
 
 ## Enrollment / Currency UI Notes

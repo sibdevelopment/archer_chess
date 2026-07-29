@@ -35,7 +35,10 @@ Demo Session
                             </div>
                             <div class="col-sm-6 col-md-4">
                                 <label class="control-label col-form-label">Currency</label>
-                                <input type="text" class="form-control" name="currency" value="{{ isset($student_fee) ? $student_fee->currency : '' }}" placeholder="Enter currency" />
+                                @include('Admin.partials.currency-select', [
+                                    'selected' => isset($student_fee) ? $student_fee->currency : '',
+                                    'required' => true,
+                                ])
                                 <div id="currency-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-6 col-md-4">

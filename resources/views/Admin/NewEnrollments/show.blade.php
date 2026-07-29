@@ -148,8 +148,10 @@
 
                         <div class="col-sm-12 col-md-4">
                             <label class="control-label col-form-label">Currency *</label>
-                            <input type="text" class="form-control" name="currency"
-                                value="{{ $new_enrollment->currency ?? '' }}">
+                            @include('Admin.partials.currency-select', [
+                                'selected' => $new_enrollment->currency ?? '',
+                                'required' => true,
+                            ])
                             <div id="currency-error" class="text-danger"></div>
                         </div>
 

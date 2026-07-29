@@ -622,6 +622,23 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp trial/register forms now include EUROPEAN UNION and OMAN with timezone/dial-code mappings; homepage testimonial videos play inline like landing pages instead of forcing fullscreen.
 ```
 
+## Enrollment / Currency UI Notes
+
+```text
+- Admin currency entry is now a dropdown backed by availableCurrencyCodes() for demo conversion, new enrollment details, change batch confirmation, and student fee edit.
+- Supported dropdown currencies currently mirror ERP country/payment setup: USD, CAD, AUD, NZD, INR, AED, GBP, SGD, ZAR, QAR, EUR, OMR, KWD, BHD.
+- Demo lead conversion still creates the technical student row for New Enrollment linkage, but Students master listing only shows students with fee rows so pending/unconfirmed conversions do not appear there.
+- New Enrollment and Change Batch manage screens no longer show Payment Level filter/column because that field is no longer used in those flows.
+- New Enrollment manage now has an additional batch start-date range filter, separate from the enrollment created-date range filter.
+```
+
+## Batch Standby / Reassignment Notes
+
+```text
+- Batch master active-student badge uses today eligibility for live ACTIVE batches, but STANDBY batches show assigned active student rows so ended batches do not display as empty.
+- Reassigned/versioned batches ignore both the current new batch id and confirm_reassign_batch_id during coach availability validation, preventing the previous STANDBY version from blocking the same coach/timing reassignment.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

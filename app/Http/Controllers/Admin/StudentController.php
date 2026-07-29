@@ -86,7 +86,7 @@ class StudentController extends Controller
 
         $role = $user->getRoleNames()->toArray();
         $isCoach = in_array("Coach", $role);
-        $query = Student::orderByDesc('id');
+        $query = Student::whereHas('studentFees')->orderByDesc('id');
 
         if (! $user->roles()->where('name', 'SuperAdmin')->exists()) {
             $countries = $user->roles()->pluck('countries')->flatten()->filter()->toArray();

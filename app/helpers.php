@@ -638,6 +638,26 @@ function countryDisplayName($country): string
     return $country === 'NEWZEALAND' ? 'NEW ZEALAND' : $country;
 }
 
+function availableCurrencyCodes(): array
+{
+    return [
+        'USD',
+        'CAD',
+        'AUD',
+        'NZD',
+        'INR',
+        'AED',
+        'GBP',
+        'SGD',
+        'ZAR',
+        'QAR',
+        'EUR',
+        'OMR',
+        'KWD',
+        'BHD',
+    ];
+}
+
 function getTimezones()
 {
     return [

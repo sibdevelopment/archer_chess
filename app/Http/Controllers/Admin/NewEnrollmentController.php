@@ -10,7 +10,6 @@ use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\StudentBatch;
 use App\Mail\EnrollmentMail;
-use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Models\NewEnrollment;
 use App\Exports\NewEnrollmentExport;
@@ -129,13 +128,12 @@ class NewEnrollmentController extends Controller
     {
         $user           = auth()->user();
         $batches        = Batch::all();
-        $payment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
         $employees = Employee::whereHas('user', function ($query) {
             $query->where('status', 'ACTIVE');
         })->get();
 
         $created_bys = User::whereIn('id', NewEnrollment::select('created_by')->distinct()->pluck('created_by'))->get();
-        return view('Admin.NewEnrollments.index', compact('batches', 'payment_levels', 'employees', 'user', 'created_bys'));
+        return view('Admin.NewEnrollments.index', compact('batches', 'employees', 'user', 'created_bys'));
     }
 
     public function data(Request $request)
@@ -143,15 +141,13 @@ class NewEnrollmentController extends Controller
         $query = NewEnrollment::query()
                 ->leftJoin('batchs', 'batchs.id', '=', 'new_enrollments.batch_id')
                 ->leftJoin('students', 'students.id', '=', 'new_enrollments.student_id')
-                ->leftJoin('paymentlevels', 'paymentlevels.level_id', '=', 'students.level_id')
                 ->leftJoin('employees', 'employees.id', '=', 'new_enrollments.employee_id')
                 ->leftJoin('users as employee_users', 'employee_users.id', '=', 'employees.user_id')
                 ->select([
                     'new_enrollments.*',
                     'batchs.name as batch_name',
                     'employee_users.first_name as employee_first_name',
-                    'employee_users.last_name as employee_last_name',
-                    'paymentlevels.name as payment_level_name'
+                    'employee_users.last_name as employee_last_name'
                 ])
                 ->orderBy('new_enrollments.id', 'desc');
 
@@ -188,12 +184,6 @@ class NewEnrollmentController extends Controller
             $query->where('new_enrollments.created_by', $request->created_by);
         }
 
-        if ($request->filled('payment_level_id')) {
-            $query->whereHas('student', function ($q) use ($request) {
-                $q->where('lastpayment_level_id', $request->payment_level_id);
-            });
-        }
-
         $enrollmentStatus = $request->input('enrollment_status', 'pending');
         if ($enrollmentStatus === 'pending') {
             $query->whereDoesntHave('student.studentFees');
@@ -206,6 +196,13 @@ class NewEnrollmentController extends Controller
             $startDate = Carbon::createFromFormat('m/d/Y', $startDate)->startOfDay();
             $endDate = Carbon::createFromFormat('m/d/Y', $endDate)->endOfDay();
             $query->whereBetween('new_enrollments.created_at', [$startDate, $endDate]);
+        }
+
+        if ($request->batch_start_date) {
+            [$startDate, $endDate] = explode(' - ', $request->batch_start_date);
+            $startDate = Carbon::createFromFormat('m/d/Y', trim($startDate))->toDateString();
+            $endDate = Carbon::createFromFormat('m/d/Y', trim($endDate))->toDateString();
+            $query->whereBetween('batchs.start_date', [$startDate, $endDate]);
         }
 
         return DataTables::eloquent($query)
@@ -263,20 +260,6 @@ class NewEnrollmentController extends Controller
                     $q->where('employee_users.first_name', 'like', "%{$keyword}%")
                       ->orWhere('employee_users.last_name', 'like', "%{$keyword}%");
                 });
-            })
-            ->filterColumn('payment_level', function ($query, $keyword) {
-                $query->whereHas('student', function ($q) use ($keyword) {
-                    $q->whereHas('paymentlevel', function ($q2) use ($keyword) {
-                        $q2->where('paymentlevels.name', 'like', "%{$keyword}%");
-                    });
-                });
-            })
-            ->editColumn('payment_level', function ($new_enrollment) {
-                if ($new_enrollment->student->lastpayment_level_id == null) {
-                    return 'N/A';
-                }
-                $lastpayment_level = Paymentlevel::find($new_enrollment->student->lastpayment_level_id);
-                return $lastpayment_level->name;
             })
             ->editColumn('batch', function ($new_enrollment) {
                 if ($new_enrollment->batch_id == null) {
@@ -366,7 +349,7 @@ class NewEnrollmentController extends Controller
             })
 
             ->addIndexColumn()
-            ->rawColumns(['name', 'mobile', 'email', 'country', 'action', 'student_id', 'payment_level', 'batch', 'employee', 'start_date', 'end_date', 'fees', 'received_fees', 'currency', 'remark'])
+            ->rawColumns(['name', 'mobile', 'email', 'country', 'action', 'student_id', 'batch', 'employee', 'start_date', 'end_date', 'fees', 'received_fees', 'currency', 'remark'])
             ->setRowId('id')
             ->make(true);
     }
@@ -423,7 +406,7 @@ class NewEnrollmentController extends Controller
                 'employee_ids'    => 'required', 
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
-                'currency'      => 'required',
+                'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'nullable',
             ], [
                 'employee_ids.required'     => 'Please select a Employee.',
@@ -469,7 +452,7 @@ class NewEnrollmentController extends Controller
                 'receive_date' => 'required|date',
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
-                'currency'      => 'required',
+                'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'required',
             ], [
                 'employee_ids.required'     => 'Please select a Employee.',

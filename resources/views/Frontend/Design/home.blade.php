@@ -1591,6 +1591,8 @@
                                         <option value="SINGAPORE">Singapore</option>
                                         <option value="SOUTH AFRICA">South Africa</option>
                                         <option value="QATAR">Qatar</option>
+                                        <option value="EUROPEAN UNION">European Union</option>
+                                        <option value="OMAN">Oman</option>
                                         <option value="BAHRAIN">Bahrain</option>
                                         <option value="KUWAIT">Kuwait</option>
                                     </select>
@@ -1688,13 +1690,6 @@
                 videos.forEach(v => {
                     if (v !== video) v.pause();
                 });
-
-                // Fullscreen
-                if (video.requestFullscreen) {
-                    video.requestFullscreen();
-                } else if (video.webkitRequestFullscreen) {
-                    video.webkitRequestFullscreen();
-                }
 
             });
 

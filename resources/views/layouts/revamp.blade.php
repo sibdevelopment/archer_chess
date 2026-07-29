@@ -1011,40 +1011,29 @@
                             <div>
                                 <h1 class="fw-bold text-neutral-950 h5">Recent Posts</h1>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
-                                <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
-                                    <span>
-                                        <img src="/frontend1/assets/images/thumbs/footer-img1.png" alt="img">
-                                    </span>
-                                    <div class="">
-                                        <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
-                                            <span class="tw-text-5 text-main-600 ">
-                                                <i class="ph-bold ph-calendar-dots"></i>
-                                            </span>
-                                            <span class="fw-semibold tw-text-305 text-main-600">
-                                                Jan 26, 2026
-                                            </span>
+                                @forelse(($revampFooterBlogs ?? collect()) as $footerBlog)
+                                    <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
+                                        <span class="flex-shrink-0">
+                                            <img src="{{ $footerBlog->cover_img ? asset('storage/' . $footerBlog->cover_img) : '/frontend1/assets/images/thumbs/footer-img1.png' }}"
+                                                alt="{{ $footerBlog->title }}"
+                                                style="width:72px;height:72px;object-fit:cover;border-radius:8px;">
+                                        </span>
+                                        <div class="">
+                                            <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
+                                                <span class="tw-text-5 text-main-600 ">
+                                                    <i class="ph-bold ph-calendar-dots"></i>
+                                                </span>
+                                                <span class="fw-semibold tw-text-305 text-main-600">
+                                                    {{ $footerBlog->date ? \Carbon\Carbon::parse($footerBlog->date)->format('d M, Y') : '' }}
+                                                </span>
+                                            </div>
+                                            <a href="{{ route('blog.details', $footerBlog->slug) }}"
+                                                class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">{{ \Illuminate\Support\Str::limit($footerBlog->title, 58) }}</a>
                                         </div>
-                                        <a href="javascript:void(0)"
-                                            class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">Mastering the Opening: The Archer’s Approach to the First 10 Moves</a>
                                     </div>
-                                </div>
-                                <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
-                                    <span>
-                                        <img src="/frontend1/assets/images/thumbs/footer-img2.png" alt="img">
-                                    </span>
-                                    <div class="">
-                                        <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
-                                            <span class="tw-text-5 text-main-600 ">
-                                                <i class="ph-bold ph-calendar-dots"></i>
-                                            </span>
-                                            <span class="fw-semibold tw-text-305 text-main-600">
-                                                Jan 20, 2026
-                                            </span>
-                                        </div>
-                                        <a href="javascript:void(0)"
-                                            class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">Archer Chess Academy – Building Future Grandmasters from.. </a>
-                                    </div>
-                                </div>
+                                @empty
+                                    <p class="tw-text-4 text-paragraph-600">No recent posts available.</p>
+                                @endforelse
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"

@@ -117,7 +117,7 @@ class EventController extends Controller
     public function update(Request $request, Event $event)
     {
         $this->rules['title'] = 'required|unique:events,title,' . $event->id;
-        $this->rules['image'] = 'nullable|image|max:5120'; // Make image optional for update
+        $this->rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120|dimensions:ratio=16/9';
         $request->validate($this->rules, $this->customMessages);
 
         $event->fill($request->all());
@@ -155,9 +155,9 @@ class EventController extends Controller
     }
 
     private $rules = [
-        'title' => 'required|unique:galleries,title',
+        'title' => 'required|unique:events,title',
         'link' => 'required|url',
-        'image' => 'required|image|max:5120',
+        'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120|dimensions:ratio=16/9',
         'date' => 'required|date',
         'mode' => 'required',
         'short_description' => 'required',
@@ -170,8 +170,10 @@ class EventController extends Controller
         'title.unique' => 'This event title already exists.',
         'link.required' => 'Please enter a link.',
         'image.required' => 'Please upload an image.',
-        'image.image' => 'Only image files are allowed (jpg, jpeg, png, svg, webp).',
+        'image.image' => 'Only image files are allowed.',
+        'image.mimes' => 'Only JPEG, PNG, JPG, or WEBP formats are allowed.',
         'image.max' => 'Image size should not exceed 5MB.',
+        'image.dimensions' => 'Event image ratio must be 16:9, for example 1200x675 pixels.',
         'date.required' => 'Please enter a date.',
         'mode.required' => 'Please select a mode.',
         'location.required' => 'Please enter a location.',

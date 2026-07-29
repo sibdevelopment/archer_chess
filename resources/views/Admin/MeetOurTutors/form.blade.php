@@ -35,7 +35,7 @@
                                 <div id="rating-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-6 mt-2">
-                                <label class="control-label col-form-label">Image <sup style="color:red">(Upload image size: 304×304 px)*</sup></label>
+                                <label class="control-label col-form-label">Image <sup style="color:red">(Recommended: 800×1000 px or 600×750 px, 4:5 portrait)*</sup></label>
                                 <fieldset class="form-group">
                                     <input type="file" name="image" class="form-control" id="meetourkid-image"
                                         accept="image/*"></input>

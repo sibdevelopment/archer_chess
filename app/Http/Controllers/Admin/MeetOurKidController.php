@@ -61,7 +61,7 @@ class MeetOurKidController extends Controller
 
     public function update(Request $request, MeetOurKid $meetourkid)
     {
-        $this->rules['image'] = 'nullable|mimes:jpeg,png,jpg|dimensions:width=304,height=304|max:20480';
+        $this->rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|dimensions:ratio=1/1|max:20480';
         $request->validate($this->rules, $this->customMessages);
         $meetourkid->fill($request->all());
         if ($request->hasFile('image')) {
@@ -94,13 +94,14 @@ class MeetOurKidController extends Controller
     }
 
     private $rules = [
-        'image' => 'required|mimes:jpeg,png,jpg|dimensions:width=304,height=304|max:20480',
+        'image' => 'required|image|mimes:jpeg,png,jpg,webp|dimensions:ratio=1/1|max:20480',
     ];
     
     private $customMessages = [
         'image.required' => 'Photo is required.',
-        'image.mimes' => 'Only JPEG, PNG, or JPG formats are allowed.',
+        'image.image' => 'Photo must be a valid image file.',
+        'image.mimes' => 'Only JPEG, PNG, JPG, or WEBP formats are allowed.',
         'image.max' => 'Photo size must not exceed 20MB.',
-        'image.dimensions' => 'Photo dimensions must be 304x304 pixels.',
+        'image.dimensions' => 'Photo ratio must be 1:1 square, for example 800x800 pixels.',
     ];
 }

@@ -95,8 +95,7 @@
 
                         <div class="row">
                             <div class="col-sm-12 col-md-6">
-                                <label class="control-label col-form-label">Cover Image <sup class="text-danger">(416 x 227
-                                        )*</sup></label>
+                                <label class="control-label col-form-label">Cover Image <sup class="text-danger">(Recommended: 1200 x 675 px, 16:9 landscape)*</sup></label>
                                 <input type="file" class="form-control" name="cover_img"/>
                                 <div id="cover_img-error" style="color:red"></div>
                                 @if (isset($blog) && $blog->cover_img)
@@ -106,8 +105,7 @@
                             </div>
 
                             <div class="col-sm-12 col-md-6">
-                                <label class="control-label col-form-label">Main Image <sup class="text-danger">(996 x 600
-                                        )*</sup></label>
+                                <label class="control-label col-form-label">Main Image <sup class="text-danger">(Recommended: 1200 x 675 px or larger, 16:9 landscape)*</sup></label>
                                 <input type="file" class="form-control" name="main_img"/>
                                 <div id="main_img-error" style="color:red"></div>
                                 @if (isset($blog) && $blog->main_img)

@@ -50,7 +50,7 @@
                                         <div class="col-sm-12 col-md-10 d-flex align-items-start gap-4">
                                             <div class="w-100">
                                                 <label class="control-label col-form-label">Image <sup
-                                                        class="tcul-star-restrict">*</sup></span> <small class="text-muted">(Recommended size: 1650×1275 pixels)</small></label>
+                                                        class="tcul-star-restrict">*</sup></span> <small class="text-muted">(Recommended: 1000×1000 px, 1:1 square)</small></label>
                                                 <fieldset class="form-group">
                                                     <input type="file" name="image" class="form-control" id="image"
                                                         placeholder="Please Select Image">

@@ -23,7 +23,7 @@
                                 <div id="title-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-6">
-                                <label class="control-label col-form-label">Image <sup style="color:red">(Upload image size: 304×304 px)*</sup></label>
+                                <label class="control-label col-form-label">Image <sup style="color:red">(Recommended: 800×800 px, 1:1 square)*</sup></label>
                                 <fieldset class="form-group">
                                     <input type="file" name="image" class="form-control" id="meetourkid-image"
                                         accept="image/*"></input>

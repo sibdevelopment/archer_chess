@@ -66,7 +66,7 @@
                             <div class="col-md-6">
                                 <label for="image" class="form-label">
                                     Image <sup class="text-danger">*</sup>
-                                    <small class="text-muted">(Recommended size: 1080 × 790 pixels)</small>
+                                    <small class="text-muted">(Recommended: 1200 × 675 px, 16:9 landscape)</small>
                                 </label>
                                 <input type="file" name="image" class="form-control" id="image"
                                     placeholder="Please Select Image">

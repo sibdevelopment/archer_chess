@@ -322,7 +322,7 @@
                                                                 <option value="UAE">UAE</option>
                                                                 <option value="OMAN">OMAN</option>
                                                             @else
-                                                                <option value="{{ $country }}">{{ $country }}</option>
+                                                                <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
                                                             @endif
                                                         </select>
                                                         <div id="country-error-head" class="text-danger"></div>
@@ -1566,7 +1566,7 @@
                                                     <option value="UAE">UAE</option>
                                                     <option value="OMAN">OMAN</option>
                                                 @else
-                                                    <option value="{{ $country }}">{{ $country }}</option>
+                                                    <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
                                                 @endif
                                            </select>
                                            <div id="country-error" class="text-danger"></div>

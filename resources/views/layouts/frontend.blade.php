@@ -963,6 +963,7 @@
                                     <li><a href="/online-chess/united-kingdom" target="_blank">UNITED KINGDOM</a></li>
                                     <li><a href="/online-chess/australia" target="_blank">AUSTRALIA</a></li>
                                     <li><a href="/online-chess/canada" target="_blank">CANADA</a></li>
+                                    <li><a href="/online-chess/new-zealand" target="_blank">NEW ZEALAND</a></li>
                                     <li><a href="/online-chess/european-union" target="_blank">EUROPEAN UNION</a></li>
                                 </ul>
                             </div>

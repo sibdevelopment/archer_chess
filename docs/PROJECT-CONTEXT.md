@@ -621,6 +621,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Revamp header now exposes Events under About and Blog after Contact; homepage Intro-Video keeps the small CTA UI but opens the same local intro video popup used by the landing pages.
 - Revamp trial/register forms now include EUROPEAN UNION and OMAN with timezone/dial-code mappings; homepage testimonial videos play inline like landing pages instead of forcing fullscreen.
 - Oman timezone display is aligned with UAE as Gulf Standard Time (UTC+4) in frontend/register and ERP timezone mappings.
+- New Zealand country landing page is enabled through the existing /online-chess/{country} route at /online-chess/new-zealand, using the shared country landing template and NEWZEALAND/NZD mappings.
 ```
 
 ## Enrollment / Currency UI Notes

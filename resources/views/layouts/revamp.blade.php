@@ -669,6 +669,7 @@
                                     <option value="https://archerchessacademy.com/online-chess/united-kingdom">United Kingdom</option>
                                     <option value="https://archerchessacademy.com/online-chess/australia">Australia</option>
                                     <option value="https://archerchessacademy.com/online-chess/canada">Canada</option>
+                                    <option value="https://archerchessacademy.com/online-chess/new-zealand">New Zealand</option>
                                     <option value="https://archerchessacademy.com/online-chess/european-union">European Union</option>
                                 </select>
 

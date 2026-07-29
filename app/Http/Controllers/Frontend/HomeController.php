@@ -469,6 +469,7 @@ class HomeController extends Controller
             'india'           => 'INDIA',
             'usa'             => 'USA',
             'canada'          => 'CANADA',
+            'new-zealand'     => 'NEWZEALAND',
             'singapore'       => 'SINGAPORE',
             'united-kingdom'  => 'UK',
             'uae'             => 'UAE',
@@ -532,6 +533,7 @@ class HomeController extends Controller
     
         return view('Frontend.country', [
             'country'      => $countryDisplay,
+            'country_label' => countryDisplayName($countryDisplay),
             'country_slug' => $countrySlug, 
             'timezones'    => $timezones,
         ]);

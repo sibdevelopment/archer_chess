@@ -1,5 +1,5 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Image Gallery')
 @section('content')
     <!-- ==================== Breadcrumb Start Here ==================== -->
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
@@ -14,13 +14,15 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950"> Image Gallery</h3>
+                            <h3 class="text-center tw-mb-6 text-neutral-950">Image Gallery</h3>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
-                                <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
-                                            class="las la-home"></i> Home</a> </li>
-                                <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
-                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Image Gallery </span>
+                                <li>
+                                    <a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405">
+                                        <i class="las la-home"></i> Home
+                                    </a>
                                 </li>
+                                <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
+                                <li><span class="text-main-600 hover-text-main-700 tw-text-405">Image Gallery</span></li>
                             </ul>
                         </div>
                     </div>
@@ -34,126 +36,40 @@
     <div class="py-110">
         <div class="container">
             <div class="row gy-4">
+                @php
+                    $galleryImages = ($galleries ?? collect())->flatMap(function ($gallery) {
+                        return $gallery->galleryImages;
+                    });
+                @endphp
 
-                <!-- Image -->
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-
-                        <img src="/frontend1/tcul-img/gallery/gallery1.png" class="w-100 square-img">
-
-                        <a href="/frontend1/tcul-img/gallery/gallery1.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-
-                        </a>
-
+                @forelse($galleryImages as $galleryImage)
+                    @php
+                        $imageUrl = $galleryImage->image ? asset('storage/' . $galleryImage->image) : null;
+                    @endphp
+                    @if($imageUrl)
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="gallery-thumb position-relative">
+                                <img src="{{ $imageUrl }}" alt="{{ optional($galleryImage->gallery)->title ?? 'Gallery image' }}"
+                                    class="w-100 square-img" style="aspect-ratio:1/1;object-fit:cover;">
+                                <a href="{{ $imageUrl }}"
+                                    class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
+                                    <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
+                                        style="width:40px; height:40px;">
+                                        <i class="ph-bold ph-plus text-main-600"></i>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                @empty
+                    <div class="col-12">
+                        <div class="text-center bg-white tw-rounded-20-px tw-p-10">
+                            <p class="mb-0 text-neutral-600">No gallery images available.</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery2.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery2.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery3.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery3.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery4.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery4.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery4.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery4.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery3.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery3.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-                        <img src="/frontend1/tcul-img/gallery/gallery2.png" class="w-100 square-img">
-                        <a href="/frontend1/tcul-img/gallery/gallery2.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="gallery-thumb position-relative">
-
-                        <img src="/frontend1/tcul-img/gallery/gallery1.png" class="w-100 square-img">
-
-                        <a href="/frontend1/tcul-img/gallery/gallery1.png"
-                            class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-
-                            <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:40px; height:40px;">
-                                <i class="ph-bold ph-plus text-main-600"></i>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-
+                @endforelse
             </div>
         </div>
     </div>
     <!-- ===================== image gallery section end ========================= -->
-
-
-
-
 @endsection

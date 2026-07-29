@@ -777,43 +777,43 @@
                 <div class="header-menu d-xl-block d-none">
                     <!-- Nav menu Start -->
                     <ul class="nav-menu d-lg-flex align-items-center tw-gap-6">
-                        <li class="nav-menu__item">
+                        <li class="nav-menu__item {{ Route::is('home') ? 'activePage' : '' }}">
                             <a href="{{ route('home') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Home</a>
                         </li>
-                        <li class="nav-menu__item has-submenu position-relative">
+                        <li class="nav-menu__item has-submenu position-relative {{ Route::is('explore.course.details.*') ? 'activePage' : '' }}">
                             <a href="{{ route('home') }}#curriculum"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Programs</a>
                             <ul
                                 class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('explore.course.details.beginner') ? 'activePage' : '' }}">
                                     <a href="{{ route('explore.course.details.beginner') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Beginners Chess Classes</a>
                                 </li>
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('explore.course.details.intermediate') ? 'activePage' : '' }}">
                                     <a href="{{ route('explore.course.details.intermediate') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Intermediate Chess Classes</a>
                                 </li>
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('explore.course.details.advanced') ? 'activePage' : '' }}">
                                     <a href="{{ route('explore.course.details.advanced') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Advanced Chess Classes</a>
                                 </li>
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('explore.course.details.expert') ? 'activePage' : '' }}">
                                     <a href="{{ route('explore.course.details.expert') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Grand Master Chess Classes</a>
                                 </li>
                             </ul>
                         </li>
-                        <li class="nav-menu__item has-submenu position-relative">
+                        <li class="nav-menu__item has-submenu position-relative {{ Route::is('about', 'gallery') ? 'activePage' : '' }}">
                             <a href="{{ route('about') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">About</a>
                             <ul
                                 class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('about') ? 'activePage' : '' }}">
                                     <a href="{{ route('about') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         About Us</a>
@@ -823,7 +823,7 @@
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Book a Trial</a>
                                 </li>
-                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                                <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative {{ Route::is('gallery') ? 'activePage' : '' }}">
                                     <a href="{{ route('gallery') }}"
                                         class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
                                         Gallery</a>
@@ -840,7 +840,7 @@
                             <a href="{{ route('home') }}#coaches"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Coaches</a>
                         </li>
-                        <li class="nav-menu__item">
+                        <li class="nav-menu__item {{ Route::is('contact') ? 'activePage' : '' }}">
                             <a href="{{ route('contact') }}"
                                 class="nav-menu__link text-neutral-950 tw-py-5 fw-medium w-100">Contact</a>
                         </li>
@@ -1011,40 +1011,29 @@
                             <div>
                                 <h1 class="fw-bold text-neutral-950 h5">Recent Posts</h1>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
-                                <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
-                                    <span>
-                                        <img src="/frontend1/assets/images/thumbs/footer-img1.png" alt="img">
-                                    </span>
-                                    <div class="">
-                                        <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
-                                            <span class="tw-text-5 text-main-600 ">
-                                                <i class="ph-bold ph-calendar-dots"></i>
-                                            </span>
-                                            <span class="fw-semibold tw-text-305 text-main-600">
-                                                Jan 26, 2026
-                                            </span>
+                                @forelse(($revampFooterBlogs ?? collect()) as $footerBlog)
+                                    <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
+                                        <span class="flex-shrink-0">
+                                            <img src="{{ $footerBlog->cover_img ? asset('storage/' . $footerBlog->cover_img) : '/frontend1/assets/images/thumbs/footer-img1.png' }}"
+                                                alt="{{ $footerBlog->title }}"
+                                                style="width:72px;height:72px;object-fit:cover;border-radius:8px;">
+                                        </span>
+                                        <div class="">
+                                            <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
+                                                <span class="tw-text-5 text-main-600 ">
+                                                    <i class="ph-bold ph-calendar-dots"></i>
+                                                </span>
+                                                <span class="fw-semibold tw-text-305 text-main-600">
+                                                    {{ $footerBlog->date ? \Carbon\Carbon::parse($footerBlog->date)->format('d M, Y') : '' }}
+                                                </span>
+                                            </div>
+                                            <a href="{{ route('blog.details', $footerBlog->slug) }}"
+                                                class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">{{ \Illuminate\Support\Str::limit($footerBlog->title, 58) }}</a>
                                         </div>
-                                        <a href="javascript:void(0)"
-                                            class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">Mastering the Opening: The Archer’s Approach to the First 10 Moves</a>
                                     </div>
-                                </div>
-                                <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
-                                    <span>
-                                        <img src="/frontend1/assets/images/thumbs/footer-img2.png" alt="img">
-                                    </span>
-                                    <div class="">
-                                        <div class="d-flex align-items-center tw-gap-105 tw-mb-1">
-                                            <span class="tw-text-5 text-main-600 ">
-                                                <i class="ph-bold ph-calendar-dots"></i>
-                                            </span>
-                                            <span class="fw-semibold tw-text-305 text-main-600">
-                                                Jan 20, 2026
-                                            </span>
-                                        </div>
-                                        <a href="javascript:void(0)"
-                                            class="fw-bold tw-text-4 text-neutral-950 hover-text-main-600">Archer Chess Academy – Building Future Grandmasters from.. </a>
-                                    </div>
-                                </div>
+                                @empty
+                                    <p class="tw-text-4 text-paragraph-600">No recent posts available.</p>
+                                @endforelse
                             </div>
                         </div>
                         <div class="col-xl-3 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"

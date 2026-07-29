@@ -50,11 +50,13 @@ class GalleryImagesController extends Controller
     public function store(Request $request, Gallery $gallery)
     {
         $request->validate([
-            'image' => 'required|image|max:5120', // 5MB = 5120 KB
+            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120|dimensions:ratio=1/1',
         ], [
             'image.required' => 'Please upload an image.',
-            'image.image' => 'Only image files are allowed (jpg, jpeg, png, svg, webp).',
+            'image.image' => 'Only image files are allowed.',
+            'image.mimes' => 'Only JPEG, PNG, JPG, or WEBP formats are allowed.',
             'image.max' => 'Image size should not exceed 5MB.',
+            'image.dimensions' => 'Gallery image ratio must be 1:1 square, for example 800x800 pixels.',
         ]);
 
         // $lastIndex = GalleryImage::max('index');
@@ -88,11 +90,12 @@ class GalleryImagesController extends Controller
     public function update(Request $request, Gallery $gallery, GalleryImage $gallery_image)
     {
         $request->validate([
-            // Image is optional on update, but must be valid if provided
-            'image' => 'nullable|image|max:5120', // 5MB = 5120 KB
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120|dimensions:ratio=1/1',
         ], [
-            'image.mimes' => 'Only image files are allowed (jpg, jpeg, png, svg, webp).',
+            'image.image' => 'Only image files are allowed.',
+            'image.mimes' => 'Only JPEG, PNG, JPG, or WEBP formats are allowed.',
             'image.max' => 'Image size should not exceed 5MB.',
+            'image.dimensions' => 'Gallery image ratio must be 1:1 square, for example 800x800 pixels.',
         ]);
 
         $gallery_image->fill($request->all());

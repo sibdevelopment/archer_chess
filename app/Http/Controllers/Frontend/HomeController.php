@@ -72,11 +72,15 @@ class HomeController extends Controller
     }
     public function newGallery()
     {
-        return view('Frontend.Design.gallery');
+        $galleries = $this->activeGalleries();
+
+        return view('Frontend.Design.gallery', compact('galleries'));
     }
     public function newEvent()
     {
-        return view('Frontend.Design.event');
+        $events = $this->activeEvents();
+
+        return view('Frontend.Design.event', compact('events'));
     }
     // Blogs
     public function newBlogs()
@@ -210,18 +214,36 @@ class HomeController extends Controller
 
     public function gallery(Request $request)
     {
-        $galleries = Gallery::where('status', 'ACTIVE')
-            ->with(['galleryImages' => function ($query) {
-                $query->where('status', 'ACTIVE');
-            }])
-            ->get();
+        $galleries = $this->activeGalleries();
+
         return view('Frontend.Design.gallery', compact('galleries'));
     }
 
     public function event(Request $request)
     {
-        $events = Event::where('status', 'ACTIVE')->get();
+        $events = $this->activeEvents();
+
         return view('Frontend.Design.event', compact('events'));
+    }
+
+    private function activeGalleries()
+    {
+        return Gallery::where('status', 'ACTIVE')
+            ->with(['galleryImages' => function ($query) {
+                $query->where('status', 'ACTIVE')->orderBy('index')->orderBy('id');
+            }])
+            ->orderBy('index')
+            ->orderBy('id')
+            ->get();
+    }
+
+    private function activeEvents()
+    {
+        return Event::where('status', 'ACTIVE')
+            ->orderBy('date', 'desc')
+            ->orderBy('index')
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     /**

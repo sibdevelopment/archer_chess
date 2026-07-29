@@ -110,7 +110,7 @@ class MeetOurTutorController extends Controller
      */
     public function update(Request $request, MeetOurTutor $meetourtutor)
     {
-        $this->rules['image'] = 'nullable|mimes:jpeg,png,jpg.svg|max:20480'; 
+        $this->rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480|dimensions:ratio=4/5';
 
         $request->validate($this->rules, $this->customMessages);
 
@@ -154,15 +154,16 @@ class MeetOurTutorController extends Controller
 
     private $rules = [
         'name' => 'required|string|max:255',
-        'image' => 'required|mimes:jpeg,png,jpg.svg|max:20480',
+        'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:20480|dimensions:ratio=4/5',
         'designation' => 'required',
         'rating' => 'required|numeric',
     ];
 
     private $customMessages = [
         'name.required' => 'Name is required',
-        'image.mimes' => 'Image must be a file of type: jpeg, png, jpg.',
-        'image.dimensions' => 'Image dimensions must be 304x304 pixels.',
+        'image.image' => 'Image must be a valid image file.',
+        'image.mimes' => 'Image must be a file of type: jpeg, png, jpg, webp.',
+        'image.dimensions' => 'Image ratio must be 4:5 portrait, for example 800x1000 pixels.',
         'image.max' => 'Image size must not exceed 20MB.',
         'designation.required' => 'Designation is required',
         'rating.required' => 'Rating is required',

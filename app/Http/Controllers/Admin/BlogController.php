@@ -141,8 +141,8 @@ class BlogController extends Controller
 
     public function update(Request $request, Blog $blog)
     {
-        $this->rules['cover_img'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048|dimensions:width=416,height=227';
-        $this->rules['main_img'] = 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048|dimensions:width=996,height=600';
+        $this->rules['cover_img'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:ratio=16/9';
+        $this->rules['main_img'] = 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:ratio=16/9';
 
         $request->validate($this->rules, $this->customMessages);
 
@@ -210,8 +210,8 @@ public function changeStatus(Request $request)
         'title' => 'required|string',
         'short_description' => 'required|string',
         'description' => 'required|string',
-        'cover_img' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048|dimensions:width=416,height=227',
-        'main_img' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048|dimensions:width=996,height=600', 
+        'cover_img' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:ratio=16/9',
+        'main_img' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048|dimensions:ratio=16/9',
         'slug' => 'required|string',
     ];
     
@@ -224,16 +224,16 @@ public function changeStatus(Request $request)
         'title.required' => 'Title is required',
         'cover_img.required' => 'Cover image is required', 
         'cover_img.image' => 'Cover image must be an image',
-        'cover_img.mimes' => 'Cover image must be a file of type: jpeg, png, jpg, gif, svg',
+        'cover_img.mimes' => 'Cover image must be a file of type: jpeg, png, jpg, webp',
         'cover_img.max' => 'Cover image size should not exceed 2048 KB',
         'main_img.required' => 'Main image is required',
         'main_img.image' => 'Main image must be an image',
-        'main_img.mimes' => 'Main image must be a file of type: jpeg, png, jpg, gif, svg',
+        'main_img.mimes' => 'Main image must be a file of type: jpeg, png, jpg, webp',
         'main_img.max' => 'Main image size should not exceed 2048 KB',
         'slug.required' => 'Slug is required',
         'short_description.required' => 'Short Description is required',
-        'cover_img.dimensions' => 'Cover image dimensions must be 416x227 pixels',
-        'main_img.dimensions' => 'Main image dimensions must be 996x600 pixels',
+        'cover_img.dimensions' => 'Cover image ratio must be 16:9, for example 1200x675 pixels',
+        'main_img.dimensions' => 'Main image ratio must be 16:9, for example 1200x675 pixels',
     ];
     
 }

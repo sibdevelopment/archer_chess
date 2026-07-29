@@ -1235,41 +1235,26 @@
         </div>
         <div class="swiper teacher-bottom-four-slider">
             <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div>
-                        <img src="/frontend1/tcul-img/gallery/gallery1.png" alt="">
-                        <h5 class="text-dark mt-3">Diksha</h5>
-                        <h6 class="text-dark t_orange">(International Fide rating 1422)</h6>
+                @forelse(($meetourkids ?? collect()) as $kid)
+                    <div class="swiper-slide">
+                        <div>
+                            <img src="{{ $kid->image ? asset('storage/' . $kid->image) : '/frontend1/tcul-img/gallery/gallery1.png' }}"
+                                alt="{{ $kid->name }}" style="width:100%;aspect-ratio:1/1;object-fit:cover;">
+                            <h5 class="text-dark mt-3">{{ $kid->name }}</h5>
+                            @if($kid->title)
+                                <h6 class="text-dark t_orange">({{ $kid->title }})</h6>
+                            @endif
+                        </div>
                     </div>
-                </div>
-                <div class="swiper-slide">
-                    <div>
-                        <img src="/frontend1/tcul-img/gallery/gallery2.png" alt="">
-                        <h5 class="text-dark mt-3">Diksha</h5>
-                        <h6 class="text-dark t_orange">(International Fide rating 1422)</h6>
+                @empty
+                    <div class="swiper-slide">
+                        <div>
+                            <img src="/frontend1/tcul-img/gallery/gallery1.png" alt="Archer Kid">
+                            <h5 class="text-dark mt-3">Archer Kids</h5>
+                            <h6 class="text-dark t_orange">(Victory Belongs To Those Who Never Surrender)</h6>
+                        </div>
                     </div>
-                </div>
-                <div class="swiper-slide">
-                    <div>
-                        <img src="/frontend1/tcul-img/gallery/gallery3.png" alt="">
-                        <h5 class="text-dark mt-3">Diksha</h5>
-                        <h6 class="text-dark t_orange">(International Fide rating 1422)</h6>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div>
-                        <img src="/frontend1/tcul-img/gallery/gallery4.png" alt="">
-                        <h5 class="text-dark mt-3">Diksha</h5>
-                        <h6 class="text-dark t_orange">(International Fide rating 1422)</h6>
-                    </div>
-                </div>
-                <div class="swiper-slide">
-                    <div>
-                        <img src="/frontend1/tcul-img/gallery/gallery5.png" alt="">
-                        <h5 class="text-dark mt-3">Diksha</h5>
-                        <h6 class="text-dark t_orange">(International Fide rating 1422)</h6>
-                    </div>
-                </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -1486,6 +1471,64 @@
         </div>
     </section> --}}
     <!--   blog section end   -->
+
+    @if(($blogs ?? collect())->isNotEmpty())
+        <section class="py-110 position-relative">
+            <img src="/frontend1/tcul-img/img/blog-element.svg" alt="shape"
+                class="position-absolute top-0 tw-end-0 tw-mt-260-px tw-me-130-px z-n1 d-xl-block d-none animation-upDown">
+            <img src="/frontend1/tcul-img/img/footer-element2.svg" alt="shape"
+                class="position-absolute bottom-0 tw-start-0 z-n1 d-xl-block d-none animation-upDown tw-mt--170-px tw-ms-100-px">
+
+            <div class="container">
+                <div class="text-center tw-mb-12">
+                    <span class="fw-normal tw-text-405 text-main-600 tw-mb-6" data-aos="fade-up"
+                        data-aos-duration="600" data-aos-delay="100">Our Blog & News</span>
+                    <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600"
+                        data-aos-delay="200">Latest Blogs</h2>
+                </div>
+                <div class="row gy-5">
+                    @foreach($blogs->take(3) as $blog)
+                        <div class="col-xl-4 col-lg-6 col-md-6" data-aos="fade-up" data-aos-duration="600"
+                            data-aos-delay="{{ 100 + ($loop->index * 100) }}">
+                            <div class="animation-item h-100">
+                                <span class="overflow-hidden tw-rounded-20-px tw-rounded-top-20-px w-100">
+                                    <img src="{{ $blog->cover_img ? asset('storage/' . $blog->cover_img) : '/frontend1/tcul-img/img/blog.png' }}"
+                                        alt="{{ $blog->title }}" class="tw-duration-300 course-item__img bg-img"
+                                        style="aspect-ratio:16/9;object-fit:cover;">
+                                </span>
+                                <div class="tw-p-7 bg-white tw-rounded-bottom-20-px tw-border-bottom-header">
+                                    <div class="d-flex align-items-center tw-gap-5 flex-wrap tw-mb-4">
+                                        <div class="d-flex align-items-center tw-gap-1">
+                                            <span class="tw-text-405 text-main-600">
+                                                <i class="ph-bold ph-calendar-dots"></i>
+                                            </span>
+                                            <span class="fw-normal tw-text-4 text-neutral-600">
+                                                {{ $blog->date ? \Carbon\Carbon::parse($blog->date)->format('d M, Y') : '' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <h2 class="h5">
+                                        <a href="{{ route('blog.details', $blog->slug) }}" class="fw-bold text-neutral-950 tw-mb-8">
+                                            {{ \Illuminate\Support\Str::limit($blog->title, 72) }}
+                                        </a>
+                                    </h2>
+                                    <div class="d-flex align-items-center tw-gap-3 justify-content-between flex-wrap">
+                                        <div class="d-flex align-items-center tw-gap-2">
+                                            <span class="fw-normal tw-text-305 text-neutral-500">Read More</span>
+                                        </div>
+                                        <a href="{{ route('blog.details', $blog->slug) }}"
+                                            class="tw-w-10 tw-h-10 border-main-600 border rounded-circle d-flex align-items-center justify-content-center text-main-600 tw-text-405 hover-bg-main-600 hover-text-white tw-duration-300">
+                                            <i class="ph-bold ph-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 
     <!-- Contact -->
     <section id="contact" class="tw-mb--210-px z-3">

@@ -1,6 +1,6 @@
 @php
     $currencyFieldName = $name ?? 'currency';
-    $selectedCurrency = old($currencyFieldName, $selected ?? '');
+    $selectedCurrency = strtoupper(trim(old($currencyFieldName, $selected ?? '')));
     $currencySelectClass = $class ?? 'form-control select2';
 @endphp
 

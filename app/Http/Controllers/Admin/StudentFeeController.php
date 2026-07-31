@@ -90,6 +90,13 @@ class StudentFeeController extends Controller
             ->editColumn('total_amount_paid', function ($student_fee) {
                 return $student_fee->total_amount_paid;
             })
+            ->editColumn('remark', function ($student_fee) {
+                if (empty($student_fee->remark)) {
+                    return '<span class="badge bg-light-danger text-danger">N/A</span>';
+                }
+
+                return e($student_fee->remark);
+            })
             ->editColumn('created_by', function ($student_fee) {
                 if ($student_fee->createdBy) {
                     $name = $student_fee->createdBy->first_name . ' ' . $student_fee->createdBy->last_name;
@@ -129,7 +136,7 @@ class StudentFeeController extends Controller
                 return '<a href="' . route('admin.students.student_fees.invoice', ['student' => $student->id, 'student_fee' => $student_fee->id]) . '" class="badge bg-danger fs-1" title="Download Invoice"><i class="ti ti-file-text"></i></a>';
             })
             ->addIndexColumn()
-            ->rawColumns(['student_id', 'action', 'status', 'to_period', 'from_period', 'day_of_week', 'coach_id', 'monthly_fees', 'total_amount_paid', 'created_by', 'date', 'updated_by', 'receive_date', 'pdf'])
+            ->rawColumns(['student_id', 'action', 'status', 'to_period', 'from_period', 'day_of_week', 'coach_id', 'monthly_fees', 'total_amount_paid', 'remark', 'created_by', 'date', 'updated_by', 'receive_date', 'pdf'])
             ->setRowId('id')
             ->make(true);
     }
@@ -366,6 +373,7 @@ class StudentFeeController extends Controller
             //     $student_latest_batch->save();
             // }
         }
+        $student_fee->updated_at = Carbon::now();
         $student_fee->save();
         $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
@@ -423,6 +431,7 @@ class StudentFeeController extends Controller
             'currency' => 'required|string|in:' . implode(',', availableCurrencyCodes()),
             'monthly_fees' => 'required|numeric|min:0',
             'total_amount_paid' => 'required|numeric|min:0',
+            'remark' => 'nullable|string|max:1000',
         ];
     }
 

@@ -643,6 +643,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Admin dashboard Student Payments tab is now an action queue, not a today-only payment list: it shows captured orders with a linked student fee row whose updated_at still equals created_at.
 - Once admin edits the linked student fee row/start-end date/status/amount, updated_at changes and the payment leaves the Student Payments tab.
 - Full payment history and date/status filtering remains in the Payment Report tab.
+- Student fee rows now support an optional remark. Saving the fee edit form marks the row as actioned even if no visible value changed, so already-correct payment rows can be cleared from the dashboard queue by review/save.
 ```
 
 ## Batch Standby / Reassignment Notes

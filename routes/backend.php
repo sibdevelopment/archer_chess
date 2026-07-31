@@ -540,7 +540,7 @@ Route::post('/razorpay/verify', function (Request $request) {
         $studentfee = new StudentFee();
         $studentfee->student_id        = $student->id;
         $studentfee->start_date        = date('Y-m-d');
-        $studentfee->end_date          = date('Y-m-d', strtotime('+29 days'));
+        $studentfee->end_date          = date('Y-m-d', strtotime('+24 days'));
         $studentfee->monthly_fees      = $request->amount;
         $studentfee->total_amount_paid = $request->amount;
         $studentfee->currency          = $payment->currency ?? $request->currency;

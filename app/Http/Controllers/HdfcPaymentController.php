@@ -424,7 +424,7 @@ class HdfcPaymentController extends Controller
                     $studentfee = new StudentFee();
                     $studentfee->student_id        = $order->student_id;
                     $studentfee->start_date        = Carbon::today()->format('Y-m-d');
-                    $studentfee->end_date =          Carbon::today()->addDays(29);
+                    $studentfee->end_date =          Carbon::today()->addDays(24);
                     $studentfee->receive_date      = Carbon::today()->format('Y-m-d');
                     $studentfee->monthly_fees      = $order->amount;
                     $studentfee->total_amount_paid = $order->amount;

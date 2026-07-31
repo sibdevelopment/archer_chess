@@ -636,6 +636,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - New Enrollment manage now has an additional batch start-date range filter, separate from the enrollment created-date range filter.
 ```
 
+## Student Payment Action Queue Notes
+
+```text
+- Portal/payment-gateway-created student fee rows now use a 25-day default credit window: start_date = payment date, end_date = payment date + 24 days.
+- Admin dashboard Student Payments tab is now an action queue, not a today-only payment list: it shows captured orders with a linked student fee row whose updated_at still equals created_at.
+- Once admin edits the linked student fee row/start-end date/status/amount, updated_at changes and the payment leaves the Student Payments tab.
+- Full payment history and date/status filtering remains in the Payment Report tab.
+```
+
 ## Batch Standby / Reassignment Notes
 
 ```text

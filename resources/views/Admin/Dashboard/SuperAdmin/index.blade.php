@@ -453,21 +453,9 @@
                 <div class="card w-100 position-relative overflow-hidden">
                     <div class="card-header px-4 py-3 border-bottom">
                         <form method="GET" action="{{ route('admin.dashboard.index') }}" class="row align-items-center">
-                            <div class="col-md-7">
+                            <div class="col-md-12">
                                 <h5 class="card-title fw-semibold mb-0 lh-sm">Student Payments</h5>
-                            </div>
-                            <div class="col-md-3">
-                                <select name="student_payment_status" class="form-select form-select-sm pure-white">
-                                    <option value="" {{ $studentPaymentStatus === '' ? 'selected' : '' }}>All Status</option>
-                                    @foreach ($paymentReportStatuses as $status)
-                                        <option value="{{ $status }}" {{ $studentPaymentStatus === $status ? 'selected' : '' }}>
-                                            {{ ucwords(strtolower(str_replace('_', ' ', $status))) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                                <small class="text-muted">Captured payments pending fee-window action</small>
                             </div>
                         </form>
                     </div>
@@ -520,7 +508,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h5 class="mb-0">No student payments received today.</h5>
+                                    <h5 class="mb-0">No pending captured student payments.</h5>
                                 </div>
                             </div>
                         </div>

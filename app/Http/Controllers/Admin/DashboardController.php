@@ -2104,11 +2104,14 @@ class DashboardController extends Controller
         $levels   = Level::where('status', 'ACTIVE')->get();
         $coaches  = $coachQuery->get();
         $students = $studentsQuery->get();
-        $studentPaymentStatus = $request->input('student_payment_status', 'captured');
+        $studentPaymentStatus = 'captured';
 
         $studentPaymentsQuery = Order::with(['student', 'studentFee'])
-            ->whereDate('created_at', now()->toDateString())
-            ->whereNotNull('student_id');
+            ->whereNotNull('student_id')
+            ->where('status', 'captured')
+            ->whereHas('studentFee', function ($query) {
+                $query->whereColumn('updated_at', 'created_at');
+            });
 
         $paymentReportQuery = Order::with(['student', 'studentFee'])
             ->whereNotNull('student_id');
@@ -2119,10 +2122,6 @@ class DashboardController extends Controller
 
         if (! $canViewStudentPayments) {
             $studentPaymentsQuery->whereRaw('1 = 0');
-        }
-
-        if ($studentPaymentStatus !== '') {
-            $studentPaymentsQuery->where('status', $studentPaymentStatus);
         }
 
         if (! $canViewPaymentReport) {

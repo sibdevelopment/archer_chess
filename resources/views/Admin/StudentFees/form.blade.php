@@ -51,6 +51,11 @@ Demo Session
                                 <input type="number" class="form-control" name="total_amount_paid" value="{{ isset($student_fee) ? $student_fee->total_amount_paid : '' }}" placeholder="Enter total amount paid" />
                                 <div id="total_amount_paid-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12">
+                                <label class="control-label col-form-label">Remark</label>
+                                <textarea class="form-control" name="remark" rows="3" placeholder="Enter remark">{{ isset($student_fee) ? $student_fee->remark : '' }}</textarea>
+                                <div id="remark-error" style="color:red"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">

@@ -171,6 +171,9 @@
                                         <th width="">
                                             <h6 class="fs-3 fw-semibold mb-0">Total Amount Paid</h6>
                                         </th>
+                                        <th width="">
+                                            <h6 class="fs-3 fw-semibold mb-0">Remark</h6>
+                                        </th>
                                         @if ($isAdminOrSuperAdmin)
                                             <th width="">
                                                 <h6 class="fs-3 fw-semibold mb-0">Created By</h6>
@@ -278,6 +281,11 @@
                     {
                         data: 'total_amount_paid',
                         name: 'student_fees.total_amount_paid',
+                        orderable: false
+                    },
+                    {
+                        data: 'remark',
+                        name: 'student_fees.remark',
                         orderable: false
                     },
                     @if ($isAdminOrSuperAdmin)

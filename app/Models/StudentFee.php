@@ -23,6 +23,7 @@
          'currency',
          'monthly_fees',
          'total_amount_paid',
+         'remark',
          'status',
          'created_by',
          'updated_by'
@@ -75,9 +76,8 @@
      {
          return LogOptions::defaults()
              ->logAll() // Log all attributes (or you can specify the ones you want to log)
-             ->logOnly(['student_id', 'start_date', 'end_date', 'currency', 'monthly_fees', 'total_amount_paid', 'status']); // Specify attributes to log
+             ->logOnly(['student_id', 'start_date', 'end_date', 'currency', 'monthly_fees', 'total_amount_paid', 'remark', 'status']); // Specify attributes to log
      }
  }
-
 
 

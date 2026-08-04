@@ -56,6 +56,12 @@
                                 case 'CANCELLED':
                                     $badgeColor = 'danger';
                                     break;
+                                case 'ON LEAVE':
+                                    $badgeColor = 'secondary';
+                                    break;
+                                case 'COVERED':
+                                    $badgeColor = 'info';
+                                    break;
                                 case 'CONVERTED':
                                     $badgeColor = 'info';
                                     break;
@@ -69,11 +75,18 @@
                                     $badgeColor = 'primary';
                             }
                         @endphp
-                        <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
-                            data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
-                            style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
-                            {{ $schedule['status'] }}
-                        </button>
+                        @if ($schedule['type'] === 'Leave')
+                            <span class="btn btn-{{ $badgeColor }}"
+                                style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
+                                {{ $schedule['status'] }}
+                            </span>
+                        @else
+                            <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
+                                data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
+                                style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
+                                {{ $schedule['status'] }}
+                            </button>
+                        @endif
                     @else
                         {{ $schedule['status'] }}
                     @endif
@@ -88,6 +101,8 @@
                         @endif
                     @elseif($schedule['type'] == 'Demo')
                         <span class="badge" style="background-color: blue;">{{ $schedule['type'] }}</span>
+                    @elseif($schedule['type'] == 'Leave')
+                        <span class="badge bg-secondary">Leave</span>
                     @else
                         {{ $schedule['type'] }}
                     @endif
@@ -138,9 +153,11 @@
                         // dd($now->lte($slotEndTime));
                     @endphp
 
-                    {{-- @if ($latestAttendance && $latestAttendance->status === 'COMPLETED') --}}
+                    @if (!($schedule['is_teachable'] ?? true) || in_array($schedule['status'], ['ON LEAVE', 'COVERED']))
+                        <span class="text-muted">N/A</span>
+                    {{-- @elseif ($latestAttendance && $latestAttendance->status === 'COMPLETED') --}}
                     {{-- 1. Yesterday Batch --}}
-                    @if (
+                    @elseif (
                         $schedule['type'] === 'Yesterday Batch' &&
                             $isAttendaceMarked &&
                             $schedule['status'] !== 'CANCELLED' &&

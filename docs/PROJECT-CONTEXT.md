@@ -60,6 +60,15 @@ development_1 = working/testing branch
 main = production branch
 ```
 
+## Leave, Coverup, Cancel, And Penalty Flow
+
+- Coach leave is treated as a single `from_date` with `from_time` to `to_time` interval in the active UI.
+- Leave approval now handles each affected occurrence by `batch_id + batchschedule_id + date`.
+- If an approved leave occurrence has a coverup coach, a `coverupclasses` row is created/updated and any delayed penalty for that occurrence is cleared.
+- If approved leave has no coverup, the original coach gets no penalty; coach attendance is marked `ON LEAVE`, eligible student attendance is marked cancelled with approved-leave remark, and batch/student-batch/latest-fee end dates shift once to the next scheduled class day.
+- `cancel:delay-batch` skips occurrences covered by coverup or approved leave. Normal missed classes still follow late/cancel penalty logic, and cancellation remains exclusive over late.
+- Coach dashboard shows approved leave occurrences as `ON LEAVE` or `COVERED`, hides start links for those rows, and backend start/attendance endpoints reject normal starts when approved leave blocks that class.
+
 Only tested changes should move from `development_1` to `main`.
 
 Current known live/main change:

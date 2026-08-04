@@ -12,6 +12,7 @@ use Illuminate\Console\Command;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\Log;
 use App\Models\DelayedBatch;
+use App\Services\BatchOccurrenceService;
 
 class CancelDelayBatch extends Command
 {
@@ -20,6 +21,7 @@ class CancelDelayBatch extends Command
 
     public function handle()
     {
+        $occurrences = app(BatchOccurrenceService::class);
         $now = Carbon::now();
         $today = $now->format('l');
 
@@ -48,12 +50,21 @@ class CancelDelayBatch extends Command
                 'date' => $date,
             ];
             
-            $coverupExists = \App\Models\Coverupclass::where('batchschedule_id', $schedule->id)
-                ->where('date', $date)
-                ->exists();
+            $batch = Batch::find($batchId);
+
+            if (! $batch) {
+                continue;
+            }
+
+            $coverupExists = $occurrences->coverupForOccurrence($batchId, $schedule->id, $date) !== null;
 
             if ($coverupExists) {
                 $this->info("Skipped batch {$schedule->batch_id} due to cover-up class.");
+                continue;
+            }
+
+            if ($occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
+                $this->info("Skipped batch {$schedule->batch_id} due to approved coach leave.");
                 continue;
             }
 
@@ -61,15 +72,7 @@ class CancelDelayBatch extends Command
                 ->whereDate('date', $date)
                 ->exists();
 
-            $batch = null;
-
             if (! $coachAttendanceExists && $now->greaterThan($lateTime)) {
-                $batch = Batch::find($batchId);
-
-                if (! $batch) {
-                    continue;
-                }
-
                 $cancelledPenaltyExists = DelayedBatch::where($delayedBatchKey)
                     ->where('penalty_type', 'CANCELLED')
                     ->exists();
@@ -106,81 +109,8 @@ class CancelDelayBatch extends Command
                     ->exists();
 
                 if (! $studentAttendanceExists || ! $coachAttendanceExists) {
-                    $batch = $batch ?: Batch::find($batchId);
-
-                    if (! $batch) {
-                        continue;
-                    }
-
-                    $batchSchedules = BatchSchedule::where('batch_id', $batchId)->get();
-                    $scheduledDays = $batchSchedules->pluck('weekday')->map(fn($day) => strtolower($day))->toArray();
-
-                    $batchEndDate = Carbon::parse($batch->end_date);
-                    $nextScheduledDay = null;
-                    foreach ($scheduledDays as $day) {
-                        $dayDifference = (Carbon::parse($day)->dayOfWeek - $batchEndDate->dayOfWeek + 7) % 7;
-                        if ($dayDifference > 0) {
-                            $nextScheduledDay = $batchEndDate->copy()->addDays($dayDifference);
-                            break;
-                        }
-                    }
-                    if (! $nextScheduledDay) {
-                        $nextScheduledDay = $batchEndDate->copy()->addDays((Carbon::parse($scheduledDays[0])->dayOfWeek - $batchEndDate->dayOfWeek + 7) % 7);
-                    }
-                    $batch->end_date = $nextScheduledDay->toDateString();
-                    $batch->save();
-
-                    $studentIds = StudentBatch::where('batch_id', $batchId)->eligibleOn($date)->pluck('student_id');
-
                     if (!$studentAttendanceExists) {
-                        foreach ($studentIds as $studentId) {
-                            $studentAttendance = new StudentAttendance();
-                            $studentAttendance->student_id = $studentId;
-                            $studentAttendance->batch_id = $batchId;
-                            $studentAttendance->level_id = $batch->level_id;
-                            $studentAttendance->date = $date;
-                            $studentAttendance->status = 'CANCELLED';
-                            $studentAttendance->remark = 'Batch Cancelled';
-                            $studentAttendance->type = $schedule->type ?? null;
-                            $studentAttendance->coach_id = $schedule->coach_id;
-                            $studentAttendance->homework_link = '';
-                            $studentAttendance->recording_link = '';
-                            $studentAttendance->chapter_name = '';
-                            $studentAttendance->number_of_batch_sessions = $schedule->number_of_batch_sessions ?? 0;
-                            $studentAttendance->save();
-
-                            // Update StudentBatch end_date
-                            $studentBatch = StudentBatch::where('student_id', $studentId)
-                                ->where('batch_id', $batchId)
-                                ->eligibleOn($date)
-                                ->first();
-
-                            if ($studentBatch) {
-                                $studentBatch->end_date = $batch->end_date;
-                                $studentBatch->save();
-                            }
-
-                            // Update StudentFee end_date
-                            $studentLatestFee = StudentFee::where('student_id', $studentId)->orderBy('id', 'desc')->first();
-                            if ($studentLatestFee) {
-                                $feeEndDate = Carbon::parse($studentLatestFee->end_date);
-                                $nextFeeDate = null;
-                                foreach ($scheduledDays as $day) {
-                                    $dayDiff = (Carbon::parse($day)->dayOfWeek - $feeEndDate->dayOfWeek + 7) % 7;
-                                    if ($dayDiff > 0) {
-                                        $nextFeeDate = $feeEndDate->copy()->addDays($dayDiff);
-                                        break;
-                                    }
-                                }
-                                if (! $nextFeeDate) {
-                                    $nextFeeDate = $feeEndDate->copy()->addDays(
-                                        (Carbon::parse($scheduledDays[0])->dayOfWeek - $feeEndDate->dayOfWeek + 7) % 7
-                                    );
-                                }
-                                $studentLatestFee->end_date = $nextFeeDate->toDateString();
-                                $studentLatestFee->save();
-                            }
-                        }
+                        $occurrences->shiftCancelledOccurrence($batch, $schedule, $date, 'Batch Cancelled');
                         $this->info("Marked CANCELLED for students in batch $batchId");
                     }
 

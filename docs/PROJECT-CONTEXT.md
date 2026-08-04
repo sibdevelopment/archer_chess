@@ -646,6 +646,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Student fee rows now support an optional remark. Saving the fee edit form marks the row as actioned even if no visible value changed, so already-correct payment rows can be cleared from the dashboard queue by review/save.
 ```
 
+## Batch Availability / Empty Batch Sync Notes
+
+```text
+- Coach availability validation ignores all old/current versions from the same batch parent_id family when a current batch id is supplied, so hidden old STANDBY history does not block saving the current active batch.
+- Batch Manage listing displays batch names in uppercase for UI uniformity only; stored batch names are unchanged.
+- ACTIVE/STANDBY batches with no ACTIVE student_batch rows and no linked student currently FEESDUE are moved back to UPCOMING.
+- Empty-batch sync runs immediately after batch assignment/transfer save paths and is also available as php artisan batchs:sync-empty-to-upcoming for old data cleanup.
+- The empty-batch cleanup command is scheduled daily at 01:15 as a safety net.
+```
+
 ## Batch Standby / Reassignment Notes
 
 ```text

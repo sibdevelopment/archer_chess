@@ -25,6 +25,7 @@ use App\Models\StudentAttendance;
 use App\Models\StudentBatch;
 use App\Models\StudentFee;
 use App\Models\User;
+use App\Services\BatchOccurrenceService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -368,6 +369,7 @@ class DashboardController extends Controller
     
     private function indexCoach(Request $request)
     {
+        $occurrences = app(BatchOccurrenceService::class);
         
         $firstDayOfMonth = Carbon::now()->startOfMonth()->toDateString();
         $todayDate       = Carbon::now()->toDateString();
@@ -473,10 +475,21 @@ class DashboardController extends Controller
         if (in_array("UK", $coach->country)) {
             foreach ($yesterdayBatches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    if ($yesdayCoachLeave) {
-                        if ($schedule->from_time >= $fromLeaveTime) {
-                            continue;
-                        }
+                    if ($occurrences->approvedLeaveForSchedule($coachId, $yesterdayDate, $schedule->from_time, $schedule->to_time)) {
+                        $combinedData[] = [
+                            'id'              => $batch->id,
+                            'name'            => $batch->name,
+                            'slot'            => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                            'status'          => $occurrences->coverupForOccurrence($batch->id, $schedule->id, $yesterdayDate) ? 'COVERED' : 'ON LEAVE',
+                            'type'            => 'Leave',
+                            'active_students' => $batch->active_students_count,
+                            'start_url'       => null,
+                            'homework_link'   => null,
+                            'attendance_exists' => false,
+                            'attendance_time' => null,
+                            'is_teachable'    => false,
+                        ];
+                        continue;
                     }
                     $status                  = $schedule->status;
                     $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
@@ -526,10 +539,22 @@ class DashboardController extends Controller
         // $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                if ($todayCoachLeave) {
-                    if ($schedule->from_time >= $fromLeaveTime && $schedule->to_time <= $toLeaveTime) {
-                        continue;
-                    }
+                if ($occurrences->approvedLeaveForSchedule($coachId, $date, $schedule->from_time, $schedule->to_time)) {
+                    $combinedData[] = [
+                        'id'              => $batch->id,
+                        'name'            => $batch->name,
+                        'slot'            => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                        'status'          => $occurrences->coverupForOccurrence($batch->id, $schedule->id, $date) ? 'COVERED' : 'ON LEAVE',
+                        'type'            => 'Leave',
+                        'active_students' => $batch->active_students_count,
+                        'start_url'       => null,
+                        'homework_link'   => null,
+                        'attendance_exists' => false,
+                        'attendance_time' => null,
+                        'is_one_to_one'   => $batch->is_one_to_one,
+                        'is_teachable'    => false,
+                    ];
+                    continue;
                 }
                 $status                  = $schedule->status;
                 $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
@@ -562,6 +587,7 @@ class DashboardController extends Controller
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
                     'is_one_to_one'    => $batch->is_one_to_one,
+                    'is_teachable'     => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                 ];
 
                 if ($batch->name == 'Abhijeet-WTH4:30AM') {
@@ -644,10 +670,11 @@ class DashboardController extends Controller
                     'status'          => $status,
                     'type'            => 'Coverup',
                     'active_students' => $batch->active_students_count,
-                    'start_url' => $batch->start_url,
+                    'start_url' => optional($coverupClasses->firstWhere('batch_id', $batch->id))->start_url ?? $batch->start_url,
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                 ];
             }
         }
@@ -672,6 +699,7 @@ class DashboardController extends Controller
 
     public function getSchedule(Request $request, $coachId)
     {
+        $occurrences = app(BatchOccurrenceService::class);
         $coach = Coach::where('id', $coachId)->first();
 
         $date          = $request->input('date', Carbon::now()->format('Y-m-d'));
@@ -739,10 +767,19 @@ class DashboardController extends Controller
         if (in_array("UK", $coach->country)) {
             foreach ($yesterdayBatches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    if ($yesdayCoachLeave) {
-                        if ($schedule->from_time >= $fromLeaveTime) {
-                            continue;
-                        }
+                    if ($occurrences->approvedLeaveForSchedule($coachId, $yesterdayDate, $schedule->from_time, $schedule->to_time)) {
+                        $combinedData[] = [
+                            'id'              => $batch->id,
+                            'name'            => $batch->name,
+                            'slot'            => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                            'status'          => $occurrences->coverupForOccurrence($batch->id, $schedule->id, $yesterdayDate) ? 'COVERED' : 'ON LEAVE',
+                            'type'            => 'Leave',
+                            'coverup'         => 'No',
+                            'active_students' => $batch->active_students_count,
+                            'start_url'       => null,
+                            'is_teachable'    => false,
+                        ];
+                        continue;
                     }
                     $status = $schedule->status;
                     $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
@@ -784,6 +821,7 @@ class DashboardController extends Controller
                         'coverup' => 'No',
                         'active_students' => $batch->active_students_count,
                         'start_url' => $batch->start_url,
+                        'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                     ];
                 }
             }
@@ -801,18 +839,20 @@ class DashboardController extends Controller
         $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-    
-                // ✅ Check for coverup class first
-                $coverup = Coverupclass::where('batchschedule_id', $schedule->id)
-                    ->where('new_coach_id', $coachId)
-                    ->where('date', $date)
-                    ->first();
-                $isCoverup = $coverup !== null;
-                // ✅ Only skip session if coach is on leave AND no coverup
-                if ($todayCoachLeave && !$isCoverup) {
-                    if ($schedule->from_time >= $fromLeaveTime && $schedule->to_time <= $toLeaveTime) {
-                        continue; // skip session
-                    }
+                if ($occurrences->approvedLeaveForSchedule($coachId, $date, $schedule->from_time, $schedule->to_time)) {
+                    $combinedData[] = [
+                        'id' => $batch->id,
+                        'name' => $batch->name,
+                        'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                        'status' => $occurrences->coverupForOccurrence($batch->id, $schedule->id, $date) ? 'COVERED' : 'ON LEAVE',
+                        'type' => 'Leave',
+                        'coverup' => 'No',
+                        'active_students' => $batch->active_students_count,
+                        'start_url' => null,
+                        'is_one_to_one' => $batch->is_one_to_one,
+                        'is_teachable' => false,
+                    ];
+                    continue;
                 }
 
                 // ✅ Set attendance status
@@ -835,21 +875,17 @@ class DashboardController extends Controller
                     ->toArray();
                 $studentCount = count($students);
 
-                // ✅ If coverup exists, override status
-                if ($isCoverup) {
-                    $status = 'COVER UP';
-                }
-
                 $combinedData[] = [
                     'id' => $batch->id,
                     'name' => $batch->name,
                     'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
                     'status' => $status,
-                    'type' => $isCoverup ? 'COVERUP' : 'BATCH',
-                    'coverup' => $isCoverup ? 'Yes' : 'No',
+                    'type' => 'BATCH',
+                    'coverup' => 'No',
                     'active_students' => $studentCount,
-                    'start_url' => $coverup->start_url ?? $batch->start_url, // Use coverup start_url if exists, else batch start_url
+                    'start_url' => $batch->start_url,
                     'is_one_to_one' => $batch->is_one_to_one,
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                 ];
             }
         }
@@ -919,6 +955,7 @@ class DashboardController extends Controller
                                                 ->where('end_date', '>=', $date)
                                                 ->count(),
                     'start_url'       => $coverup->start_url, // 🔥 important
+                    'is_teachable'    => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                 ];
             }
         }
@@ -1533,6 +1570,11 @@ class DashboardController extends Controller
             return response()->json(['error' => 'No schedule found for this day'], 422);
         }
 
+        $occurrences = app(BatchOccurrenceService::class);
+        if (strtoupper($request->type) !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $attendanceDate, $schedule->from_time, $schedule->to_time)) {
+            return response()->json(['error' => 'This class is blocked because the coach leave is approved.'], 422);
+        }
+
         $scheduledStart = $this->scheduledBatchDateTime($attendanceDate, $schedule->from_time);
 
         if (now()->gt($scheduledStart->copy()->addMinutes(7))) {
@@ -1742,6 +1784,15 @@ class DashboardController extends Controller
         $schedule = BatchSchedule::where('batch_id', $batch->id)
             ->where('weekday', $todaysDay)
             ->first();
+
+        if (! $schedule) {
+            return response()->json(['error' => 'No schedule found for this day'], 422);
+        }
+
+        $occurrences = app(BatchOccurrenceService::class);
+        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
+            return response()->json(['error' => 'This class is blocked because the coach leave is approved.'], 422);
+        }
 
 
         $fromTime = Carbon::createFromFormat('H:i:s', $schedule->from_time)->setDate(

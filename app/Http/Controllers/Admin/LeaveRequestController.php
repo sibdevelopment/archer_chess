@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
+use App\Services\BatchOccurrenceService;
 use App\Services\CoachAvailabilityService;
 
 class LeaveRequestController extends Controller
@@ -199,20 +200,24 @@ class LeaveRequestController extends Controller
     {
         $leaverequest         = LeaveRequest::find($request->leaverequest_id);
         $leaverequest->status = $request->status;
+        $occurrences = app(BatchOccurrenceService::class);
 
         if (isset($request->affectedData)) {
             foreach ($request->affectedData as $data) {
                 $batch          = Batch::find($data['batch_id']);
+                if (!$batch) {
+                    continue;
+                }
                 $batch_coach_id = $batch->coach_id;
-                if ($data['coach_id']) {
-                    $schedule = BatchSchedule::find($data['schedule_id']);
-                    if (!$schedule) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'Coverup schedule not found.',
-                        ], 422);
-                    }
+                $schedule = BatchSchedule::find($data['schedule_id']);
+                if (!$schedule) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Coverup schedule not found.',
+                    ], 422);
+                }
 
+                if ($data['coach_id']) {
                     $coach = Coach::find($data['coach_id']);
                     if ($coach && $this->checkCoachLeave($coach, $leaverequest->from_date)) {
                         return response()->json([
@@ -237,13 +242,15 @@ class LeaveRequestController extends Controller
                         ], 422);
                     }
 
-                    $coverupclass                   = new Coverupclass();
-                    $coverupclass->batch_id         = $data['batch_id'];
-                    $coverupclass->batchschedule_id = $data['schedule_id'];
-                    $coverupclass->old_coach_id     = $batch_coach_id;
-                    $coverupclass->new_coach_id     = $data['coach_id'];
-                    $coverupclass->date             = $leaverequest->from_date;
+                    $coverupclass = Coverupclass::firstOrNew([
+                        'batch_id' => $data['batch_id'],
+                        'batchschedule_id' => $data['schedule_id'],
+                        'date' => $leaverequest->from_date,
+                    ]);
+                    $coverupclass->old_coach_id = $batch_coach_id;
+                    $coverupclass->new_coach_id = $data['coach_id'];
                     $coverupclass->save();
+                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $leaverequest->from_date);
 
 
                     $coach = Coach::find($coverupclass->new_coach_id);
@@ -273,7 +280,7 @@ class LeaveRequestController extends Controller
                     }
 
                 } else {
-                    // $this->cancelBatchLogic($data['batch_id'], $data['schedule_id'], $leaverequest->from_date, $batch_coach_id);
+                    $occurrences->markApprovedLeaveOccurrence($batch, $schedule, $leaverequest->from_date);
                 }
             }
         }

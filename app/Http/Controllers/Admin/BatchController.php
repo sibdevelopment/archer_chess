@@ -22,6 +22,7 @@ use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Services\CoachAvailabilityService;
+use App\Services\BatchStatusService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
 
@@ -634,7 +635,7 @@ class BatchController extends Controller
                 $batchTypeBadge = $batch->is_one_to_one
                     ? '<span class="badge bg-dark fs-1 ms-1">1-1</span>'
                     : '<span class="badge bg-light-secondary text-secondary fs-1 ms-1">Normal</span>';
-                $batchName = $batch->name . ' ' . $batchTypeBadge;
+                $batchName = e(strtoupper($batch->name)) . ' ' . $batchTypeBadge;
 
                 return '<div class="d-flex justify-content-between">' . $batchName . ' &nbsp; ' .
                     '<div class="d-flex justify-content-end">' . $levelBadge . '&nbsp;&nbsp;' . $totalActiveStudentsBadge . '&nbsp;&nbsp;' . $lateJoinerBadge . '&nbsp;&nbsp;' . $feesDueStudentBadge . '</div>' . '</div>';
@@ -1355,7 +1356,7 @@ class BatchController extends Controller
         ]);
     }
 
-    public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability)
+    public function saveAssignedStudent(Request $request, CoachAvailabilityService $availability, BatchStatusService $batchStatusService)
     {
 
         // Validate the request data
@@ -1640,18 +1641,7 @@ class BatchController extends Controller
                 $sourceStudentBatch->save();
             }
 
-            $sourceStillHasActiveStudents = StudentBatch::where('batch_id', $transferSourceBatch->id)
-                ->where('status', 'ACTIVE')
-                ->exists();
-
-            if (! $sourceStillHasActiveStudents) {
-                $transferSourceBatch->status = 'INACTIVE';
-                $transferSourceBatch->save();
-
-                BatchSchedule::where('batch_id', $transferSourceBatch->id)->update([
-                    'status' => 'INACTIVE',
-                ]);
-            }
+            $batchStatusService->syncEmptyActiveOrStandbyToUpcoming($transferSourceBatch->fresh());
         }
 
         // $active_new_student_from_batch = StudentBatch::where('batch_id', $batchId)->where('status', 'ACTIVE')->first();
@@ -1706,6 +1696,8 @@ class BatchController extends Controller
                 'created_by'                => Auth::id(),
             ]);
         }
+
+        $batchStatusService->syncEmptyActiveOrStandbyToUpcoming(Batch::find($request->batch_id));
 
         DB::commit();
         } catch (\Throwable $exception) {

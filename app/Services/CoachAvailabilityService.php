@@ -233,7 +233,7 @@ class CoachAvailabilityService
         array $extraIgnoredBatchIds = []
     ): ?BatchSchedule
     {
-        $ignoredBatchIds = collect([$currentBatchId])
+        $ignoredBatchIds = collect($this->sameFamilyBatchIds($currentBatchId))
             ->merge($extraIgnoredBatchIds)
             ->filter()
             ->map(fn ($batchId) => (int) $batchId)
@@ -255,6 +255,29 @@ class CoachAvailabilityService
                     });
             })
             ->first();
+    }
+
+    private function sameFamilyBatchIds(?int $batchId): array
+    {
+        if (! $batchId) {
+            return [];
+        }
+
+        $batch = Batch::find($batchId);
+        if (! $batch) {
+            return [$batchId];
+        }
+
+        $familyId = $batch->parent_id ?: $batch->id;
+
+        return Batch::where(function ($query) use ($familyId, $batch) {
+                $query->where('parent_id', $familyId)
+                    ->orWhere('id', $familyId)
+                    ->orWhere('id', $batch->id);
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     private function demoConflict(int $coachId, string $date, string $fromTime, string $toTime, ?int $ignoreDemoId = null): ?DemoSession

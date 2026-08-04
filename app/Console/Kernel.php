@@ -43,6 +43,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('check:payment')->everyMinute();
 
+        $schedule->command('batchs:sync-empty-to-upcoming')->dailyAt('01:15');
+
 
         // Reminder Emails
         // $schedule->command('masterclass:reminder')->hourly();

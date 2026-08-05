@@ -29,13 +29,16 @@ class CancelDelayBatch extends Command
         // Get active batches scheduled for today
         $activeBatchIds = Batch::where('status', 'ACTIVE')
             ->whereDate('start_date', '<=', $now->toDateString())
+            ->whereDate('end_date', '>=', $now->toDateString())
             ->whereHas('batchSchedules', function ($query) use ($today) {
-                $query->where('weekday', $today);
+                $query->where('weekday', $today)
+                    ->where('status', 'ACTIVE');
             })
             ->pluck('id');
 
         $schedules = BatchSchedule::whereIn('batch_id', $activeBatchIds)
             ->where('weekday', $today)
+            ->where('status', 'ACTIVE')
             ->get();
 
         foreach ($schedules as $schedule) {

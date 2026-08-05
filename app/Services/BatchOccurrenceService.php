@@ -56,10 +56,10 @@ class BatchOccurrenceService
             })
             ->get()
             ->first(function (Holiday $holiday) use ($batchCountries) {
-                return ! empty(array_intersect(
-                    $batchCountries,
-                    $this->normalizeCountries($holiday->country ?? [])
-                ));
+                $holidayCountries = $this->normalizeCountries($holiday->country ?? []);
+
+                return ! empty($holidayCountries)
+                    && empty(array_diff($batchCountries, $holidayCountries));
             });
     }
 

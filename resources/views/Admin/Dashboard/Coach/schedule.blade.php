@@ -62,6 +62,9 @@
                                 case 'COVERED':
                                     $badgeColor = 'info';
                                     break;
+                                case 'HOLIDAY':
+                                    $badgeColor = 'secondary';
+                                    break;
                                 case 'CONVERTED':
                                     $badgeColor = 'info';
                                     break;
@@ -103,6 +106,8 @@
                         <span class="badge" style="background-color: blue;">{{ $schedule['type'] }}</span>
                     @elseif($schedule['type'] == 'Leave')
                         <span class="badge bg-secondary">Leave</span>
+                    @elseif($schedule['type'] == 'Holiday')
+                        <span class="badge bg-secondary">Holiday</span>
                     @else
                         {{ $schedule['type'] }}
                     @endif
@@ -153,7 +158,7 @@
                         // dd($now->lte($slotEndTime));
                     @endphp
 
-                    @if (!($schedule['is_teachable'] ?? true) || in_array($schedule['status'], ['ON LEAVE', 'COVERED']))
+                    @if (!($schedule['is_teachable'] ?? true) || in_array($schedule['status'], ['ON LEAVE', 'COVERED', 'HOLIDAY']))
                         <span class="text-muted">N/A</span>
                     {{-- @elseif ($latestAttendance && $latestAttendance->status === 'COMPLETED') --}}
                     {{-- 1. Yesterday Batch --}}

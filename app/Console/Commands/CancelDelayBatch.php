@@ -63,6 +63,12 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
+            if ($occurrences->holidayForBatch($batch, $date)) {
+                $occurrences->markHolidayOccurrence($batch, $schedule, $date);
+                $this->info("Marked HOLIDAY for batch {$schedule->batch_id}.");
+                continue;
+            }
+
             if ($occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
                 $this->info("Skipped batch {$schedule->batch_id} due to approved coach leave.");
                 continue;

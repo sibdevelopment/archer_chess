@@ -539,6 +539,24 @@ class DashboardController extends Controller
         // $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
+                if ($occurrences->holidayForBatch($batch, $date)) {
+                    $combinedData[] = [
+                        'id'              => $batch->id,
+                        'name'            => $batch->name,
+                        'slot'            => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                        'status'          => 'HOLIDAY',
+                        'type'            => 'Holiday',
+                        'active_students' => $batch->active_students_count,
+                        'start_url'       => null,
+                        'homework_link'   => null,
+                        'attendance_exists' => false,
+                        'attendance_time' => null,
+                        'is_one_to_one'   => $batch->is_one_to_one,
+                        'is_teachable'    => false,
+                    ];
+                    continue;
+                }
+
                 if ($occurrences->approvedLeaveForSchedule($coachId, $date, $schedule->from_time, $schedule->to_time)) {
                     $combinedData[] = [
                         'id'              => $batch->id,
@@ -587,7 +605,7 @@ class DashboardController extends Controller
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
                     'is_one_to_one'    => $batch->is_one_to_one,
-                    'is_teachable'     => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
+                    'is_teachable'     => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
 
                 if ($batch->name == 'Abhijeet-WTH4:30AM') {
@@ -674,7 +692,7 @@ class DashboardController extends Controller
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
-                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
             }
         }
@@ -839,6 +857,22 @@ class DashboardController extends Controller
         $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
+                if ($occurrences->holidayForBatch($batch, $date)) {
+                    $combinedData[] = [
+                        'id' => $batch->id,
+                        'name' => $batch->name,
+                        'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                        'status' => 'HOLIDAY',
+                        'type' => 'Holiday',
+                        'coverup' => 'No',
+                        'active_students' => $batch->active_students_count,
+                        'start_url' => null,
+                        'is_one_to_one' => $batch->is_one_to_one,
+                        'is_teachable' => false,
+                    ];
+                    continue;
+                }
+
                 if ($occurrences->approvedLeaveForSchedule($coachId, $date, $schedule->from_time, $schedule->to_time)) {
                     $combinedData[] = [
                         'id' => $batch->id,
@@ -885,7 +919,7 @@ class DashboardController extends Controller
                     'active_students' => $studentCount,
                     'start_url' => $batch->start_url,
                     'is_one_to_one' => $batch->is_one_to_one,
-                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
             }
         }
@@ -955,7 +989,7 @@ class DashboardController extends Controller
                                                 ->where('end_date', '>=', $date)
                                                 ->count(),
                     'start_url'       => $coverup->start_url, // 🔥 important
-                    'is_teachable'    => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
+                    'is_teachable'    => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
             }
         }
@@ -1571,6 +1605,10 @@ class DashboardController extends Controller
         }
 
         $occurrences = app(BatchOccurrenceService::class);
+        if (strtoupper($request->type) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $attendanceDate)) {
+            return response()->json(['error' => 'This class is blocked because of a regional holiday.'], 422);
+        }
+
         if (strtoupper($request->type) !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $attendanceDate, $schedule->from_time, $schedule->to_time)) {
             return response()->json(['error' => 'This class is blocked because the coach leave is approved.'], 422);
         }
@@ -1790,6 +1828,10 @@ class DashboardController extends Controller
         }
 
         $occurrences = app(BatchOccurrenceService::class);
+        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $date)) {
+            return response()->json(['error' => 'This class is blocked because of a regional holiday.'], 422);
+        }
+
         if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
             return response()->json(['error' => 'This class is blocked because the coach leave is approved.'], 422);
         }

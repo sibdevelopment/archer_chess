@@ -7,6 +7,7 @@ use App\Models\BatchSchedule;
 use App\Models\CoachAttendance;
 use App\Models\Coverupclass;
 use App\Models\DelayedBatch;
+use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Models\StudentAttendance;
 use App\Models\StudentBatch;
@@ -37,6 +38,83 @@ class BatchOccurrenceService
             ->where('batchschedule_id', $scheduleId)
             ->whereDate('date', $date)
             ->first();
+    }
+
+    public function holidayForBatch(Batch $batch, string $date): ?Holiday
+    {
+        $batchCountries = $this->normalizeCountries($batch->country ?? []);
+
+        if (empty($batchCountries)) {
+            return null;
+        }
+
+        return Holiday::where('status', 'ACTIVE')
+            ->whereDate('start_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $date);
+            })
+            ->get()
+            ->first(function (Holiday $holiday) use ($batchCountries) {
+                return ! empty(array_intersect(
+                    $batchCountries,
+                    $this->normalizeCountries($holiday->country ?? [])
+                ));
+            });
+    }
+
+    public function markHolidayOccurrence(Batch $batch, BatchSchedule $schedule, string $date): bool
+    {
+        $this->clearDelayedPenalty($batch->id, $schedule->id, $date);
+
+        $existingAttendance = CoachAttendance::where('batch_id', $batch->id)
+            ->where('coach_id', $batch->coach_id)
+            ->whereDate('date', $date)
+            ->orderByDesc('id')
+            ->first();
+
+        if ($existingAttendance) {
+            if ($existingAttendance->status === 'CANCELLED') {
+                $existingAttendance->status = 'HOLIDAY';
+                $existingAttendance->save();
+
+                StudentAttendance::where('batch_id', $batch->id)
+                    ->whereDate('date', $date)
+                    ->where('status', 'CANCELLED')
+                    ->update(['remark' => 'Cancelled due to holiday']);
+            }
+
+            return false;
+        }
+
+        $latestCoachAttendance = CoachAttendance::where('batch_id', $batch->id)
+            ->orderByDesc('id')
+            ->first();
+
+        $coachAttendance = new CoachAttendance();
+        $coachAttendance->coach_id = $batch->coach_id;
+        $coachAttendance->type = 'BATCH';
+        $coachAttendance->batch_id = $batch->id;
+        $coachAttendance->date = $date;
+        $coachAttendance->time = $schedule->from_time;
+        $coachAttendance->status = 'HOLIDAY';
+        $coachAttendance->homework_link = '';
+        $coachAttendance->recording_link = '';
+        $coachAttendance->chapter_name = '';
+        $coachAttendance->number_of_batch_sessions = $latestCoachAttendance
+            ? $latestCoachAttendance->number_of_batch_sessions
+            : 0;
+        $coachAttendance->save();
+
+        $this->shiftCancelledOccurrence(
+            $batch,
+            $schedule,
+            $date,
+            'Cancelled due to holiday',
+            $coachAttendance->number_of_batch_sessions
+        );
+
+        return true;
     }
 
     public function markApprovedLeaveOccurrence(Batch $batch, BatchSchedule $schedule, string $date): bool
@@ -208,5 +286,25 @@ class BatchOccurrenceService
         return $fromDate->copy()->addDays(
             (Carbon::parse($scheduledDays[0])->dayOfWeek - $fromDate->dayOfWeek + 7) % 7
         );
+    }
+
+    private function normalizeCountries($countries): array
+    {
+        if (is_string($countries)) {
+            $decoded = json_decode($countries, true);
+            $countries = json_last_error() === JSON_ERROR_NONE ? $decoded : explode(',', $countries);
+        }
+
+        if (! is_array($countries)) {
+            return [];
+        }
+
+        return collect($countries)
+            ->flatten()
+            ->filter()
+            ->map(fn ($country) => strtoupper(trim((string) $country)))
+            ->unique()
+            ->values()
+            ->toArray();
     }
 }

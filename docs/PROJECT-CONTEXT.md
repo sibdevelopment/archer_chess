@@ -68,7 +68,7 @@ main = production branch
 - If approved leave has no coverup, the original coach gets no penalty; coach attendance is marked `ON LEAVE`, eligible student attendance is marked cancelled with approved-leave remark, and batch/student-batch/latest-fee end dates shift once to the next scheduled class day.
 - `cancel:delay-batch` skips occurrences covered by coverup or approved leave. Normal missed classes still follow late/cancel penalty logic, and cancellation remains exclusive over late.
 - Coach dashboard shows approved leave occurrences as `ON LEAVE` or `COVERED`, hides start links for those rows, and backend start/attendance endpoints reject normal starts when approved leave blocks that class.
-- Regional holidays are also handled as official no-class occurrences. If an active holiday date overlaps a batch country and the batch has a schedule that day, `cancel:delay-batch` marks the coach attendance `HOLIDAY`, clears delayed penalties, shifts eligible batch/student/latest-fee dates once, and coach dashboard shows `HOLIDAY` with no start link.
+- Regional holidays are also handled as official no-class occurrences. If an active holiday date covers all countries on an active batch, and the batch has an active schedule within its start/end window that day, `cancel:delay-batch` marks the coach attendance `HOLIDAY`, clears delayed penalties, shifts eligible batch/student/latest-fee dates once, and coach dashboard shows `HOLIDAY` with no start link.
 
 Only tested changes should move from `development_1` to `main`.
 

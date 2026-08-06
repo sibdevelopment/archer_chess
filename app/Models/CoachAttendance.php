@@ -15,13 +15,17 @@ class CoachAttendance extends BaseModel
         'type',
         'demolead_id',
         'batch_id',
+        'masterclass_id',
         'date',
         'time',
+        'attendance_submitted_at',
         'status',
         'number_of_batch_sessions',
         'number_of_demo_sessions',
         'created_by', 
         'updated_by',
+        'homework_link',
+        'recording_link',
         'chapter_name',
     ];
 

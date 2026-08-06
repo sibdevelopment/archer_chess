@@ -694,6 +694,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Demo penalty uses the same delayed_batches reporting pipeline with occurrence_type = DEMO, demo_session_id, and demolead_id.
 - Demo late is marked after 5 minutes with INR 100 fine.
 - Demo cancelled is marked after 9 minutes with INR 100 fine and replaces any late demo penalty for the same demo session/date.
+- Masterclass attendance report now treats `coach_attendances.time` as the coach's actual Start click time and stores final attendance/homework submission separately in `coach_attendances.attendance_submitted_at`.
+- Masterclass attendance report popup includes the scheduled masterclass country/region from `masterclasses.country`.
 - Demo penalties are included in coach Late/Cancel Fine report counts and detail modal.
 ```
 

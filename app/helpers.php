@@ -585,6 +585,9 @@ function normalizeCountryValue($country): string
         'QATAR' => 'QATAR',
         'BAHRAIN' => 'BAHRAIN',
         'KUWAIT' => 'KUWAIT',
+        'SAUDIARABIA' => 'SAUDI ARABIA',
+        'SAUDI' => 'SAUDI ARABIA',
+        'KSA' => 'SAUDI ARABIA',
         'EUROPEANUNION' => 'EUROPEAN UNION',
         'OMAN' => 'OMAN',
     ];
@@ -621,6 +624,7 @@ function countryComparisonValues($country): array
     $aliases = [
         'NEWZEALAND' => ['NEW ZEALAND', 'New Zealand'],
         'SOUTH AFRICA' => ['SOUTHAFRICA', 'South Africa'],
+        'SAUDI ARABIA' => ['SAUDIARABIA', 'Saudi Arabia', 'KSA'],
         'EUROPEAN UNION' => ['EUROPEANUNION', 'European Union'],
     ];
 
@@ -655,6 +659,7 @@ function availableCurrencyCodes(): array
         'OMR',
         'KWD',
         'BHD',
+        'SAR',
     ];
 }
 
@@ -732,6 +737,9 @@ function getTimezones()
             'Arabian Standard Time' => 'Arabian Standard Time',
         ],
         'BAHRAIN'   => [
+            'Arabian Standard Time' => 'Arabian Standard Time',
+        ],
+        'SAUDI ARABIA'   => [
             'Arabian Standard Time' => 'Arabian Standard Time',
         ],
         'OMAN'   => [
@@ -958,6 +966,7 @@ if (!function_exists('convertToStudentLocalTime')) {
             'QATAR'       => '+974',
             'BAHRAIN'     => '+973',
             'KUWAIT'      => '+965',
+            'SAUDI ARABIA'=> '+966',
         ];
 
         // Phone code → default timezone mapping
@@ -972,6 +981,7 @@ if (!function_exists('convertToStudentLocalTime')) {
             '+974' => 'Asia/Qatar',
             '+973' => 'Asia/Bahrain',
             '+965' => 'Asia/Kuwait',
+            '+966' => 'Asia/Riyadh',
         ];
 
         // Get phone code for country
@@ -1015,6 +1025,8 @@ if (!function_exists('convertToKidsTime')) {
             'QATAR'       => 'Asia/Qatar',
             'BAHRAIN'     => 'Asia/Bahrain',
             'KUWAIT'      => 'Asia/Kuwait',
+            'SAUDI ARABIA'=> 'Asia/Riyadh',
+            'SAUDIARABIA' => 'Asia/Riyadh',
             'SINGAPORE'   => 'Asia/Singapore',
             'NEWZEALAND'  => 'Pacific/Auckland',
             'SOUTHAFRICA' => 'Africa/Johannesburg',

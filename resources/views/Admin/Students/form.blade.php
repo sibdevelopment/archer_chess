@@ -141,6 +141,9 @@
                                             <option value="OMAN"
                                             {{ isset($student) && $student->country == 'OMAN' ? 'selected' : '' }}>
                                             OMAN</option>
+                                        <option value="SAUDI ARABIA"
+                                            {{ isset($student) && $student->country == 'SAUDI ARABIA' ? 'selected' : '' }}>
+                                            SAUDI ARABIA</option>
                                     @else
                                         @foreach ($allowedCountries as $country)
                                             <option value="{{ $country }}"

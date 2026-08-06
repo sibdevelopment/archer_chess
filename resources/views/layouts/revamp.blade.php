@@ -1225,6 +1225,7 @@
                                     <option value="OMAN">Oman</option>
                                     <option value="BAHRAIN">Bahrain</option>
                                     <option value="KUWAIT">Kuwait</option>
+                                    <option value="SAUDI ARABIA">Saudi Arabia</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -1800,7 +1801,8 @@
                 'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
                 'OMAN': ['Gulf Standard Time'],
                 'BAHRAIN': ['Arabian Standard Time'],
-                'KUWAIT': ['Arabian Standard Time']
+                'KUWAIT': ['Arabian Standard Time'],
+                'SAUDI ARABIA': ['Arabian Standard Time']
             };
 
             const dialCodeByCountry = {
@@ -1817,7 +1819,8 @@
                 'EUROPEAN UNION': '+358',
                 'OMAN': '+968',
                 'BAHRAIN': '+973',
-                'KUWAIT': '+965'
+                'KUWAIT': '+965',
+                'SAUDI ARABIA': '+966'
             };
 
             function setMessage($form, selector, message, isError) {

@@ -61,6 +61,7 @@
                                     <option value="KUWAIT">KUWAIT</option>
                                     <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                     <option value="OMAN">OMAN</option>
+                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                 @else
                                     @foreach ($allowedCountries as $country)
                                         <option value="{{ $country }}">{{ $country }}</option>

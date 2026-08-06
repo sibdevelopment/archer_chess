@@ -318,6 +318,7 @@
                                                                 <option value="QATAR">QATAR</option>
                                                                 <option value="BAHRAIN">BAHRAIN</option>
                                                                 <option value="KUWAIT">KUWAIT</option>
+                                                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                                             @elseif($country_slug === 'uae')
                                                                 <option value="UAE">UAE</option>
                                                                 <option value="OMAN">OMAN</option>
@@ -1296,6 +1297,7 @@
                    <li><img width="25" src="/frontend/india/images/icons/uk.svg" /> UK</li>
                    <li><img width="25" src="/frontend/india/images/icons/usa.svg" /> USA</li>
                    <li><img width="25" src="/frontend/india/images/icons/qatar.svg" /> Qatar</li>
+                   <li>Saudi Arabia</li>
                </ul>
                <div class="row justify-content-center">
                    <div class="col-lg-10">
@@ -1562,6 +1564,7 @@
                                                     <option value="QATAR">QATAR</option>
                                                     <option value="BAHRAIN">BAHRAIN</option>
                                                     <option value="KUWAIT">KUWAIT</option>
+                                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                                 @elseif($country_slug === 'uae')
                                                     <option value="UAE">UAE</option>
                                                     <option value="OMAN">OMAN</option>
@@ -1851,7 +1854,8 @@
                 'SOUTH AFRICA': 'za',
                 'QATAR': 'qa',
                 'BAHRAIN': 'bh',
-                'KUWAIT': 'kw'
+                'KUWAIT': 'kw',
+                'SAUDI ARABIA': 'sa'
             };
 
             // init intl-tel-input on popup field

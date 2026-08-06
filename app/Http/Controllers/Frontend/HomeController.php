@@ -480,6 +480,7 @@ class HomeController extends Controller
             'qatar'           => 'QATAR',
             'european-union'  => 'EUROPEAN UNION',
             'middle-east'     => 'MIDDLE EAST',
+            'saudi-arabia'    => 'SAUDI ARABIA',
         ];
  
 
@@ -528,6 +529,7 @@ class HomeController extends Controller
             'QATAR' => ['Arabian Standard Time'],
             'BAHRAIN' => ['Arabian Standard Time'],
             'KUWAIT' => ['Arabian Standard Time'],
+            'SAUDI ARABIA' => ['Arabian Standard Time'],
             'EUROPEAN UNION' => ['Central European Time', 'Eastern European Time', 'Western European Time'],
             'OMAN' => ['Gulf Standard Time'],
         ];

@@ -1536,6 +1536,7 @@
                                         <option value="OMAN">Oman</option>
                                         <option value="BAHRAIN">Bahrain</option>
                                         <option value="KUWAIT">Kuwait</option>
+                                        <option value="SAUDI ARABIA">Saudi Arabia</option>
                                     </select>
                                 </div>
 

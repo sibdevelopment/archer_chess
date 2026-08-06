@@ -102,6 +102,7 @@
                         <option>QATAR</option>
                         <option>BAHRAIN</option>
                         <option>KUWAIT</option>
+                        <option>SAUDI ARABIA</option>
                     </select>
                 </div>
             </div>
@@ -341,7 +342,10 @@
             'UAE': ['Gulf Standard Time'],
             'SINGAPORE': ['Singapore Standard Time'],
             'SOUTH AFRICA': ['South Africa Standard Time'],
-            'QATAR': ['Arabian Standard Time']
+            'QATAR': ['Arabian Standard Time'],
+            'BAHRAIN': ['Arabian Standard Time'],
+            'KUWAIT': ['Arabian Standard Time'],
+            'SAUDI ARABIA': ['Arabian Standard Time']
         };
 
         function updateTimezones(country) {

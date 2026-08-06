@@ -36,6 +36,7 @@
                                 <option value="KUWAIT" {{ (isset($role) && in_array('KUWAIT', $role->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>
                                 <option value="EUROPEAN UNION" {{ (isset($role) && in_array('EUROPEAN UNION', $role->countries ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
                                 <option value="OMAN" {{ (isset($role) && in_array('OMAN', $role->countries ?? [])) ? 'selected' : '' }}>OMAN</option>
+                                <option value="SAUDI ARABIA" {{ (isset($role) && in_array('SAUDI ARABIA', $role->countries ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
                             </select>
                             <div id="countries-error" style="color:red"></div>
                         </div>

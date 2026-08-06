@@ -519,6 +519,17 @@ class BatchController extends Controller
             });
         }
 
+        if ($request->filled('batch_type')) {
+            if ($request->batch_type === 'ONE_TO_ONE') {
+                $query->where('batchs.is_one_to_one', true);
+            } elseif ($request->batch_type === 'NORMAL') {
+                $query->where(function ($query) {
+                    $query->where('batchs.is_one_to_one', false)
+                        ->orWhereNull('batchs.is_one_to_one');
+                });
+            }
+        }
+
         if ($request->has('is_time') && $request->is_time == 'YES') {
             $todayDay = now()->format('l'); 
             $nowTime = now()->format('H:i:s');

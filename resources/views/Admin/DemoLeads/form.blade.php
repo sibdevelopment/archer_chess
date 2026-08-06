@@ -87,6 +87,7 @@
                                     <option value="KUWAIT" {{ (isset($demolead) && strtoupper($demolead->country) == 'KUWAIT') ? 'selected' : '' }}>KUWAIT</option>
                                     <option value="EUROPEAN UNION" {{ (isset($demolead) && strtoupper($demolead->country) == 'EUROPEAN UNION') ? 'selected' : '' }}>EUROPEAN UNION</option>
                                     <option value="OMAN" {{ (isset($demolead) && strtoupper($demolead->country) == 'OMAN') ? 'selected' : '' }}>OMAN</option>
+                                    <option value="SAUDI ARABIA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'SAUDI ARABIA') ? 'selected' : '' }}>SAUDI ARABIA</option>
                                 @else
                                     @foreach ($allowedCountries as $country)
                                         <option value="{{ $country }}" {{ (isset($demolead) && strtoupper($demolead->country) == $country) ? 'selected' : '' }}>{{ $country }}</option>

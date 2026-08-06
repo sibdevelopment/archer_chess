@@ -141,6 +141,7 @@
                                             <option value="QATAR">QATAR</option>
                                             <option value="BAHRAIN">BAHRAIN</option>
                                             <option value="KUWAIT">KUWAIT</option>
+                                            <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                         </select>
                                         <div id="country-error" style="color:red"></div>
                                     </div>

@@ -62,6 +62,7 @@
                                         <th width="5%">KWT</th>
                                         <th width="5%">BHR</th>
                                         <th width="5%">SA</th>
+                                        <th width="5%">KSA</th>
                                     </tr>
                                 </thead>
                             </table>
@@ -184,6 +185,11 @@
                     {
                         data: 'south_africa_fees',
                         name: 'south_africa_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'saudi_arabia_fees',
+                        name: 'saudi_arabia_fees',
                         orderable: false
                     }
                 ],

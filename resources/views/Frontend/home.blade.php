@@ -1623,6 +1623,7 @@
                                                 <option>KUWAIT</option>
                                                 <option>EUROPEAN UNION</option>
                                                 <option>OMAN</option>
+                                                <option>SAUDI ARABIA</option>
                                             </select>
                                         </div>
                                     </div>
@@ -2050,6 +2051,7 @@
                                     <option value="KUWAIT">KUWAIT</option>
                                     <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                     <option value="OMAN">OMAN</option>
+                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                 </select>
                                 <div id="country-error" class="text-danger mt-1">
                                 </div>
@@ -2185,6 +2187,11 @@
                 booking: 'OMAN',
                 iso2: 'om',
                 dial: '968'
+            },
+            'SAUDI ARABIA': {
+                booking: 'SAUDI ARABIA',
+                iso2: 'sa',
+                dial: '966'
             }
         };
     </script>
@@ -2203,7 +2210,8 @@
             'SOUTH AFRICA': 'za',
             'QATAR': 'qa',
             'BAHRAIN': 'bh',
-            'KUWAIT': 'kw'
+            'KUWAIT': 'kw',
+            'SAUDI ARABIA': 'sa'
         };
 
         // init intl-tel-input on popup field
@@ -2413,7 +2421,8 @@
             'BAHRAIN': ['Arabian Standard Time'],
             'KUWAIT': ['Arabian Standard Time'],
             'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
-            'OMAN': ['Gulf Standard Time']
+            'OMAN': ['Gulf Standard Time'],
+            'SAUDI ARABIA': ['Arabian Standard Time']
         };
 
 
@@ -2726,7 +2735,8 @@
             'UAE': 'Gulf Standard Time',
             'SINGAPORE': 'Singapore Standard Time',
             'SOUTH AFRICA': 'South Africa Standard Time',
-            'QATAR': 'Arabian Standard Time'
+            'QATAR': 'Arabian Standard Time',
+            'SAUDI ARABIA': 'Arabian Standard Time'
             // 'NEWZEALAND': 'New Zealand Standard Time'  // add if you like
         };
 

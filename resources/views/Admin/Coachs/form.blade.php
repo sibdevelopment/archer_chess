@@ -52,6 +52,7 @@ Coach
                                 <option value="KUWAIT" {{ (isset($coach) && in_array('KUWAIT', $coach->country ?? [])) ? 'selected' : '' }}>KUWAIT</option>
                                 <option value="EUROPEAN UNION" {{ (isset($coach) && in_array('EUROPEAN UNION', $coach->country ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
                                 <option value="OMAN" {{ (isset($coach) && in_array('OMAN', $coach->country ?? [])) ? 'selected' : '' }}>OMAN</option>
+                                <option value="SAUDI ARABIA" {{ (isset($coach) && in_array('SAUDI ARABIA', $coach->country ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
                             </select>
                             <div id="country-error" style="color:red"></div>
                         </div>

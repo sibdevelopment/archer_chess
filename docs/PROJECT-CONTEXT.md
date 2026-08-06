@@ -685,6 +685,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Only the student's latest ACTIVE fee row is shifted, and fee/batch end dates move to the nearest next active batch schedule day.
 ```
 
+## Saudi Arabia Country / Payment Support Notes
+
+```text
+- Saudi Arabia is added as a supported ERP/frontend country with canonical value SAUDI ARABIA.
+- Frontend registration, old fallback forms, and Middle East landing page forms include Saudi Arabia with Arabian Standard Time and +966 dial code.
+- ERP country filters/forms now include Saudi Arabia across student, batch, coach, holiday, timezone, role, lead, demo lead, tournament, and masterclass surfaces.
+- Payment Level master has a new saudi_arabia_fees column/input mapped to SAR for student dashboard Razorpay payments.
+- Deployment needs php artisan migrate, then admins must fill Saudi Arabia fee values in Payment Level master before Saudi students can pay a non-zero amount.
+- Razorpay account/currency support for SAR still needs to be confirmed/enabled from Razorpay side before live SAR checkout is considered final.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

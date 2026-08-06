@@ -562,8 +562,9 @@
                                     <th style="text-align: center;">#</th>
                                     <th style="text-align: center;">Coach Name</th>
                                     <th style="text-align: center;">Masterclass Name</th>
+                                    <th style="text-align: center;">Country/Region</th>
                                     <th style="text-align: center;">Date</th>
-                                    <th style="text-align: center;">Time</th>
+                                    <th style="text-align: center;">Start Time</th>
                                     <th style="text-align: center;">Status</th>
                                 </tr>
                             </thead>
@@ -1070,6 +1071,8 @@
                                     .coach_name + '</td>' +
                                     '<td style="text-align: center;">' + leave
                                     .masterclass_name + '</td>' +
+                                    '<td style="text-align: center;">' + leave.country +
+                                    '</td>' +
                                     '<td style="text-align: center;">' + leave.date +
                                     '</td>' +
                                     '<td style="text-align: center;">' + leave.time +

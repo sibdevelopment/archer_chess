@@ -834,7 +834,8 @@ class ReportController extends Controller
             ->count();
 
         // Fetch the leave request data
-        $masterclassAttendance = CoachAttendance::where('coach_id', $coachId)
+        $masterclassAttendance = CoachAttendance::with(['coach.user'])
+            ->where('coach_id', $coachId)
             ->where('type', 'Masterclass')
             ->where('masterclass_id', '!=', null)
             ->where('status', 'COMPLETED')
@@ -846,21 +847,18 @@ class ReportController extends Controller
 
         // Format the leave request data
         $masterclassData = $masterclassAttendance->map(function ($attendance) {
-            // dd( $attendance);
             $masterclass = Masterclass::find($attendance->masterclass_id);
-            // if ($masterclass) {
-            $coach = Coach::find($masterclass->coach_id);
-            // } else {
-            //     dd($masterclass);
-            // }
-            
-            // dd($coach);
+            $countries = $masterclass && is_array($masterclass->country)
+                ? implode(', ', $masterclass->country)
+                : ($masterclass->country ?? 'N/A');
+
             return [
                 'id'               => $attendance->id,
-                'coach_name'       => $coach->user->first_name . ' ' . $coach->user->last_name,
-                'masterclass_name' => $masterclass->name,
+                'coach_name'       => optional(optional($attendance->coach)->user)->full_name ?? 'N/A',
+                'masterclass_name' => $masterclass->name ?? 'N/A',
+                'country'          => $countries ?: 'N/A',
                 'date'             => Carbon::parse($attendance->date)->format('j, M Y'),
-                'time'             => Carbon::parse($attendance->time)->format('g:i A'),
+                'time'             => $attendance->time ? Carbon::parse($attendance->time)->format('g:i A') : 'N/A',
                 'status'           => $attendance->status,
             ];
         });

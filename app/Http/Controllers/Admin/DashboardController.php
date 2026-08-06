@@ -1089,11 +1089,11 @@ class DashboardController extends Controller
 
         if ($attendance) {
             // Update existing attendance
-            $attendance->time           = $current_time; // update time if needed
             $attendance->status         = 'COMPLETED';
             $attendance->homework_link  = $request->homework_link;
             $attendance->recording_link = $request->recording_link;
             $attendance->chapter_name   = $request->chapter_name;
+            $attendance->attendance_submitted_at = now();
             $attendance->save();
 
             return response()->json([
@@ -1109,6 +1109,7 @@ class DashboardController extends Controller
             'masterclass_id' => $masterclass->id,
             'date'           => $current_date,
             'time'           => $current_time,
+            'attendance_submitted_at' => now(),
             'status'         => 'COMPLETED',
             'homework_link'  => $request->homework_link,
             'recording_link' => $request->recording_link,

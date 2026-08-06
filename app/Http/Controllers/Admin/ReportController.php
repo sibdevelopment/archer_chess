@@ -419,9 +419,13 @@ class ReportController extends Controller
                     : '—';
 
                 return [
-                    'batch_name'    => $row->batch_name ?? '',
+                    'batch_name'    => $row->occurrence_type === 'DEMO'
+                        ? ($row->batch_name ?: 'Demo Session')
+                        : ($row->batch_name ?? ''),
                     'country'       => $countryStr,
-                    'batch_status'  => $row->batch_status ?? '',
+                    'batch_status'  => $row->occurrence_type === 'DEMO'
+                        ? 'DEMO'
+                        : ($row->batch_status ?? ''),
                     'level_name'    => $row->level_name ?? '',
                     'timeline'      => $row->timeline ?? '',
                     'penalty_type'  => $row->penalty_type ?? 'LATE',
@@ -448,7 +452,16 @@ class ReportController extends Controller
             ->get()
             ->groupBy(function (DelayedBatch $row) {
                 $date = $row->date ? Carbon::parse($row->date)->toDateString() : '';
+                if ($row->occurrence_type === 'DEMO') {
+                    return implode('|', [
+                        'DEMO',
+                        $row->demo_session_id ?: $row->demolead_id ?: $row->id,
+                        $date,
+                    ]);
+                }
+
                 return implode('|', [
+                    'BATCH',
                     $row->batch_id,
                     $date,
                     $row->batchschedule_id ?: 'legacy',

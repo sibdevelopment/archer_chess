@@ -687,6 +687,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Only the student's latest ACTIVE fee row is shifted, and fee/batch end dates move to the nearest next active batch schedule day.
 ```
 
+## Demo Late / Cancel Penalty Notes
+
+```text
+- Normal batch penalty remains unchanged: late after 3 minutes = INR 150, cancelled after 8 minutes = INR 350, and cancelled replaces late.
+- Demo penalty uses the same delayed_batches reporting pipeline with occurrence_type = DEMO, demo_session_id, and demolead_id.
+- Demo late is marked after 5 minutes with INR 100 fine.
+- Demo cancelled is marked after 9 minutes with INR 100 fine and replaces any late demo penalty for the same demo session/date.
+- Demo penalties are included in coach Late/Cancel Fine report counts and detail modal.
+```
+
 ## Saudi Arabia Country / Payment Support Notes
 
 ```text

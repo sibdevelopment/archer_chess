@@ -1652,6 +1652,7 @@ class DashboardController extends Controller
 
             if ($actualAt->gt($scheduledStart->copy()->addMinutes(3))) {
                 $delayedBatchKey = [
+                    'occurrence_type' => 'BATCH',
                     'batch_id' => $batchId,
                     'batchschedule_id' => $schedule->id,
                     'date' => $attendanceDate,
@@ -2010,6 +2011,89 @@ class DashboardController extends Controller
             $demoSession->level_id                = $request->input('level_id');
             $demoSession->coach_attendance_status = $request->input('status');
             $demoSession->save();
+
+            $demoStart = $demoSession->time;
+            if (! $demoStart && $demoSession->slot && str_contains($demoSession->slot, ' - ')) {
+                $demoStart = trim(explode(' - ', $demoSession->slot)[0]);
+            }
+            if ($demoStart) {
+                $actualAt = Carbon::parse($date . ' ' . $request->input('time'));
+                $scheduledStart = Carbon::parse($date . ' ' . $demoStart);
+                $lateAt = $scheduledStart->copy()->addMinutes(5);
+                $cancelAt = $scheduledStart->copy()->addMinutes(9);
+                $delayedDemoKey = [
+                    'occurrence_type' => 'DEMO',
+                    'demo_session_id' => $demoSession->id,
+                    'demolead_id' => $demoSession->demolead_id,
+                    'date' => $date,
+                ];
+
+                if ($request->input('status') === 'CANCELLED' && $actualAt->greaterThanOrEqualTo($cancelAt)) {
+                    DelayedBatch::where($delayedDemoKey)
+                        ->where('penalty_type', 'LATE')
+                        ->delete();
+
+                    DelayedBatch::updateOrCreate(
+                        $delayedDemoKey,
+                        [
+                            'coach_id' => $request->input('coach_id'),
+                            'coach_attendance_id' => CoachAttendance::where('demolead_id', $request->input('demolead_id'))
+                                ->where('coach_id', $request->input('coach_id'))
+                                ->whereDate('date', $date)
+                                ->value('id'),
+                            'time' => $actualAt->format('H:i:s'),
+                            'batch_name' => 'Demo - ' . trim($demoSession->demolead->first_name . ' ' . $demoSession->demolead->last_name),
+                            'country' => $demoSession->demolead->country ? [$demoSession->demolead->country] : null,
+                            'batch_status' => $demoSession->demolead->status,
+                            'level_name' => optional($demoSession->level)->name,
+                            'timeline' => sprintf(
+                                'Demo scheduled start: %s | Marked at: %s',
+                                $scheduledStart->format('d-M-Y h:i:s A'),
+                                $actualAt->format('d-M-Y h:i:s A')
+                            ),
+                            'canceled_date' => $date,
+                            'canceled_time' => $actualAt->format('H:i:s'),
+                            'penalty_type' => 'CANCELLED',
+                            'fine_amount' => 100,
+                            'fine_currency' => 'INR',
+                            'late_popup_acknowledged_at' => null,
+                        ]
+                    );
+                } elseif ($request->input('status') !== 'CANCELLED' && $actualAt->gt($lateAt)) {
+                    $cancelledPenaltyExists = DelayedBatch::where($delayedDemoKey)
+                        ->where('penalty_type', 'CANCELLED')
+                        ->exists();
+
+                    if (! $cancelledPenaltyExists) {
+                        DelayedBatch::updateOrCreate(
+                            $delayedDemoKey,
+                            [
+                                'coach_id' => $request->input('coach_id'),
+                                'coach_attendance_id' => CoachAttendance::where('demolead_id', $request->input('demolead_id'))
+                                    ->where('coach_id', $request->input('coach_id'))
+                                    ->whereDate('date', $date)
+                                    ->value('id'),
+                                'time' => $actualAt->format('H:i:s'),
+                                'batch_name' => 'Demo - ' . trim($demoSession->demolead->first_name . ' ' . $demoSession->demolead->last_name),
+                                'country' => $demoSession->demolead->country ? [$demoSession->demolead->country] : null,
+                                'batch_status' => $demoSession->demolead->status,
+                                'level_name' => optional($demoSession->level)->name,
+                                'timeline' => sprintf(
+                                    'Demo scheduled start: %s | Marked at: %s',
+                                    $scheduledStart->format('d-M-Y h:i:s A'),
+                                    $actualAt->format('d-M-Y h:i:s A')
+                                ),
+                                'penalty_type' => 'LATE',
+                                'fine_amount' => 100,
+                                'fine_currency' => 'INR',
+                                'late_popup_acknowledged_at' => null,
+                                'canceled_date' => null,
+                                'canceled_time' => null,
+                            ]
+                        );
+                    }
+                }
+            }
         }
         // If the status is COMPLETED, update the status in DemoLead table to "DEMO DONE"
         if ($request->input('status') === 'COMPLETED') {

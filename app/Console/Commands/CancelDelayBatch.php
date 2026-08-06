@@ -4,6 +4,8 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use App\Models\Batch;
+use App\Models\DemoLead;
+use App\Models\DemoSession;
 use App\Models\StudentBatch;
 use App\Models\StudentFee;  
 use App\Models\BatchSchedule;
@@ -48,6 +50,7 @@ class CancelDelayBatch extends Command
             $cutoffTime = $scheduledStart->copy()->addMinutes(8);
             $batchId = $schedule->batch_id;
             $delayedBatchKey = [
+                'occurrence_type' => 'BATCH',
                 'batch_id' => $batchId,
                 'batchschedule_id' => $schedule->id,
                 'date' => $date,
@@ -167,7 +170,152 @@ class CancelDelayBatch extends Command
             }
         }
 
+        $this->markDelayedDemoSessions($now);
+
         $this->info('Batch auto-cancellation and extension completed.');
+    }
+
+    private function markDelayedDemoSessions(Carbon $now): void
+    {
+        $date = $now->toDateString();
+
+        $demoSessions = DemoSession::with(['demolead', 'level'])
+            ->where('status', 'ACTIVE')
+            ->whereDate('date', $date)
+            ->whereNotNull('coach_id')
+            ->where(function ($query) {
+                $query->whereNull('coach_attendance_status')
+                    ->orWhereNotIn('coach_attendance_status', ['COMPLETED', 'CANCELLED', 'INACTIVE']);
+            })
+            ->whereHas('demolead', function ($query) {
+                $query->whereIn('status', ['SCHEDULED', 'RESCHEDULED']);
+            })
+            ->get();
+
+        foreach ($demoSessions as $demoSession) {
+            $demoStartTime = $demoSession->time ?: $this->demoSlotStart($demoSession);
+
+            if (! $demoStartTime) {
+                continue;
+            }
+
+            $scheduledStart = Carbon::parse($date . ' ' . $demoStartTime);
+
+            $lateTime = $scheduledStart->copy()->addMinutes(5);
+            $cutoffTime = $scheduledStart->copy()->addMinutes(9);
+            $delayedDemoKey = [
+                'occurrence_type' => 'DEMO',
+                'demo_session_id' => $demoSession->id,
+                'demolead_id' => $demoSession->demolead_id,
+                'date' => $date,
+            ];
+
+            $coachAttendanceExists = CoachAttendance::where('coach_id', $demoSession->coach_id)
+                ->where('demolead_id', $demoSession->demolead_id)
+                ->whereDate('date', $date)
+                ->exists();
+
+            if (! $coachAttendanceExists && $now->greaterThan($lateTime)) {
+                $cancelledPenaltyExists = DelayedBatch::where($delayedDemoKey)
+                    ->where('penalty_type', 'CANCELLED')
+                    ->exists();
+
+                if (! $cancelledPenaltyExists) {
+                    DelayedBatch::updateOrCreate(
+                        $delayedDemoKey,
+                        [
+                            'coach_id' => $demoSession->coach_id,
+                            'time' => $now->format('H:i:s'),
+                            'batch_name' => 'Demo - ' . trim(optional($demoSession->demolead)->first_name . ' ' . optional($demoSession->demolead)->last_name),
+                            'country' => optional($demoSession->demolead)->country ? [optional($demoSession->demolead)->country] : null,
+                            'batch_status' => optional($demoSession->demolead)->status,
+                            'level_name' => optional($demoSession->level)->name,
+                            'timeline' => sprintf(
+                                'Demo scheduled start: %s | Marked late at: %s',
+                                $scheduledStart->format('d-M-Y h:i:s A'),
+                                $now->format('d-M-Y h:i:s A')
+                            ),
+                            'penalty_type' => 'LATE',
+                            'fine_amount' => 100,
+                            'fine_currency' => 'INR',
+                            'late_popup_acknowledged_at' => null,
+                            'canceled_date' => null,
+                            'canceled_time' => null,
+                        ]
+                    );
+                }
+            }
+
+            if ($now->greaterThanOrEqualTo($cutoffTime) && ! $coachAttendanceExists) {
+                $coachAttendance = CoachAttendance::create([
+                    'coach_id' => $demoSession->coach_id,
+                    'type' => 'Demo',
+                    'demolead_id' => $demoSession->demolead_id,
+                    'date' => $date,
+                    'time' => $now->format('H:i:s'),
+                    'status' => 'CANCELLED',
+                    'number_of_demo_sessions' => 0,
+                ]);
+
+                StudentAttendance::updateOrCreate(
+                    ['demolead_id' => $demoSession->demolead_id],
+                    [
+                        'type' => 'Demo',
+                        'coach_id' => $demoSession->coach_id,
+                        'demolead_id' => $demoSession->demolead_id,
+                        'level_id' => $demoSession->level_id,
+                        'status' => 'CANCELLED',
+                        'date' => $date,
+                        'time' => $now->format('H:i:s'),
+                        'remark' => 'Demo Cancelled',
+                    ]
+                );
+
+                $demoSession->coach_attendance_status = 'CANCELLED';
+                $demoSession->save();
+
+                DemoLead::where('id', $demoSession->demolead_id)->update(['status' => 'CANCELLED']);
+
+                DelayedBatch::where($delayedDemoKey)
+                    ->where('penalty_type', 'LATE')
+                    ->delete();
+
+                DelayedBatch::updateOrCreate(
+                    $delayedDemoKey,
+                    [
+                        'coach_id' => $demoSession->coach_id,
+                        'coach_attendance_id' => $coachAttendance->id,
+                        'time' => $now->format('H:i:s'),
+                        'batch_name' => 'Demo - ' . trim(optional($demoSession->demolead)->first_name . ' ' . optional($demoSession->demolead)->last_name),
+                        'country' => optional($demoSession->demolead)->country ? [optional($demoSession->demolead)->country] : null,
+                        'batch_status' => optional($demoSession->demolead)->status,
+                        'level_name' => optional($demoSession->level)->name,
+                        'timeline' => sprintf(
+                            'Demo scheduled start: %s | Auto-cancelled at: %s',
+                            $scheduledStart->format('d-M-Y h:i:s A'),
+                            $now->format('d-M-Y h:i:s A')
+                        ),
+                        'canceled_date' => $date,
+                        'canceled_time' => $now->format('H:i:s'),
+                        'penalty_type' => 'CANCELLED',
+                        'fine_amount' => 100,
+                        'fine_currency' => 'INR',
+                        'late_popup_acknowledged_at' => null,
+                    ]
+                );
+
+                $this->info("Marked CANCELLED for demo session {$demoSession->id}");
+            }
+        }
+    }
+
+    private function demoSlotStart(DemoSession $demoSession): ?string
+    {
+        if (! $demoSession->slot || ! str_contains($demoSession->slot, ' - ')) {
+            return null;
+        }
+
+        return trim(explode(' - ', $demoSession->slot)[0]);
     }
 
 }

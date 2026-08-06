@@ -7,8 +7,11 @@ use Illuminate\Support\Facades\Auth;
 class DelayedBatch extends BaseModel
 {
     protected $fillable = [
+        'occurrence_type',
         'batch_id',
         'batchschedule_id',
+        'demo_session_id',
+        'demolead_id',
         'coach_id',
         'coach_attendance_id',
         'batch_name',

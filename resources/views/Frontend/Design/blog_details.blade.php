@@ -5,7 +5,25 @@
         <meta name="title" content="{{ $blog->meta_title ?: $blog->title }}" />
         <meta name="description" content="{{ $blog->meta_description ?: $blog->short_description }}" />
     @endpush
-
+    <style>
+        @media (max-width: 767px) {
+            .footer .tw-mt-210-px{
+                margin-top:20px;
+            }
+            .gy-5{
+                --bs-gutter-y: 1.5rem;
+            }
+            .tw-px-7{
+                padding-inline:5px;
+            }
+            .mobilePadd{
+                padding:15px
+            }
+            .rightDes{
+                width: calc(100% - 115px);
+            }
+        }
+    </style>
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
         <img src="/frontend1/assets/images/shape/banner-shape2.png" alt="shape"
             class="position-absolute bottom-0 tw-start-0 w-100">
@@ -44,7 +62,7 @@
     @endphp
 
     <div class="py-110">
-        <div class="container-fluid px-4 px-xl-5">
+        <div class="container-fluid px-3 px-xl-5">
             <div class="row gy-5 gx-xl-5 justify-content-between">
                 <div class="col-xl-8 col-lg-8">
                     <div>
@@ -130,7 +148,7 @@
                     </div>
                 </div>
                 <div class="col-xl-3 col-lg-4 ms-xl-auto">
-                    <div class="tw-py-705 tw-ps-705 tw-pe-6 border tw-rounded-xl tw-mb-10 bg-white">
+                    <div class="tw-py-705 tw-ps-705 tw-pe-6 border tw-rounded-xl tw-mb-10 bg-white mobilePadd">
                         <h5 class="fw-bold text-neutral-950 tw-mb-6">Recent Blogs</h5>
                         @forelse ($similarBlogs as $similarBlog)
                             @php
@@ -141,7 +159,7 @@
                             <div class="d-flex align-items-center tw-gap-5 tw-mb-6 flex-wrap">
                                 <img src="{{ $similarImageUrl }}" alt="{{ $similarBlog->title }}"
                                     style="width: 92px; height: 72px; object-fit: cover;">
-                                <div>
+                                <div class="rightDes">
                                     <span class="fw-medium tw-text-305 text-main-600 tw-mb-3 d-block">
                                         {{ $similarDate }}
                                     </span>

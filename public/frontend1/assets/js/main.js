@@ -1,6 +1,18 @@
 (function ($) {
   "use strict";
+  $(".toggleMenu > a").on("click", function (e) {
+    e.preventDefault();
 
+    const parent = $(this).parent();
+
+    // Baaki sab close
+    $(".toggleMenu").not(parent).removeClass("active");
+    $(".toggleMenu").not(parent).find(".subMenu").slideUp();
+
+    // Current toggle
+    parent.toggleClass("active");
+    parent.find(".subMenu").first().slideToggle();
+  });
   // ==========================================
   //      Start Document Ready function
   // ==========================================
@@ -10,17 +22,15 @@
     function toggleSubMenu() {
       var $headerSubmenus = $siteHeader.find(".has-submenu");
       if ($(window).width() <= 991) {
-        $headerSubmenus
-          .off("click")
-          .on("click", function () {
-            $(this)
-              .toggleClass("active")
-              .siblings(".has-submenu")
-              .removeClass("active")
-              .find(".nav-submenu")
-              .slideUp(300);
-            $(this).find(".nav-submenu").stop(true, true).slideToggle(300);
-          });
+        $headerSubmenus.off("click").on("click", function () {
+          $(this)
+            .toggleClass("active")
+            .siblings(".has-submenu")
+            .removeClass("active")
+            .find(".nav-submenu")
+            .slideUp(300);
+          $(this).find(".nav-submenu").stop(true, true).slideToggle(300);
+        });
       } else {
         $headerSubmenus.off("click");
       }
@@ -75,10 +85,7 @@
       // If we are at the root path ("/" or no file name), keep the activePage class on the Home item
       if (currentPath === "/" || currentPath === "/index.html") {
         // Keep the activePage class on the Home link
-        selector
-          .find("li.nav-menu__item")
-          .eq(0)
-          .addClass("activePage");
+        selector.find("li.nav-menu__item").eq(0).addClass("activePage");
       } else {
         // Remove activePage class from all items first
         selector.find("li").removeClass("activePage");
@@ -91,7 +98,11 @@
             return;
           }
 
-          let linkPath = new URL(href, window.location.origin).pathname.replace(/\/+$/, "") || "/";
+          let linkPath =
+            new URL(href, window.location.origin).pathname.replace(
+              /\/+$/,
+              "",
+            ) || "/";
           if (linkPath === currentPath) {
             $(this).addClass("activePage");
           }
@@ -124,7 +135,7 @@
       function () {
         $(this).siblings().removeClass("active");
         $(this).addClass("active");
-      }
+      },
     );
 
     // Cursor start
@@ -225,7 +236,7 @@
         "success",
         "Success",
         "Form submitted successfully!",
-        "ph-fill ph-check-circle"
+        "ph-fill ph-check-circle",
       );
     });
     // ========================= Form Submit Js End ===================
@@ -251,15 +262,7 @@
     });
     // ========================= AOS Js End ===========================
 
-
-
-
-
-
-
-
-
-// ================================ Floating Progress js start =================================
+    // ================================ Floating Progress js start =================================
     const progressContainers = document.querySelectorAll(".progress-container");
 
     function setPercentage(progressContainer) {
@@ -294,7 +297,7 @@
       },
       {
         threshold: 0.5, // Adjust this value as needed (0.5 means half the section needs to be visible)
-      }
+      },
     );
 
     // Start observing all progress containers
@@ -303,24 +306,22 @@
     });
     // ================================ Floating Progress js End =================================
 
+    // =========================  Search Bar 9 Js Start ==============
+    $(".open-search").on("click", function () {
+      $(".search_popup").addClass("search-opened");
+      $(".search-popup-overlay").addClass("search-popup-overlay-open");
+    });
+    $(".search_close_btn").on("click", function () {
+      $(".search_popup").removeClass("search-opened");
+      $(".search-popup-overlay").removeClass("search-popup-overlay-open");
+    });
+    $(".search-popup-overlay").on("click", function () {
+      $(".search_popup").removeClass("search-opened");
+      $(this).removeClass("search-popup-overlay-open");
+    });
+    // =========================  Search Bar 9 Js End ==============
 
-  // =========================  Search Bar 9 Js Start ==============
-  $(".open-search").on("click", function () {
-    $(".search_popup").addClass("search-opened");
-    $(".search-popup-overlay").addClass("search-popup-overlay-open");
-  });
-  $(".search_close_btn").on("click", function () {
-    $(".search_popup").removeClass("search-opened");
-    $(".search-popup-overlay").removeClass("search-popup-overlay-open");
-  });
-  $(".search-popup-overlay").on("click", function () {
-    $(".search_popup").removeClass("search-opened");
-    $(this).removeClass("search-popup-overlay-open");
-  });
-  // =========================  Search Bar 9 Js End ==============
-
-
-  // ========================= magnific Popup Js Start =====================
+    // ========================= magnific Popup Js Start =====================
     $(".play-button").magnificPopup({
       type: "iframe",
       removalDelay: 300,
@@ -328,58 +329,54 @@
     });
     // ========================= magnific Popup Js End =====================
 
-
-
-   // ============================ Banner Slider Js Start ===========================
-    var bannerMenu = ['Air Freight', 'Ocean Freight', 'Land Transport']
-    var bannerSwiper = new Swiper ('.banner-slider', {
+    // ============================ Banner Slider Js Start ===========================
+    var bannerMenu = ["Air Freight", "Ocean Freight", "Land Transport"];
+    var bannerSwiper = new Swiper(".banner-slider", {
       loop: true,
       speed: 800,
       slidesPerView: 1,
       grabCursor: true,
       loop: true,
-      effect: 'fade',
+      effect: "fade",
       autoplay: {
         delay: 4500,
-        disableOnInteraction: false, 
+        disableOnInteraction: false,
       },
       pagination: {
-        el: '.banner-pagination',
+        el: ".banner-pagination",
         clickable: true,
-          renderBullet: function (index, className) {
-            return '<span class="' + className + '">' + (bannerMenu[index]) + '</span>';
-          },
+        renderBullet: function (index, className) {
+          return (
+            '<span class="' + className + '">' + bannerMenu[index] + "</span>"
+          );
+        },
       },
 
       // Navigation arrows
     });
 
     // Stop
-    $('.banner-slider').on('mouseenter', function() {
+    $(".banner-slider").on("mouseenter", function () {
       bannerSwiper.autoplay.stop();
     });
 
     // Start
-    $('.banner-slider').on('mouseleave', function() {
+    $(".banner-slider").on("mouseleave", function () {
       bannerSwiper.autoplay.start();
     });
     // ============================ Banner Slider Js End ===========================
 
-
-
     // ============== Magnific Popup Js Start =======================
-      $('.popup-video-link').magnificPopup({
-        type: 'iframe'
-      });
-      $('.gallery-popup').magnificPopup({
-        type: 'image',
-        gallery:{
-          enabled:true
-        }
-      });
+    $(".popup-video-link").magnificPopup({
+      type: "iframe",
+    });
+    $(".gallery-popup").magnificPopup({
+      type: "image",
+      gallery: {
+        enabled: true,
+      },
+    });
     // ============== Magnific Popup Js End =======================
-    
-
 
     // =========================== testimonial js start ============================
     var swiper = new Swiper(".testimonial-swiper-slider", {
@@ -389,89 +386,84 @@
       speed: 3000,
       loop: true,
       autoplay: {
-        delay:3000,
-        disableOnInteraction: false
+        delay: 3000,
+        disableOnInteraction: false,
       },
       breakpoints: {
         300: {
-            slidesPerView: 1,
+          slidesPerView: 1,
         },
         768: {
-            slidesPerView: 2,
+          slidesPerView: 2,
         },
         992: {
-            slidesPerView: 2,
+          slidesPerView: 2,
         },
         1199: {
-            slidesPerView: 3,
+          slidesPerView: 3,
         },
-      }
+      },
     });
     // =========================== testimonial js end ============================
-
 
     // ======================== brand slider js start =====================
     var swiper = new Swiper(".brand-swiper__slider", {
       slidesPerView: 6,
-      spaceBetween: 30, 
+      spaceBetween: 30,
       autoplay: true,
       speed: 1500,
       loop: true,
       autoplay: {
         delay: 2000,
-        disableOnInteraction: false
+        disableOnInteraction: false,
       },
       breakpoints: {
         300: {
-            slidesPerView: 2,
+          slidesPerView: 2,
         },
         575: {
-            slidesPerView: 3,
+          slidesPerView: 3,
         },
         768: {
-            slidesPerView: 4,
+          slidesPerView: 4,
         },
         992: {
-            slidesPerView: 5,
+          slidesPerView: 5,
         },
         1200: {
-            slidesPerView: 6,
+          slidesPerView: 6,
         },
-      }
+      },
     });
     // ======================== brand slider js end ======================
-
-
 
     // ============================= teacher four js start =========================
     var TeacherBottomFourSlider = new Swiper(".teacher-bottom-four-slider", {
       slidesPerView: 3,
-      spaceBetween: 20, 
+      spaceBetween: 20,
       autoplay: true,
       speed: 1500,
       loop: true,
       autoplay: {
         delay: 2000,
-        disableOnInteraction: false
+        disableOnInteraction: false,
       },
       breakpoints: {
         300: {
-            slidesPerView: 1,
+          slidesPerView: 1,
         },
         768: {
-            slidesPerView: 2,
+          slidesPerView: 2,
         },
         992: {
-            slidesPerView: 2,
+          slidesPerView: 2,
         },
         1199: {
-            slidesPerView: 3,
+          slidesPerView: 3,
         },
-      }
+      },
     });
     // ============================= teacher four js end =========================
-
-
 
     // ========================== testimonial two slider js start =========================
     var swiper = new Swiper(".testimonial-two-slider", {
@@ -481,7 +473,7 @@
       loop: true,
       autoplay: {
         delay: 2000,
-        disableOnInteraction: false
+        disableOnInteraction: false,
       },
       navigation: {
         nextEl: "#testimonial-tw-button-next",
@@ -489,9 +481,6 @@
       },
     });
     // ========================== testimonial two slider js end =========================
-
-
-
 
     // ========================= testimonial three slider js start =============================
     var swiper = new Swiper(".testimonial-three-button-slider", {
@@ -504,10 +493,6 @@
       },
     });
     // ========================= testimonial three slider js end =============================
-
-
-
-
 
     // // ================================= Brand slider Start =========================
     // var brandSlider = new Swiper('.brand-slider', {

@@ -62,7 +62,11 @@
             background: #007bff;
             color: #fff;
         }
-
+		@media (max-width: 767px) {
+			.min-vh-100{
+				min-height: auto !important;
+			}
+		}
     </style>
 	<body>
 		<div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">

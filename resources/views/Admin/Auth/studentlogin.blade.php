@@ -78,7 +78,11 @@
         .btn-secondary:hover {
             background-color: #545b62;
         }
-
+        @media (max-width: 767px) {
+			.min-vh-100{
+				min-height: auto !important;
+			}
+		}
     </style>
 </head>
 

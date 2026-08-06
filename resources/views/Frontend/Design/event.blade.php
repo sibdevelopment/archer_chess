@@ -20,6 +20,17 @@
             font-size: 14px;
             flex-shrink: 0;
         }
+        @media (max-width: 767px) {
+            .footer .tw-mt-210-px{
+                margin-top:20px;
+            }
+            .gy-5{
+                --bs-gutter-y: 1.5rem;
+            }
+            .bg-main-two-300{
+                margin-top:3rem
+            }
+        }
     </style>
 
     <!-- ==================== Breadcrumb Start Here ==================== -->

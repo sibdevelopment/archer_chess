@@ -1,6 +1,39 @@
 @extends('layouts.revamp')
 @section('title', 'Home')
 @section('content')
+<style>
+     @media (max-width: 767px) {
+        .footer{
+                margin-top:20px;
+        }
+        .footer .tw-mt-210-px{
+            margin-top:20px;
+        }
+        .pricacyContent h2{
+            font-size:25px !important
+        }
+        .policy-card{
+            background:none;
+            padding:0;
+            box-shadow:none !important;
+            border:none
+        }
+        .policy-list{
+            list-style-type:number;
+            margin-top:10px
+        }
+        h4, h5{
+            font-size:25px !important;
+        }
+        .gy-5{
+            --bs-gutter-y: 1.5rem;
+        }
+        .headingPage{
+            font-size:25px !important;
+            line-height:1.2;
+        }
+    }
+</style>
 
     <!-- ==================== Breadcrumb Start Here ==================== -->
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
@@ -33,7 +66,7 @@
     <!------------------------------------------------------------------------------------------->
 
 
-    <section class="course-content">
+    <section class="course-content pricacyContent">
         <div class="container">
             <div class="section-header aos pb-4" data-aos="fade-up">
                 <div class="section-sub-head">

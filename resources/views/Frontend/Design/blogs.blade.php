@@ -19,6 +19,17 @@
             background: #ff5a3c;
             color: #fff;
         }
+        @media (max-width: 767px) {
+            .footer .tw-mt-210-px{
+                margin-top:20px;
+            }
+            .gy-5{
+                --bs-gutter-y: 1.5rem;
+            }
+        .tw-px-7{
+                padding-inline:5px;
+            }
+        }
     </style>
 
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
@@ -74,7 +85,7 @@
                                     @if ($blog->label)
                                         <div class="d-flex align-items-center tw-gap-105">
                                             <span class="tw-text-405 text-main-600">
-                                                <img src="/frontend/assets/img/icon/icon-23.svg" alt="icon" class="tw-mb-4">
+                                                <img src="/frontend/assets/img/icon/icon-23.svg" alt="icon">
                                             </span>
                                             <span class="fw-normal tw-text-4 text-neutral-600" style="font-size: 14px;">
                                                 {{ $blog->label }}
@@ -82,14 +93,14 @@
                                         </div>
                                     @endif
                                 </div>
-                                <h2 class="tw-mb-4 h5" style="font-size: 18px;">
+                                <h2 class="tw-mb-4 h5 mt-4" style="font-size: 18px;">
                                     <a href="{{ route('blog.details', ['slug' => $blog->slug]) }}"
                                         class="fw-bold text-neutral-950">
                                         {{ $blog->title }}
                                     </a>
                                 </h2>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div style="max-width: 85%;">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                    <div style="max-width: 85%;" class="descriptionBlog">
                                         <p class="fw-normal tw-text-4 text-neutral-600 mb-0" style="line-height:1.6;">
                                             {{ $blog->short_description }}
                                         </p>

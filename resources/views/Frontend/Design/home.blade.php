@@ -31,6 +31,11 @@
             display: block;
             background: #000;
         }
+        @media (max-width: 767px) {
+            .gy-5{
+                --bs-gutter-y: 1.6rem;
+            }
+        }
     </style>
 
     <!--  ======= banner section start  ======= -->
@@ -167,7 +172,7 @@
                                     </div>
                                 </div>
                             </div> --}}
-                            <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap tw-mb-7"
+                            <div class="d-flex align-items-center textLeft justify-content-between tw-gap-4 flex-wrap tw-mb-7"
                                 data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
                                 <div class="d-flex align-items-center tw-gap-4 animation-item">
                                     <span>
@@ -695,7 +700,7 @@
                 <div class="row">
                     <div class="col-lg-6">
                         <div class="max-w-550-px w-100">
-                            <div class="d-flex align-items-center tw-gap-4 tw-mb-10">
+                            <div class="d-flex align-items-lg-center tw-gap-4 tw-mb-10">
                                 <span class="tw-w-17 tw-h-17 flex-shrink-0">
                                     <img src="/frontend1/tcul-img/img/icons/puzzle.svg" alt="icon" class="tw-w-17 tw-h-17">
                                 </span>
@@ -712,7 +717,7 @@
                     </div>
                     <div class="col-lg-6">
                         <div class="max-w-550-px w-100">
-                            <div class="d-flex align-items-center tw-gap-4 tw-mb-10">
+                            <div class="d-flex align-items-lg-center tw-gap-4 tw-mb-10">
                                 <span class="tw-w-17 tw-h-17 flex-shrink-0">
                                     <img src="/frontend1/tcul-img/img/icons/badge.svg" alt="icon" class="tw-w-17 tw-h-17 ">
                                 </span>
@@ -721,7 +726,7 @@
                                     <p class="fw-normal tw-text-4 text-paragraph-500">Weekly Online International FIDE Rating Tournament</p>
                                 </div>
                             </div>
-                            <div class="d-flex align-items-center tw-gap-4 tw-mb-10">
+                            <div class="d-flex align-items-lg-center tw-gap-4 tw-mb-10">
                                 <span class="tw-w-17 tw-h-17 flex-shrink-0">
                                     <img src="/frontend1/tcul-img/img/icons/discussion.svg" alt="icon" class="tw-w-17 tw-h-17 ">
                                 </span>
@@ -767,7 +772,7 @@
                         {{-- <h2 class="our-pircing-text tcul-space fw-normal text-main-two-600 h4">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</h2> --}}
                     </div>
                     <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
-                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
+                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto mobileLeft tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
                         data-block="button">
                         <span class="button__flair"></span>
                         <span class="button__label">More Details</span>
@@ -828,7 +833,7 @@
                         </div>
                     </div>
                     <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
-                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
+                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto mobileLeft tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
                         data-block="button">
                         <span class="button__flair"></span>
                         <span class="button__label">More Details</span>
@@ -889,7 +894,7 @@
                         </div>
                     </div>
                     <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
-                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
+                        class="btn btn-main-two hover-style-two button--stroke active-scale-094 ms-auto mobileLeft tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-main-two-600"
                         data-block="button">
                         <span class="button__flair"></span>
                         <span class="button__label">More Details</span>

@@ -1,6 +1,19 @@
 @extends('layouts.revamp')
 @section('title', 'Chess for Expert')
 @section('content')
+<style>
+     @media (max-width: 767px) {
+        .footer .tw-mt-210-px{
+            margin-top:20px;
+        }
+        .gy-5{
+            --bs-gutter-y: 1.5rem;
+        }
+        .bg-main-two-300{
+            margin-top:3rem
+        }
+    }
+</style>
 
      {{-- Breadcrumb Section --}}
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
@@ -70,8 +83,8 @@
         <div class="py-110">
             <div class="container">
                 <div class="row gy-4">
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="d-flex align-items-start tw-gap-5 flex-column animation-item">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
+                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/assets/images/icon/our-galler-bottom-icon1.png" alt="icon"
                                     class="animate__swing">
@@ -80,12 +93,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Puzzle assigned
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">500+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="d-flex align-items-start tw-gap-5 flex-column animation-item">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/tcul-img/icons/course4.svg" alt="icon"
                                     class="animate__swing">
@@ -94,12 +107,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Extra Class
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">12+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="d-flex align-items-start tw-gap-5 flex-column animation-item">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/tcul-img/icons/age.svg" alt="icon"
                                     class="animate__swing">
@@ -108,12 +121,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Age Group
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">5+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
-                        <div class="d-flex align-items-start tw-gap-5 flex-column animation-item">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/assets/images/icon/our-galler-bottom-icon4.png" alt="icon"
                                     class="animate__swing">
@@ -122,7 +135,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Students
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">1500+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
                             </div>
                         </div>
                     </div>
@@ -142,9 +155,9 @@
                     <div>
                         <div class="row gy-5">
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                 <img src="/frontend1/tcul-img/icons/course1.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Calculation in chess
                                     </span>
                                     <p class="fw-normal text-paragraph-500">Calculation in chess refers to the process of
@@ -159,9 +172,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course2.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Decision making
                                     </span>
                                     <p class="fw-normal text-paragraph-500"> Decision-making in chess is the process of
@@ -175,9 +188,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course3.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Right Exchange
                                     </span>
                                     <p class="fw-normal text-paragraph-500"> In chess, the "right exchange" refers to making a
@@ -192,9 +205,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course4.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Fortress
                                     </span>
                                     <p class="fw-normal text-paragraph-500">A fortress refers to a defensive setup where the
@@ -209,9 +222,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course5.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Improving piece position
                                     </span>
                                     <p class="fw-normal text-paragraph-500"> In chess involves repositioning your pieces to
@@ -223,9 +236,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course6.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Exploiting Opponent's
                                         Weaknesses</span>
                                     <p class="fw-normal text-paragraph-500"> Exploiting your opponent's weaknesses in chess
@@ -237,9 +250,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 mobileItem tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
                                     <img src="/frontend1/tcul-img/icons/course1.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Identifying Weaknesses
                                     </span>
                                     <p class="fw-normal text-paragraph-500"> Pawn Weaknesses: Look for isolated pawns (pawns

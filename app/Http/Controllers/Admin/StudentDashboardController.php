@@ -462,8 +462,9 @@ class StudentDashboardController extends Controller
             if ($coachLeave && !$existingCoverup) {
                 $fromLeaveTime = $coachLeave->from_time;
                 $toLeaveTime   = $coachLeave->to_time;
+                $firstMatchingClassToTime = Carbon::parse($firstMatchingClass->to_time)->format('H:i:s');
 
-                if ($firstMatchingClassFromTime >= $fromLeaveTime && $firstMatchingClassFromTime <= $toLeaveTime) {
+                if ($firstMatchingClassFromTime < $toLeaveTime && $firstMatchingClassToTime > $fromLeaveTime) {
                     $firstMatchingClass = null;
                 }
             }

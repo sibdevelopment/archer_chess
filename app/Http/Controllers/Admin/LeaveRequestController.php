@@ -201,6 +201,7 @@ class LeaveRequestController extends Controller
         $leaverequest         = LeaveRequest::find($request->leaverequest_id);
         $leaverequest->status = $request->status;
         $occurrences = app(BatchOccurrenceService::class);
+        $handledOccurrences = [];
 
         if (isset($request->affectedData)) {
             foreach ($request->affectedData as $data) {
@@ -217,9 +218,12 @@ class LeaveRequestController extends Controller
                     ], 422);
                 }
 
+                $occurrenceKey = $this->leaveOccurrenceKey($batch->id, $schedule->id, $leaverequest->from_date);
+                $handledOccurrences[] = $occurrenceKey;
+
                 if ($data['coach_id']) {
                     $coach = Coach::find($data['coach_id']);
-                    if ($coach && $this->checkCoachLeave($coach, $leaverequest->from_date)) {
+                    if ($coach && $this->checkCoachLeave($coach, $leaverequest->from_date, $schedule->from_time, $schedule->to_time)) {
                         return response()->json([
                             'status' => 'error',
                             'message' => 'Selected coach is on approved leave for the coverup date.',
@@ -286,6 +290,10 @@ class LeaveRequestController extends Controller
         }
 
         $leaverequest->save();
+
+        if ($leaverequest->status === 'APPROVED') {
+            $this->compensateApprovedLeaveWithoutCoverup($leaverequest, $occurrences, $handledOccurrences);
+        }
 
         return response()->json([
             'status'       => 'success',
@@ -512,214 +520,78 @@ class LeaveRequestController extends Controller
 
     private function handleApprovedLeaveRequest($leaverequest, $returnData = false)
     {
-        $coach_id       = $leaverequest->coach_id;
-        $leaveStartDate = new DateTime($leaverequest->from_date);
-        $leaveEndDate   = new DateTime($leaverequest->from_date);
-        $leaveStartTime = $leaverequest->from_time;
-        $leaveEndTime   = $leaverequest->to_time;
-        $isSameDayLeave = $leaveStartDate->format('Y-m-d') === $leaveEndDate->format('Y-m-d');
-        $leavePeriod    = new DatePeriod($leaveStartDate, new DateInterval('P1D'), $leaveEndDate->modify('+1 day'));
-        $leaveDaysCount = iterator_count($leavePeriod);
+        $coach_id = $leaverequest->coach_id;
+        $leaveStartDate = Carbon::parse($leaverequest->from_date);
+        $leaveEndDate = Carbon::parse($leaverequest->to_date ?? $leaverequest->from_date);
+        $occurrences = app(BatchOccurrenceService::class);
+        $combinedAffectedBatches = [];
 
-        // Fetching batches connected with this coach ID and have status ACTIVE
-        $batches = Batch::with(['batchSchedules' => function ($query) {
-            $query->where('status', 'ACTIVE');
-        }, 'studentBatches' => function ($query) {
-            $query->where('status', 'ACTIVE');
-        }])->where('coach_id', $coach_id)->where('status', 'ACTIVE')->get();
+        for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+            $dateString = $date->toDateString();
+            $weekday = $date->format('l');
 
-        $batchesAfterLeave  = [];
-        $batchesDuringLeave = [];
-        $filteredSchedules  = [];
+            $batches = Batch::with(['batchSchedules' => function ($query) use ($weekday) {
+                $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+            }])
+                ->where('coach_id', $coach_id)
+                ->where('status', 'ACTIVE')
+                ->whereDate('start_date', '<=', $dateString)
+                ->whereDate('end_date', '>=', $dateString)
+                ->whereHas('batchSchedules', function ($query) use ($weekday) {
+                    $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+                })
+                ->get();
 
-        $else_ids = [];
-
-        //2522
-        foreach ($batches as $batch) {
-            $batchschedule           = BatchSchedule::where('batch_id', $batch->id)->first();
-            $batchschedule_from_time = $batchschedule->from_time;
-            $batchschedule_to_time   = $batchschedule->to_time;
-
-            $leaveStartTime = $leaverequest->from_time;
-            $leaveEndTime   = $leaverequest->to_time;
-
-            if ($batchschedule_from_time >= $leaveStartTime && $batchschedule_to_time <= $leaveEndTime) {
-                // dd(11);
-                $batchEndDate = new DateTime($batch->end_date);
-                if ($batchEndDate > $leaveEndDate) {
-                    foreach ($batch->batchSchedules as $batchSchedule) {
-                        if ($isSameDayLeave) {
-                            $leaveStartTime = $leaveStartTime instanceof DateTime ? $leaveStartTime : new DateTime($leaveStartTime);
-                            $leaveEndTime   = $leaveEndTime instanceof DateTime ? $leaveEndTime : new DateTime($leaveEndTime);
-
-                            // Ensure batch times are DateTime objects
-                            $batchStartTime = new DateTime($batchSchedule->from_time);
-                            $batchEndTime   = new DateTime($batchSchedule->to_time);
-
-                            // Handle cases where leaveEndTime is past midnight
-                            if ($leaveStartTime > $leaveEndTime) {
-                                $leaveEndTime->modify('+1 day');
-                            }
-
-                            // Handle batch schedules that cross midnight
-                            if ($batchSchedule->from_time > $batchSchedule->to_time) {
-                                $batchEndTime->modify('+1 day');
-                            }
-
-                            // Check if batchStartTime is within the leave range
-                            if ($batchStartTime >= $leaveStartTime && $batchStartTime <= $leaveEndTime) {
-                                $filteredSchedules[$batch->id][] = $batchSchedule;
-                            }
-                        } else {
-                            $filteredSchedules[$batch->id][] = $batchSchedule;
-                        }
-                    }
-
-                    if (! empty($filteredSchedules[$batch->id])) {
-                        $batchesAfterLeave[$batch->id] = $batch;
-                    }
-                } elseif ($batchEndDate >= $leaveStartDate && $batchEndDate <= $leaveEndDate) {
-                    foreach ($batch->batchSchedules as $batchSchedule) {
-                        $batchStartTime = new DateTime($batchSchedule->from_time);
-                        $batchEndTime   = new DateTime($batchSchedule->to_time);
-
-                        // Ensure leave times are DateTime objects
-                        if (! $leaveStartTime instanceof DateTime) {
-                            $leaveStartTime = new DateTime($leaveStartTime);
-                        }
-                        if (! $leaveEndTime instanceof DateTime) {
-                            $leaveEndTime = new DateTime($leaveEndTime);
-                        }
-
-                        // dd($batchStartTime, $batchEndTime, $leaveStartTime, $leaveEndTime); // Debugging
-
-                        if ($isSameDayLeave) {
-                            if ($batchStartTime < $leaveEndTime && $batchEndTime > $leaveStartTime) {
-                                $filteredSchedules[$batch->id][] = $batchSchedule;
-                            }
-                        } else {
-                            $filteredSchedules[$batch->id][] = $batchSchedule;
-                        }
-                    }
-
-                    if (! empty($filteredSchedules[$batch->id])) {
-                        $batchesDuringLeave[$batch->id] = $batch;
-                    }
-                }
-            }
-        }
-
-        $batchesAfterLeave         = array_values($batchesAfterLeave ?? []);
-        $batchesDuringLeave        = array_values($batchesDuringLeave ?? []);
-        $affectedBatchesAfterLeave = [];
-        foreach ($batchesAfterLeave as $batch) {
-            // if ($batch->id == '2522') {
+            foreach ($batches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    // 2522
-                    // if($schedule->id == 6253){
-                    $scheduleWeekday = strtolower($schedule->weekday);
-                    $missedCount     = 0;
-                    foreach ($leavePeriod as $date) {
-                        if (strtolower($date->format('l')) == $scheduleWeekday) {
-                            if (! isset($affectedBatchesAfterLeave[$batch->id])) {
-                                $affectedBatchesAfterLeave[$batch->id] = [
-                                    'id'          => $batch->id,
-                                    'name'        => $batch->name,
-                                    'schedules'   => [],
-                                    'missedCount' => 0,
-                                    'coaches'     => [],
-                                ];
-                            }
-                            if (! isset($affectedBatchesAfterLeave[$batch->id]['schedules'][$scheduleWeekday])) {
-
-                                $coaches = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id, $batch->country ?? []);
-                                // dd($coaches);
-                                $affectedBatchesAfterLeave[$batch->id]['schedules'][$scheduleWeekday] = [
-                                    'id'             => $schedule->id,
-                                    'weekday'        => $scheduleWeekday,
-                                    'from_time'      => $schedule->from_time,
-                                    'to_time'        => $schedule->to_time,
-                                    'missedSessions' => 0,
-                                    'coaches'        => $coaches,
-                                ];
-                            }
-                            $missedCount++;
-                            $affectedBatchesAfterLeave[$batch->id]['missedCount'] += 1;
-                            $affectedBatchesAfterLeave[$batch->id]['schedules'][$scheduleWeekday]['missedSessions'] = $missedCount;
-                        }
+                    if (! $occurrences->timeRangesOverlap(
+                        $schedule->from_time,
+                        $schedule->to_time,
+                        $leaverequest->from_time,
+                        $leaverequest->to_time
+                    )) {
+                        continue;
                     }
-                    // }
-                }
-            // }
 
-        }
+                    $scheduleKey = strtolower($schedule->weekday);
 
-        // dd($affectedBatchesAfterLeave);
-
-        $affectedBatchesDuringLeave = [];
-        foreach ($batchesDuringLeave as $batch) {
-            // Assuming each batch has a definitive end date that applies to all schedules
-            $batchEndDate = new DateTime($batch->studentBatches->max('end_date'));
-            $batchEndDate->setTime(23, 59, 59); // Include the entire day
-            foreach ($batch->batchSchedules as $schedule) {
-                $scheduleWeekday = strtolower($schedule->weekday);
-                $missedCount     = 0; // Initialize missed count for this schedule
-                foreach ($leavePeriod as $date) {
-                    if (strtolower($date->format('l')) == $scheduleWeekday && $date <= $batchEndDate) {
-                        if (! isset($affectedBatchesDuringLeave[$batch->id])) {
-                            $affectedBatchesDuringLeave[$batch->id] = [
-                                'id'          => $batch->id,
-                                'name'        => $batch->name,
-                                'schedules'   => [],
-                                'missedCount' => 0,
-                                'coaches'     => [],
-                            ];
-                        }
-                        // Initialize schedule in affectedBatches if not already set
-                        if (! isset($affectedBatchesDuringLeave[$batch->id]['schedules'][$scheduleWeekday])) {
-                            $coaches                                                               = $this->getAvailableCoaches($schedule->from_time, $schedule->to_time, $schedule->weekday, $date->format('Y-m-d'), $coach_id, $batch->country ?? []);
-                            $affectedBatchesDuringLeave[$batch->id]['schedules'][$scheduleWeekday] = [
-                                'id'             => $schedule->id,
-                                'weekday'        => $scheduleWeekday,
-                                'from_time'      => $schedule->from_time,
-                                'to_time'        => $schedule->to_time,
-                                'missedSessions' => 0,
-                                'coaches'        => $coaches,
-                            ];
-                        }
-                        $missedCount++;
-                        $affectedBatchesDuringLeave[$batch->id]['missedCount'] += 1;
-                        $affectedBatchesDuringLeave[$batch->id]['schedules'][$scheduleWeekday]['missedSessions'] = $missedCount;
+                    if (! isset($combinedAffectedBatches[$batch->id])) {
+                        $combinedAffectedBatches[$batch->id] = [
+                            'id'          => $batch->id,
+                            'name'        => $batch->name,
+                            'schedules'   => [],
+                            'missedCount' => 0,
+                            'coaches'     => [],
+                        ];
                     }
+
+                    if (! isset($combinedAffectedBatches[$batch->id]['schedules'][$scheduleKey])) {
+                        $combinedAffectedBatches[$batch->id]['schedules'][$scheduleKey] = [
+                            'id'             => $schedule->id,
+                            'weekday'        => $scheduleKey,
+                            'from_time'      => $schedule->from_time,
+                            'to_time'        => $schedule->to_time,
+                            'missedSessions' => 0,
+                            'coaches'        => $this->getAvailableCoaches(
+                                $schedule->from_time,
+                                $schedule->to_time,
+                                $schedule->weekday,
+                                $dateString,
+                                $coach_id,
+                                $batch->country ?? []
+                            ),
+                        ];
+                    }
+
+                    $combinedAffectedBatches[$batch->id]['missedCount']++;
+                    $combinedAffectedBatches[$batch->id]['schedules'][$scheduleKey]['missedSessions']++;
                 }
             }
         }
-
-        // Combine both affected batches arrays
-        $combinedAffectedBatches = $affectedBatchesAfterLeave;
-        foreach ($affectedBatchesDuringLeave as $batchId => $batchInfo) {
-            if (isset($combinedAffectedBatches[$batchId])) {
-                $combinedAffectedBatches[$batchId]['missedCount'] += $batchInfo['missedCount'];
-                foreach ($batchInfo['schedules'] as $weekday => $scheduleInfo) {
-                    if (isset($combinedAffectedBatches[$batchId]['schedules'][$weekday])) {
-                        $combinedAffectedBatches[$batchId]['schedules'][$weekday]['missedSessions'] += $scheduleInfo['missedSessions'];
-                    } else {
-                        $combinedAffectedBatches[$batchId]['schedules'][$weekday] = $scheduleInfo;
-                    }
-                }
-            } else {
-                $combinedAffectedBatches[$batchId] = $batchInfo;
-            }
-        }
-
-        // dd($combinedAffectedBatches);
 
         if ($returnData) {
-            //dd($combinedAffectedBatches);
-            return $combinedAffectedBatches;
+            return array_values($combinedAffectedBatches);
         }
-        // dd($combinedAffectedBatches);
-        // $this->adjustBatchesEndDateAndStudentFees($combinedAffectedBatches, $leaveDaysCount);
     }
 
     public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id, array $countries = [])
@@ -732,7 +604,7 @@ class LeaveRequestController extends Controller
 
         $availableCoachIds = [];
         foreach (Coach::where('status', 'ACTIVE')->get() as $coach) {
-            if ($this->checkCoachLeave($coach, $date)) {
+            if ($this->checkCoachLeave($coach, $date, $from_time, $to_time)) {
                 continue;
             }
 
@@ -797,17 +669,75 @@ class LeaveRequestController extends Controller
         }
         return 0;
     }
-    private function checkCoachLeave($coach, $date)
+
+    private function checkCoachLeave($coach, $date, ?string $fromTime = null, ?string $toTime = null)
     {
-        $isCoachLeave = LeaveRequest::where('coach_id', $coach->id)
+        $leaves = LeaveRequest::where('coach_id', $coach->id)
             ->whereDate('from_date', '=', $date)
             ->where('status', 'APPROVED')
-            ->first();
+            ->get();
 
-        if ($isCoachLeave) {
-            return 1;
+        if (! $fromTime || ! $toTime) {
+            return $leaves->isNotEmpty() ? 1 : 0;
         }
-        return 0;
+
+        $occurrences = app(BatchOccurrenceService::class);
+        return $leaves->contains(function ($leave) use ($occurrences, $fromTime, $toTime) {
+            return $occurrences->timeRangesOverlap($fromTime, $toTime, $leave->from_time, $leave->to_time);
+        }) ? 1 : 0;
+    }
+
+    private function compensateApprovedLeaveWithoutCoverup(LeaveRequest $leaverequest, BatchOccurrenceService $occurrences, array $handledOccurrences = []): void
+    {
+        $leaveStartDate = Carbon::parse($leaverequest->from_date);
+        $leaveEndDate = Carbon::parse($leaverequest->to_date ?? $leaverequest->from_date);
+        $handledOccurrences = array_flip($handledOccurrences);
+
+        for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+            $dateString = $date->toDateString();
+            $weekday = $date->format('l');
+
+            $batches = Batch::with(['batchSchedules' => function ($query) use ($weekday) {
+                $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+            }])
+                ->where('coach_id', $leaverequest->coach_id)
+                ->where('status', 'ACTIVE')
+                ->whereDate('start_date', '<=', $dateString)
+                ->whereDate('end_date', '>=', $dateString)
+                ->whereHas('batchSchedules', function ($query) use ($weekday) {
+                    $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+                })
+                ->get();
+
+            foreach ($batches as $batch) {
+                foreach ($batch->batchSchedules as $schedule) {
+                    if (! $occurrences->timeRangesOverlap(
+                        $schedule->from_time,
+                        $schedule->to_time,
+                        $leaverequest->from_time,
+                        $leaverequest->to_time
+                    )) {
+                        continue;
+                    }
+
+                    $occurrenceKey = $this->leaveOccurrenceKey($batch->id, $schedule->id, $dateString);
+                    if (isset($handledOccurrences[$occurrenceKey])) {
+                        continue;
+                    }
+
+                    if ($occurrences->coverupForOccurrence($batch->id, $schedule->id, $dateString)) {
+                        continue;
+                    }
+
+                    $occurrences->markApprovedLeaveOccurrence($batch, $schedule, $dateString);
+                }
+            }
+        }
+    }
+
+    private function leaveOccurrenceKey(int $batchId, int $scheduleId, string $date): string
+    {
+        return $batchId . ':' . $scheduleId . ':' . Carbon::parse($date)->toDateString();
     }
 
     private function adjustBatchesEndDateAndStudentFees($combinedAffectedBatches, $leaverequest)

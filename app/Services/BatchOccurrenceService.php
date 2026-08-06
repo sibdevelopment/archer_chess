@@ -200,12 +200,28 @@ class BatchOccurrenceService
             return;
         }
 
-        $batch->end_date = $this->nextScheduledDate(Carbon::parse($batch->end_date), $scheduledDays)->toDateString();
-        $batch->save();
-
         $studentBatches = StudentBatch::where('batch_id', $batch->id)
             ->eligibleOn($date)
+            ->whereHas('student', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
             ->get();
+
+        if ($studentBatches->isEmpty()) {
+            return;
+        }
+
+        $alreadyCompensated = StudentAttendance::where('batch_id', $batch->id)
+            ->whereDate('date', $date)
+            ->where('status', 'CANCELLED')
+            ->exists();
+
+        if ($alreadyCompensated) {
+            return;
+        }
+
+        $batch->end_date = $this->nextScheduledDate(Carbon::parse($batch->end_date), $scheduledDays)->toDateString();
+        $batch->save();
 
         foreach ($studentBatches as $studentBatch) {
             StudentAttendance::firstOrCreate(
@@ -232,6 +248,7 @@ class BatchOccurrenceService
             $studentBatch->save();
 
             $studentLatestFee = StudentFee::where('student_id', $studentBatch->student_id)
+                ->where('status', 'ACTIVE')
                 ->orderByDesc('id')
                 ->first();
 
@@ -269,23 +286,16 @@ class BatchOccurrenceService
 
     private function nextScheduledDate(Carbon $fromDate, array $scheduledDays): Carbon
     {
-        $nextScheduledDay = null;
+        $nextDayDifference = collect($scheduledDays)
+            ->map(fn ($day) => Carbon::parse($day)->dayOfWeek)
+            ->unique()
+            ->map(function ($dayOfWeek) use ($fromDate) {
+                $dayDifference = ($dayOfWeek - $fromDate->dayOfWeek + 7) % 7;
+                return $dayDifference > 0 ? $dayDifference : 7;
+            })
+            ->min();
 
-        foreach ($scheduledDays as $day) {
-            $dayDifference = (Carbon::parse($day)->dayOfWeek - $fromDate->dayOfWeek + 7) % 7;
-            if ($dayDifference > 0) {
-                $nextScheduledDay = $fromDate->copy()->addDays($dayDifference);
-                break;
-            }
-        }
-
-        if ($nextScheduledDay) {
-            return $nextScheduledDay;
-        }
-
-        return $fromDate->copy()->addDays(
-            (Carbon::parse($scheduledDays[0])->dayOfWeek - $fromDate->dayOfWeek + 7) % 7
-        );
+        return $fromDate->copy()->addDays($nextDayDifference ?? 0);
     }
 
     private function normalizeCountries($countries): array

@@ -673,6 +673,18 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Reassigned/versioned batches ignore both the current new batch id and confirm_reassign_batch_id during coach availability validation, preventing the previous STANDBY version from blocking the same coach/timing reassignment.
 ```
 
+## Leave / Holiday / Cancel Compensation Notes
+
+```text
+- Approved leave with coverup creates/keeps the coverup occurrence and does not shift batch dates, student-batch dates, or student fee dates.
+- Approved leave without coverup is compensated server-side for every active batch schedule that overlaps the approved leave slot, even if the UI affected-data payload is empty/missing.
+- Leave approval preview now uses the same active batch/date/schedule slot-overlap rule as backend compensation, so coverup choices are shown for the same affected classes that would otherwise be shifted.
+- Holidays and unapproved missed classes use the same shared shift path as approved leave without coverup.
+- Compensation is idempotent per batch/date once cancelled student attendance exists, so the same missed occurrence should not shift dates twice.
+- Only ACTIVE students with an eligible ACTIVE student_batch on the missed class date are compensated; FEESDUE/INACTIVE students are not extended.
+- Only the student's latest ACTIVE fee row is shifted, and fee/batch end dates move to the nearest next active batch schedule day.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

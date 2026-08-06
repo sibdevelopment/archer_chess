@@ -6,6 +6,7 @@ use App\Models\Batch;
 use App\Models\BatchSchedule;
 use App\Models\Coach;
 use App\Models\CoachAvailability;
+use App\Models\CoachAttendance;
 use App\Models\Coverupclass;
 use App\Models\DemoSession;
 use Carbon\Carbon;
@@ -282,12 +283,20 @@ class CoachAvailabilityService
 
     private function demoConflict(int $coachId, string $date, string $fromTime, string $toTime, ?int $ignoreDemoId = null): ?DemoSession
     {
+        if ($this->isPastDate($date)) {
+            return null;
+        }
+
         return DemoSession::where('coach_id', $coachId)
             ->where('status', 'ACTIVE')
             ->whereDate('date', $date)
             ->when($ignoreDemoId, fn ($query) => $query->where('id', '!=', $ignoreDemoId))
             ->get()
             ->first(function (DemoSession $demo) use ($fromTime, $toTime) {
+                if ($this->isFinishedAttendanceStatus($demo->coach_attendance_status)) {
+                    return false;
+                }
+
                 $slot = $this->parseSlot($demo->slot);
                 return $slot && $this->timeOverlaps($fromTime, $toTime, $slot[0], $slot[1]);
             });
@@ -295,18 +304,47 @@ class CoachAvailabilityService
 
     private function coverupConflict(int $coachId, string $date, string $fromTime, string $toTime, ?int $ignoreCoverupId = null): ?Coverupclass
     {
+        if ($this->isPastDate($date)) {
+            return null;
+        }
+
         return Coverupclass::with('batchSchedule')
             ->where('new_coach_id', $coachId)
             ->whereDate('date', $date)
             ->when($ignoreCoverupId, fn ($query) => $query->where('id', '!=', $ignoreCoverupId))
             ->get()
-            ->first(function (Coverupclass $coverup) use ($fromTime, $toTime) {
+            ->first(function (Coverupclass $coverup) use ($coachId, $date, $fromTime, $toTime) {
                 if (!$coverup->batchSchedule) {
+                    return false;
+                }
+
+                if ($this->hasFinishedCoverupAttendance($coverup, $coachId, $date)) {
                     return false;
                 }
 
                 return $this->timeOverlaps($fromTime, $toTime, $coverup->batchSchedule->from_time, $coverup->batchSchedule->to_time);
             });
+    }
+
+    private function isPastDate(string $date): bool
+    {
+        return Carbon::parse($date)->lt(Carbon::today());
+    }
+
+    private function isFinishedAttendanceStatus(?string $status): bool
+    {
+        return in_array(strtoupper((string) $status), ['COMPLETED', 'CANCELLED', 'INACTIVE'], true);
+    }
+
+    private function hasFinishedCoverupAttendance(Coverupclass $coverup, int $coachId, string $date): bool
+    {
+        $attendance = CoachAttendance::where('coach_id', $coachId)
+            ->where('batch_id', $coverup->batch_id)
+            ->whereDate('date', $date)
+            ->orderByDesc('id')
+            ->first();
+
+        return $attendance && $this->isFinishedAttendanceStatus($attendance->status);
     }
 
     private function timeOverlaps(string $fromA, string $toA, string $fromB, string $toB): bool

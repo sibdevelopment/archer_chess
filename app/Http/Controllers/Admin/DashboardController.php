@@ -2805,12 +2805,27 @@ class DashboardController extends Controller
 
     private function checkDemoAssign($coach, $date, $weekday, $from_time, $to_time)
     {
+        if ($this->isPastAvailabilityDate($date)) {
+            return false;
+        }
+
         return DemoSession::where('coach_id', $coach->id)
             ->whereDate('date', $date)
-            // ->whereBetween('time', [$from_time, $to_time])
-            ->where('time', $from_time)
             ->where('status', 'ACTIVE')
-            ->exists();
+            ->get()
+            ->contains(function (DemoSession $demoSession) use ($from_time, $to_time) {
+                if ($this->isFinishedAvailabilityStatus($demoSession->coach_attendance_status)) {
+                    return false;
+                }
+
+                if (! $demoSession->slot || ! str_contains($demoSession->slot, ' - ')) {
+                    return false;
+                }
+
+                [$demoFrom, $demoTo] = array_map('trim', explode(' - ', $demoSession->slot));
+
+                return $this->availabilityTimesOverlap($from_time, $to_time, $demoFrom, $demoTo);
+            });
     }
 
     private function checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time)
@@ -2832,26 +2847,55 @@ class DashboardController extends Controller
         return $aa;
     }
     private function checkCoverupClass($coach, $date, $weekday, $from_time, $to_time)
-{
-    // normalize inputs
-    $dateOnly = Carbon::parse($date)->toDateString();         // 'YYYY-MM-DD'
-    $weekdayName = Carbon::parse($date)->format('l');        // 'Monday' etc
+    {
+        if ($this->isPastAvailabilityDate($date)) {
+            return false;
+        }
 
-    $isCoverupScheduleExist = Coverupclass::where('date', $dateOnly)
-        ->where('new_coach_id', $coach->id)
-        ->whereHas('batch', function ($batchQuery) use ($coach, $dateOnly, $weekdayName, $from_time, $to_time) {
-            $batchQuery->whereHas('batchSchedules', function ($schedQ) use ($weekdayName, $from_time, $to_time) {
+        // normalize inputs
+        $dateOnly = Carbon::parse($date)->toDateString();         // 'YYYY-MM-DD'
+        $weekdayName = Carbon::parse($date)->format('l');        // 'Monday' etc
+
+        $isCoverupScheduleExist = Coverupclass::whereDate('date', $dateOnly)
+            ->where('new_coach_id', $coach->id)
+            ->whereHas('batch', function ($batchQuery) use ($coach, $dateOnly, $weekdayName, $from_time, $to_time) {
+                $batchQuery->whereHas('batchSchedules', function ($schedQ) use ($weekdayName, $from_time, $to_time) {
                     $schedQ->where('weekday', $weekdayName)
                         ->where(function ($subQ) use ($from_time, $to_time) {
                             $subQ->where('from_time', '<', $to_time)
                                 ->where('to_time', '>', $from_time);
                         });
                 });
-        })
-        ->exists();
+            })
+            ->get()
+            ->contains(function (Coverupclass $coverupclass) use ($coach, $dateOnly) {
+                $attendance = CoachAttendance::where('coach_id', $coach->id)
+                    ->where('batch_id', $coverupclass->batch_id)
+                    ->whereDate('date', $dateOnly)
+                    ->orderByDesc('id')
+                    ->first();
 
-    return $isCoverupScheduleExist;
-}
+                return ! $attendance || ! $this->isFinishedAvailabilityStatus($attendance->status);
+            });
+
+        return $isCoverupScheduleExist;
+    }
+
+    private function isPastAvailabilityDate(string $date): bool
+    {
+        return Carbon::parse($date)->lt(Carbon::today());
+    }
+
+    private function isFinishedAvailabilityStatus(?string $status): bool
+    {
+        return in_array(strtoupper((string) $status), ['COMPLETED', 'CANCELLED', 'INACTIVE'], true);
+    }
+
+    private function availabilityTimesOverlap(string $fromA, string $toA, string $fromB, string $toB): bool
+    {
+        return Carbon::parse($fromA)->format('H:i:s') < Carbon::parse($toB)->format('H:i:s')
+            && Carbon::parse($toA)->format('H:i:s') > Carbon::parse($fromB)->format('H:i:s');
+    }
 
 
     public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id)

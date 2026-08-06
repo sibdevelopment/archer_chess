@@ -2752,7 +2752,7 @@ class DashboardController extends Controller
                     // dd($day, $date, $slot, $endSlot, $coach->id );
                 // if ($date == '2025-01-02' && $slot == '11:30:00') {
                     // ✅ Coach Leave
-                    if ($this->checkCoachLeave($coach, $date)) {
+                    if ($this->checkCoachLeave($coach, $date, $slot, $endSlot)) {
                         $grid[$displaySlots[$index]][$day] = ['status' => 'Leave', 'color' => 'orange'];
                         continue;
                     }

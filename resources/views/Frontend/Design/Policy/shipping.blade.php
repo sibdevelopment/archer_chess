@@ -2,6 +2,42 @@
 @section('title', 'Home')
 @section('content')
 
+<style>
+     @media (max-width: 767px) {
+            .footer{
+                    margin-top:20px;
+            }
+            .footer .tw-mt-210-px{
+                margin-top:20px;
+            }
+            .pricacyContent h2{
+                font-size:25px !important
+            }
+            .policy-card{
+                background:none;
+                padding:0;
+                box-shadow:none !important;
+                border:none
+            }
+            .policy-list{
+                list-style-type:number;
+                margin-top:10px
+            }
+           h4, h5{
+                font-size:25px !important;
+            }
+            .gy-5{
+                --bs-gutter-y: 1.5rem;
+            }
+            .headingPage{
+                font-size:25px !important;
+                line-height:1.2;
+            }
+        }
+         .policy-list{
+            list-style-type:number;
+        }
+</style>
     <!-- ==================== Breadcrumb Start Here ==================== -->
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
         <img src="/frontend1/assets/images/shape/banner-shape2.png" alt="shape"
@@ -33,7 +69,7 @@
 
     <!------------------------------------------------------------------------------------------->
 
-    <section class="course-content pb-0" style="background: none">
+    <section class="course-content pb-0 pricacyContent" style="background: none">
         <div class="container">
             <div class="section-header aos pb-3" data-aos="fade-up">
                 <div class="section-sub-head">
@@ -44,7 +80,7 @@
             </div>
             <div class="blog">
                 <div class="blog-content">
-                    <p style="font-size: 30px; color: #22100d;">
+                    <p class="headingPage" style="font-size: 30px; color: #22100d;">
                         Archer Chess Academy provides online classes and digital services only. We do not ship any physical
                         products through courier or speed post.
                     </p><br>

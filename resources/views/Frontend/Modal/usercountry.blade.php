@@ -52,6 +52,7 @@
                             <option value="QATAR" @if ($country == 'QATAR') selected @endif>QATAR</option>
                             <option value="BAHRAIN" @if ($country == 'BAHRAIN') selected @endif>BAHRAIN</option>
                             <option value="KUWAIT" @if ($country == 'KUWAIT') selected @endif>KUWAIT</option>
+                            <option value="SAUDI ARABIA" @if ($country == 'SAUDI ARABIA') selected @endif>SAUDI ARABIA</option>
                         </select>
                         <div id="country-error" style="color:red"></div>
                     </div>

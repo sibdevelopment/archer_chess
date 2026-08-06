@@ -38,6 +38,36 @@
                 color: #555;
                 line-height: 1.6;
             }
+            @media (max-width: 767px) {
+            .footer{
+                    margin-top:20px;
+            }
+            .footer .tw-mt-210-px{
+                margin-top:20px;
+            }
+            .pricacyContent h2{
+                font-size:25px !important
+            }
+            .policy-card{
+                background:none;
+                padding:0;
+                box-shadow:none !important;
+                border:none
+            }
+            .policy-list{
+                list-style-type:number;
+                margin-top:10px
+            }
+            h4{
+                font-size:25px
+            }
+            .gy-5{
+                --bs-gutter-y: 1.5rem;
+            }
+        }
+         .policy-list{
+            list-style-type:number;
+        }
         </style>
        
     </head>
@@ -72,7 +102,7 @@
 
     <!------------------------------------------------------------------------------------------->
 
-    <section class="course-content py-2" style="background: none;">
+    <section class="course-content py-2 pricacyContent" style="background: none;">
         <div class="container">
 
             <!-- Centered Layout -->

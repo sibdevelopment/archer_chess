@@ -49,6 +49,7 @@
                                     <option value="KUWAIT">KUWAIT</option>
                                     <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                     <option value="OMAN">OMAN</option>
+                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                 </select>
                             </div>
                             <div class="col-3 d-flex justify-content-end">

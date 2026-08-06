@@ -75,6 +75,7 @@
                                         <option value="KUWAIT">KUWAIT</option>
                                         <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                         <option value="OMAN">OMAN</option>
+                                        <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                     @else
                                         @foreach ($allowedCountries as $country)
                                             <option value="{{ $country }}">{{ $country }}</option>
@@ -83,11 +84,11 @@
                                 </select>
                             </div>
                             <div class="col-2 d-flex justify-content-end">
-                                <select name="is_time" id="is_time" class="select2 form-select form-select-sm pure-white"
+                                <select name="batch_type" id="batch_type" class="select2 form-select form-select-sm pure-white"
                                     aria-label=".form-select-sm example">
-                                    <option value="">Select Time</option>
-                                    <option value="YES">YES</option>
-                                    <option value="">NO</option>
+                                    <option value="">Select Batch Type</option>
+                                    <option value="NORMAL">Normal</option>
+                                    <option value="ONE_TO_ONE">1-1 Batch</option>
                                 </select>
                             </div>
                             @if (!$isCoach)
@@ -408,7 +409,7 @@
                         d.student = $('#student').val();
                         d.country = $('#country').val();
                         d.weekday = $('#weekday').val();
-                        d.is_time = $('#is_time').val();
+                        d.batch_type = $('#batch_type').val();
                     }
                 },
                 columns: [{
@@ -523,7 +524,7 @@
             $('#weekday').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
-            $('#is_time').on('change', function() {
+            $('#batch_type').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
 

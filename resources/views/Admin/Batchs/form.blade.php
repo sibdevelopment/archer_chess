@@ -147,6 +147,10 @@
                                             {{ isset($batch) && in_array('OMAN', $batch->country ?? []) ? 'selected' : '' }}>
                                             OMAN
                                         </option>
+                                        <option value="SAUDI ARABIA"
+                                            {{ isset($batch) && in_array('SAUDI ARABIA', $batch->country ?? []) ? 'selected' : '' }}>
+                                            SAUDI ARABIA
+                                        </option>
                                     @else
                                         @foreach ($allowedCountries as $country)
                                             <option value="{{ $country }}"

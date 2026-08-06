@@ -81,6 +81,7 @@
                                         {{ isset($timezone) && $timezone->country == 'EUROPEAN UNION' ? 'selected' : '' }}>
                                         EUROPEAN UNION</option>    
                                         <option value="OMAN" {{ (isset($timezone) && in_array('OMAN', $timezone->countries ?? [])) ? 'selected' : '' }}>OMAN</option>   
+                                        <option value="SAUDI ARABIA" {{ (isset($timezone) && in_array('SAUDI ARABIA', $timezone->countries ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>

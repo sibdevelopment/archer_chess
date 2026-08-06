@@ -155,6 +155,13 @@
                                     value="{{ old('south_africa_fees', isset($paymentlevel) ? $paymentlevel->south_africa_fees : '') }}" />
                                 <div id="south_africa_fees-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">SAUDI ARABIA (SAR)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees" name="saudi_arabia_fees"
+                                    id="saudi_arabia_fees"
+                                    value="{{ old('saudi_arabia_fees', isset($paymentlevel) ? $paymentlevel->saudi_arabia_fees : '') }}" />
+                                <div id="saudi_arabia_fees-error" style="color:red"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-footer">

@@ -410,6 +410,7 @@ class DataController extends Controller
             'australia'       => 'Australia',
             'qatar'           => 'Qatar',
             'kuwait'          => 'Kuwait',
+            'saudi-arabia'    => 'Saudi Arabia',
             'european-union'  => 'European Union',
         ];
 

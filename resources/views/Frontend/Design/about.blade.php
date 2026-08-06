@@ -1,7 +1,19 @@
 @extends('layouts.revamp')
 @section('title', 'About')
 @section('content')
-
+<style>
+     @media (max-width: 767px) {
+        .footer .tw-mt-210-px{
+            margin-top:20px;
+        }
+        .gy-5{
+            --bs-gutter-y: 1.5rem;
+        }
+        .bg-main-two-300{
+            margin-top:3rem
+        }
+    }
+</style>
     <!-- ==================== Breadcrumb Start Here ==================== -->
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
         <img src="/frontend1/assets/images/shape/banner-shape2.png" alt="shape"

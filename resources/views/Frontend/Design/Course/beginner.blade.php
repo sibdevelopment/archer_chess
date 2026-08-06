@@ -84,6 +84,17 @@
                 transform: translateY(-6px);
                 box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
             }
+           @media (max-width: 767px) {
+                .footer .tw-mt-210-px{
+                    margin-top:20px;
+                }
+                .gy-5{
+                    --bs-gutter-y: 1.5rem;
+                }
+                .bg-main-two-300{
+                    margin-top:3rem
+                }
+           }
         </style>
     </head>
 
@@ -150,8 +161,8 @@
         <div class="py-110">
             <div class="container">
                 <div class="row gy-4">
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-column">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
+                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/assets/images/icon/our-galler-bottom-icon1.png" alt="icon"
                                     class="animate__swing">
@@ -160,12 +171,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Puzzle assigned
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">500+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-column">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/tcul-img/icons/course4.svg" alt="icon"
                                     class="animate__swing">
@@ -174,12 +185,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Extra Class
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">12+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
-                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-column">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/tcul-img/icons/age.svg" alt="icon"
                                     class="animate__swing">
@@ -188,12 +199,12 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Age Group
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">5+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-lg-4 col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
-                        <div class="d-flex align-items-start tw-gap-5 animation-item flex-column">
+                    <div class="col-xl-3 col-lg-4 col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
+                        <div class="d-flex align-items-start tw-gap-4 animation-item flex-lg-column">
                             <span>
                                 <img src="/frontend1/assets/images/icon/our-galler-bottom-icon4.png" alt="icon"
                                     class="animate__swing">
@@ -202,7 +213,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Students
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter">1500+</h3>
+                                <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
                             </div>
                         </div>
                     </div>
@@ -323,9 +334,9 @@
                     <div>
                         <div class="row gy-5">
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course1.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Introduction</span>
                                     <p class="fw-normal text-paragraph-500">Let's get started with an introduction to the board-
                                         naming the squares and how to set the board. Learn about the pieces of chess board and
@@ -334,9 +345,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course2.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Gaining material
                                     </span>
                                     <p class="fw-normal text-paragraph-500"> In this module we cover pawn promotion, draw and
@@ -347,9 +358,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course3.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Attack</span>
                                     <p class="fw-normal text-paragraph-500"> You know that developing is very important in the
                                         opening, but how does one win with a lead in development? The key is to "attack". Learn
@@ -358,9 +369,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course4.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Defence</span>
                                     <p class="fw-normal text-paragraph-500">You know that developing is very important in the
                                         opening, but how does one win with a lead in development? The key is to "attack". Learn
@@ -369,9 +380,9 @@
                             </div>
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-main-50 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course5.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Special Move</span>
                                     <p class="fw-normal text-paragraph-500"> Get introduced to the first special rule of chess-
                                         castling.Halfway through the beginner module- it's now time to learn another special
@@ -381,9 +392,9 @@
 
 
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100">
+                                <div class="bg-primary-100 tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all h-100 mobileItem">
                                     <img src="/frontend1/tcul-img/icons/course6.svg" alt="icon"
-                                                class="tw-mb-5 animate__bounce d-block">
+                                                class="tw-mb-5 animate__bounce">
                                     <span class="fw-semibold tw-text-405 text-neutral-950 tw-mb-5">Mate</span>
                                     <p class="fw-normal text-paragraph-500"> Did you know that one side can force your king to
                                         the edge of the board? Learn about the double rook checkmate for your winning move! Also

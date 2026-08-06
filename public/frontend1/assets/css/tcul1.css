@@ -189,6 +189,38 @@ body{
 /* Mobile */
 @media (max-width: 767px) {
     .why-us{
+        border-radius: 35px;
+    }
+    .toggle-mobileMenu{
+        margin-top: 10px;
+    }
+    .fixed-header .toggle-mobileMenu{
+        margin-top: 17px;
+    }
+    .footer .tw-text-4{
+        font-size: 14px;
+    }
+    .descriptionBlog{
+        max-width: 100% !important;
+        margin-bottom: 15px;
+    }
+    .footer .ph-caret-double-right{
+        font-size: 14px;
+    }
+    .tw-mb-140-px{
+        margin-bottom:90px !important; 
+    }
+    .mobileItem{
+        border-radius: 35px;
+        padding: 30px;
+    }
+    .numberFont{
+        font-size: 26px;
+    }
+    .fixed-header .mobile-logo-space{
+        padding: 0 !important;
+    }
+    .why-us{
         padding: 20px 20px !important;
     }
     .mobile-flex-start{
@@ -197,8 +229,40 @@ body{
     .mobile-flex{
         flex-direction: column;
     }
-    .mobile-center{
-        justify-content: center !important;
+    .mobileIcon{
+        font-size: 26px;
+        cursor: pointer;
+    }
+    .mobile-menu__menu{
+        margin-top: 20px;
+    }
+    .subMenu{
+        display: none;
+    }
+    #registrationModal{
+        padding-right: 0 !important;
+    }
+    .cursor{
+        display: none !important;
+    }
+    .tcul-floating_btn_whatsapp{
+        z-index: 99 !important;
+    }
+    .textLeft{
+        text-align: left !important;
+    }
+    .subMenu.active{
+        display: block;
+    }
+    .mobile-menu__menu ul li a{
+        display: inline-block;
+        padding: 5px;
+        color: #333;
+        font-size: 17px;
+    }
+    .mobile-menu__menu ul li ul li a{
+        padding-left: 10px;
+        font-size: 15px;
     }
     .header{
         padding-top: 0px !important;
@@ -218,7 +282,10 @@ body{
         align-items: center !important;
     }
     .btn {
-        padding: 14px 24px !important;
+        padding: 14px 20px !important;
+    }
+    .mobileLeft{
+        margin: 0 !important;
     }
     .mx-sm-auto{
         margin-left: auto !important;

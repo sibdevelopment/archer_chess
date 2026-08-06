@@ -466,6 +466,7 @@
                                 <option value="KUWAIT">KUWAIT</option>
                                 <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                 <option value="OMAN">OMAN</option>
+                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                             </select>
                         </div>
                     </div>
@@ -566,6 +567,7 @@
                                 <option value="KUWAIT">KUWAIT</option>
                                 <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                                 <option value="OMAN">OMAN</option>
+                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
                                 <!-- Add more as needed -->
                             </select>
                         </div>

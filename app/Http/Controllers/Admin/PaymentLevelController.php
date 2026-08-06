@@ -95,6 +95,7 @@ class PaymentLevelController extends Controller
             'kuwait_fees'     => 'required|numeric',
             'bahrain_fees'    => 'required|numeric',
             'south_africa_fees' => 'required|numeric',
+            'saudi_arabia_fees' => 'required|numeric',
         ];
 
         $customMessages = [
@@ -129,6 +130,8 @@ class PaymentLevelController extends Controller
             'bahrain_fees.numeric'  => 'The Bahrain Fees must be a number',
             'south_africa_fees.required' => 'Please enter South Africa Fees',
             'south_africa_fees.numeric'  => 'The South Africa Fees must be a number',
+            'saudi_arabia_fees.required' => 'Please enter Saudi Arabia Fees',
+            'saudi_arabia_fees.numeric'  => 'The Saudi Arabia Fees must be a number',
         ];
 
         $request->validate($rules, $customMessages);
@@ -190,6 +193,7 @@ class PaymentLevelController extends Controller
             'kuwait_fees'     => 'required|numeric',
             'bahrain_fees'    => 'required|numeric',
             'south_africa_fees' => 'required|numeric',
+            'saudi_arabia_fees' => 'required|numeric',
         ];
 
         $customMessages = [
@@ -224,6 +228,8 @@ class PaymentLevelController extends Controller
             'bahrain_fees.numeric'  => 'The Bahrain Fees must be a number',
             'south_africa_fees.required' => 'Please enter South Africa Fees',
             'south_africa_fees.numeric'  => 'The South Africa Fees must be a number',
+            'saudi_arabia_fees.required' => 'Please enter Saudi Arabia Fees',
+            'saudi_arabia_fees.numeric'  => 'The Saudi Arabia Fees must be a number',
         ];
 
         $rules['sequence'] = 'required|numeric|unique:paymentlevels,sequence,' . $paymentlevel->id;

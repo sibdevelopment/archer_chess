@@ -348,11 +348,11 @@
                 display: none !important;
             }
             .tcul-contact_icon{
-                width: 60px;
+                width: 50px;
             }
             .tcul-floating_btn_whatsapp{
                 bottom: 50%;
-                right: 20px !important;
+                right: 0px !important;
             }
             .tcul-floating_btn_contact{
                 bottom: 10px;
@@ -510,91 +510,37 @@
             <i class="ph ph-x"></i>
         </button>
 
-        {{-- <div class="mobile-menu__inner">
+        <div class="mobile-menu__inner">
             <a href="{{ route('home') }}" class="mobile-menu__logo">
                 <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="Logo">
             </a>
             <div class="mobile-menu__menu">
-                <!-- Nav menu Start -->
-                <ul class="nav-menu d-lg-flex align-items-center nav-menu--mobile d-block tw-mt-8">
-                    <li class="nav-menu__item has-submenu activePage">
-                        <a href="javascript:void(0)"
-                            class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Home</a>
-                    </li>
-                    <li class="nav-menu__item has-submenu position-relative">
-                        <a href="javascript:void(0)"
-                            class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Pages</a>
-                        <ul
-                            class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="#"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    About Us</a>
-                            </li>
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="#"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Pricing Plan</a>
-                            </li>
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="javascript:void(0)"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Image Gallery</a>
-                            </li>
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="#"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    FAQ’s</a>
-                            </li>
+                <ul>
+                    <li><a href="{{ route('home') }}">Home</a></li>
+                    <li class="toggleMenu"><a href="javascript:void(0);" class="d-inline-flex w-100 justify-content-between align-items-center">Programs <i class="ph ph-caret-right"></i></a>
+                        <ul class="subMenu">
+                            <li><a href="{{ route('explore.course.details.beginner') }}">Beginners Chess Classes</a></li>
+                            <li><a href="{{ route('explore.course.details.intermediate') }}">Intermediate Chess Classes</a></li>
+                            <li><a href="{{ route('explore.course.details.advanced') }}">Advanced Chess Classes</a></li>
+                            <li><a href="{{ route('explore.course.details.expert') }}">Grand Master Chess Classes</a></li>
                         </ul>
                     </li>
-                    <li class="nav-menu__item">
-                        <a href="javascript:void(0)"
-                            class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Teachers</a>
-                    </li>
-                    <li class="nav-menu__item has-submenu position-relative">
-                        <a href="javascript:void(0)"
-                            class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Programs</a>
-                        <ul
-                            class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="javascript:void(0)"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Our Programs</a>
-                            </li>
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="javascript:void(0)"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Program Details</a>
-                            </li>
+                    <li class="toggleMenu"><a href="javascript:void(0);" class="d-inline-flex w-100 justify-content-between align-items-center">About <i class="ph ph-caret-right"></i></a>
+                        <ul class="subMenu">
+                            <li><a href="{{ route('about') }}">About Us</a></li>
+                            <li><a href="#">Book a Trial</a></li>
+                            <li><a href="{{ route('gallery') }}">Gallery</a></li>
+                            <li><a href="{{ route('event') }}">Events</a></li>
+                            <li><a href="{{ route('home') }}#faq">FAQ’s</a></li>
                         </ul>
                     </li>
-                    <li class="nav-menu__item has-submenu position-relative">
-                        <a href="javascript:void(0)"
-                            class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Blog</a>
-                        <ul
-                            class="nav-submenu scroll-sm position-absolute start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-hidden tw-p-2 tw-duration-200 tw-z-99">
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="javascript:void(0)"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Our Blog & News</a>
-                            </li>
-                            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
-                                <a href="javascript:void(0)"
-                                    class="nav-submenu__link hover-bg-neutral-200 text-neutral-950 fw-medium w-100 d-block tw-py-2 tw-px-305 tw-rounded hover-text-neutral-950">
-                                    Blog Details</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="nav-menu__item">
-                        <a href="#"
-                            class="nav-menu__link text-neutral-950 tw-py-5 fw-medium w-100">Contact</a>
-                    </li>
+                     <li><a href="{{ route('home') }}#coaches">Coaches</a></li>
+                     <li><a href="{{ route('contact') }}">Contact</a></li>
+                     <li><a href="{{ route('blog') }}">Blog</a></li>
                 </ul>
-                <!-- Nav menu End  -->
 
             </div>
-        </div> --}}
+        </div>
     </div>
     <!-- ==================== Mobile Menu End Here ==================== -->
 
@@ -773,7 +719,6 @@
                     </a>
                 </div>
                 <!-- Logo End  -->
-
                 <!-- Menu Start  -->
                 <div class="header-menu d-xl-block d-none">
                     <!-- Nav menu Start -->
@@ -858,10 +803,12 @@
                     <!-- Nav menu End  -->
 
                 </div>
+
                 <!-- Menu End  -->
 
                 <!-- Header Right start -->
-                <div class="d-flex align-items-center tw-gap-4 d-xl-block d-lg-block d-none">
+                <div class="d-flex align-items-center">
+                    <div class=" d-xl-block d-lg-block d-none">
                     <div class="d-flex align-items-center tw-gap-4">
                         <div class="d-md-block d-none">
                             <button type="button"
@@ -881,6 +828,7 @@
                                 </span>
                             </a>
                         </div>
+                    </div>
                     </div>
                     <button type="button"
                         class="toggle-mobileMenu leading-none d-xl-none ms-3 text-neutral-800 tw-text-9">
@@ -959,7 +907,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="col-xl-2 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"
+                        <div class="col-xl-2 col-lg-6 col-sm-6 col-6 aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="200">
                             <div>
                                 <h1 class="fw-bold text-neutral-950 h5">Quick Links</h1>
@@ -1016,13 +964,78 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-xl-3 col-lg-6 col-sm-6 col-6 d-block d-sm-none d-md-none d-lg-none aos-init aos-animate" data-aos="fade-up"
+                            data-aos-duration="800" data-aos-delay="200">
+                            <div>
+                                <h2 class="fw-bold text-neutral-950 h5">Useful Links</h2>
+                                <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
+                                <div class="d-flex flex-column tw-gap-3">
+                                    <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Book A Trial Class
+                                    </a>
+
+                                    <a href="{{ route('privacy') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Privacy Policy
+                                    </a>
+
+                                    <a href="{{ route('shipping.policy') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Shipping Policy
+                                    </a>
+
+                                    <a href="{{ route('terms') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Terms Of Service
+                                    </a>
+
+                                    <a href="{{ route('refund.policy') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Refund & Cancellation
+                                    </a>
+
+                                    <a href="{{ route('blog') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Blog
+                                    </a>
+
+                                    <a href="{{ route('event') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Event
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-xl-3 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="300">
                             <div>
                                 <h1 class="fw-bold text-neutral-950 h5">Recent Posts</h1>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
                                 @forelse(($revampFooterBlogs ?? collect()) as $footerBlog)
-                                    <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-wrap tw-mb-4">
+                                    <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-lg-wrap tw-mb-4">
                                         <span class="flex-shrink-0">
                                             <img src="{{ $footerBlog->cover_img ? asset('storage/' . $footerBlog->cover_img) : '/frontend1/assets/images/thumbs/footer-img1.png' }}"
                                                 alt="{{ $footerBlog->title }}"
@@ -1046,7 +1059,7 @@
                                 @endforelse
                             </div>
                         </div>
-                        <div class="col-xl-3 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"
+                        <div class="col-xl-3 col-lg-6 col-sm-6 d-none d-md-block aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="800" data-aos-delay="200">
                             <div>
                                 <h2 class="fw-bold text-neutral-950 h5">Useful Links</h2>
@@ -1114,7 +1127,7 @@
                     </div>
                     <span class="w-100 tw-border-primary-600 tw-mt-15 tw-mb-15"></span>
                     <div class="row gy-4">
-                        <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-duration="600"
+                        <div class="col-lg-3 col-md-6 col-6" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="100">
                             <div class="d-flex align-items-center tw-gap-4 flex-column flex-wrap">
                                 <span
@@ -1133,7 +1146,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-duration="600"
+                        <div class="col-lg-4 col-md-6 col-6" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="200">
                             <div class="d-flex align-items-center tw-gap-4 flex-column flex-wrap">
                                 <span
@@ -1225,6 +1238,7 @@
                                     <option value="OMAN">Oman</option>
                                     <option value="BAHRAIN">Bahrain</option>
                                     <option value="KUWAIT">Kuwait</option>
+                                    <option value="SAUDI ARABIA">Saudi Arabia</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -1800,7 +1814,8 @@
                 'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
                 'OMAN': ['Gulf Standard Time'],
                 'BAHRAIN': ['Arabian Standard Time'],
-                'KUWAIT': ['Arabian Standard Time']
+                'KUWAIT': ['Arabian Standard Time'],
+                'SAUDI ARABIA': ['Arabian Standard Time']
             };
 
             const dialCodeByCountry = {
@@ -1817,7 +1832,8 @@
                 'EUROPEAN UNION': '+358',
                 'OMAN': '+968',
                 'BAHRAIN': '+973',
-                'KUWAIT': '+965'
+                'KUWAIT': '+965',
+                'SAUDI ARABIA': '+966'
             };
 
             function setMessage($form, selector, message, isError) {

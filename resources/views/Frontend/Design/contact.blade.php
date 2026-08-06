@@ -17,6 +17,39 @@
                 font-size: 28px;
                 flex-shrink: 0;
             }
+            @media (max-width: 767px) {
+                .footer .tw-mt-210-px{
+                    margin-top:20px;
+                }
+                .gy-5{
+                    --bs-gutter-y: 1.5rem;
+                }
+                .bg-main-two-300{
+                    margin-top:3rem
+                }
+                .tw-w-15{
+                    width: 3rem;
+                }
+                .tw-h-15{
+                    height:3rem;
+                }
+                .icon-circle{
+                    width: 3rem;
+                    height:3rem;
+                }
+                h5{
+                    font-size:17px
+                }
+                .mobileTop{
+                    margin-top:1rem
+                }
+                .btn-main-two{
+                    margin-top:0rem
+                }
+                .marginTop{
+                    margin-top:40px
+                }
+            }
         </style>
     </head>
     <!-- ==================== Breadcrumb Start Here ==================== -->
@@ -58,7 +91,7 @@
             </div>
             <div class="row gy-4">
                 <div class="col-lg-5">
-                    <div class="d-flex align-items-center tw-gap-3 tw-mb-10" data-aos="fade-up" data-aos-duration="800"
+                    <div class="d-flex align-items-lg-center tw-gap-3 tw-mb-10" data-aos="fade-up" data-aos-duration="800"
                         data-aos-delay="100">
                         <span
                             class="tw-w-15 tw-h-15 bg-main-600 text-white d-flex align-items-center justify-content-center rounded-circle tw-text-7">
@@ -73,7 +106,7 @@
                             </h5>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center tw-gap-3 tw-mb-10" data-aos="fade-up" data-aos-duration="800"
+                    <div class="d-flex align-items-lg-center tw-gap-3 tw-mb-10" data-aos="fade-up" data-aos-duration="800"
                         data-aos-delay="200">
                         <span class="icon-circle">
                             <i class="ph-fill ph-map-pin-area"></i>
@@ -88,7 +121,7 @@
                             </h5>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center tw-gap-3" data-aos="fade-up" data-aos-duration="800"
+                    <div class="d-flex align-items-lg-center tw-gap-3" data-aos="fade-up" data-aos-duration="800"
                         data-aos-delay="300">
                         <span
                             class="tw-w-15 tw-h-15 bg-main-two-600 text-white d-flex align-items-center justify-content-center rounded-circle tw-text-7">
@@ -107,7 +140,7 @@
                 <div class="col-lg-7">
                     <form class="revamp-contact-form" method="POST" action="{{ route('contact.submit') }}">
                         @csrf
-                        <div class="row gy-4">
+                        <div class="row gy-4 mobileTop">
                             <div class="col-sm-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
                                 <input type="text" name="name" required
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600"
@@ -139,6 +172,7 @@
                                     <option value="Qatar">Qatar</option>
                                     <option value="Bahrain">Bahrain</option>
                                     <option value="Kuwait">Kuwait</option>
+                                    <option value="Saudi Arabia">Saudi Arabia</option>
                                 </select>
                             </div>
                             <div class="col-sm-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
@@ -170,7 +204,7 @@
         </div>
     </section>
 
-    <section class="py-50">
+    <section class="py-50 marginTop">
         <div class="container">
             <div class="row gy-4">
                 <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3765.642430891318!2d72.84157427374308!3d19.297909844971525!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b02c0b821505%3A0x7fcb82953b8ca8bf!2sArcher%20Chess%20Academy!5e0!3m2!1sen!2sin!4v1774939643530!5m2!1sen!2sin" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>

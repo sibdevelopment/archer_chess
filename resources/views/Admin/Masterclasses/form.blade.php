@@ -74,6 +74,7 @@
                                         <option value="KUWAIT" {{ in_array('KUWAIT', $selectedCountries) ? 'selected' : '' }}>KUWAIT</option>
                                         <option value="EUROPEAN UNION" {{ in_array('EUROPEAN UNION', $selectedCountries) ? 'selected' : '' }}>EUROPEAN UNION</option>
                                         <option value="OMAN" {{ in_array('OMAN', $selectedCountries) ? 'selected' : '' }}>OMAN</option>
+                                        <option value="SAUDI ARABIA" {{ in_array('SAUDI ARABIA', $selectedCountries) ? 'selected' : '' }}>SAUDI ARABIA</option>
                                     @else
                                         @foreach ($allowedCountries as $country)
                                             <option value="{{ $country }}"

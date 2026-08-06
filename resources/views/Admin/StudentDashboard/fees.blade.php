@@ -135,6 +135,7 @@
                 'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
                 'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
                 'BAHRAIN' => ['column' => 'bahrain_fees', 'currency' => 'BHD'],
+                'SAUDI ARABIA' => ['column' => 'saudi_arabia_fees', 'currency' => 'SAR'],
             ];
             $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];

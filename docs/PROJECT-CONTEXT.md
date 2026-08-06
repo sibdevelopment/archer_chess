@@ -660,6 +660,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 
 ```text
 - Coach availability validation ignores all old/current versions from the same batch parent_id family when a current batch id is supplied, so hidden old STANDBY history does not block saving the current active batch.
+- Demo and coverup availability blocking is limited to pending/current or future one-time commitments. Past demo/coverup records, and completed/cancelled one-time attendance, do not block batch edit or student assignment availability checks.
+- Coach Availability roster uses the same overlap-based demo/coverup visibility rule; demo display is no longer exact-start only.
 - Batch Manage listing displays batch names in uppercase for UI uniformity only; stored batch names are unchanged.
 - ACTIVE/STANDBY batches with no ACTIVE student_batch rows and no linked student currently FEESDUE are moved back to UPCOMING.
 - Empty-batch sync runs immediately after batch assignment/transfer save paths and is also available as php artisan batchs:sync-empty-to-upcoming for old data cleanup.

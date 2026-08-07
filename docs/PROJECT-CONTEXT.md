@@ -723,6 +723,25 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - PDF download now re-checks that the logged-in student owns the requested certificate and that the certificate level is unlocked before streaming the file.
 ```
 
+## Coach Availability Fee-Due Reservation Notes
+
+```text
+- Coach availability must stay blocked for real active/standby batches until students are truly inactive and the batch can become UPCOMING.
+- Fee-due students still reserve the batch coach slot because they may pay and continue in the same batch.
+- CoachAvailabilityService now treats student_batches with is_fees_due = 1 and students.status = FEESDUE as reserved when checking dated demo/coverup/batch conflicts.
+- Active students still use StudentBatch::eligibleOn(date), so mid-joiner date rules remain intact.
+- Empty/no-active/no-fee-due active or standby batches are still handled by batchs:sync-empty-to-upcoming through BatchStatusService.
+```
+
+## Demo Penalty Start Tracking Notes
+
+```text
+- Demo Start from the coach dashboard now records a STARTED coach_attendances row before redirecting the coach to Zoom.
+- The demo cancel cron uses this attendance record to avoid wrongly marking a demo as CANCELLED when the coach has already opened/taken the demo.
+- If the coach starts the demo after the 5-minute demo late threshold, the same Start action records the DEMO late penalty; cancelled demo penalty remains reserved for demos that are not started.
+- Final demo attendance submission still updates the same record to COMPLETED, CANCELLED, or Student Absent as before.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

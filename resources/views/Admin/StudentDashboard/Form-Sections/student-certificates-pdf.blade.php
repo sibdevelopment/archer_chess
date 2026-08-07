@@ -48,12 +48,28 @@
             text-align: center;
             width: 595pt;
         }
+
+        .issue-date {
+            position: absolute;
+            top: {{ $certificate['pdf_date_top'] }};
+            left: {{ $certificate['pdf_date_left'] }};
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 10pt;
+            line-height: 1;
+            color: #0d2246;
+            white-space: nowrap;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="certificate-container">
         <img src="{{ storage_path('certificates/' . $certificate['image']) }}" alt="Certificate" class="certificate-bg">
         <span class="student-name">{{ ucwords(strtolower($full_name)) }}</span>
+        @if(!empty($issue_date))
+            <span class="issue-date">{{ $issue_date }}</span>
+        @endif
     </div>
 </body>
 </html>

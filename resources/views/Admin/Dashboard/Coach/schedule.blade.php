@@ -179,7 +179,7 @@
                                 $showTill = $startTime->copy()->addMinutes(30);
                             @endphp
                             @if ($now->between($showFrom, $showTill))
-                                <a href="{{ $schedule['start_url'] }}" target="_blank"
+                                <a href="{{ route('admin.dashboard.demoSession.start', ['coachId' => $coach->id, 'demoSession' => $schedule['id']]) }}" target="_blank"
                                     class="btn btn-primary-theme-outline">Start</a>
                             @endif
                         {{-- 3. Attendance already marked (not cancelled, not demo) --}}

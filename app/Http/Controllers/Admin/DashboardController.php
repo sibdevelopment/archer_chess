@@ -1340,6 +1340,80 @@ class DashboardController extends Controller
         return response()->json(['status' => 'success']);
     }
 
+    public function startDemoSession(Request $request, $coachId, DemoSession $demoSession): RedirectResponse
+    {
+        abort_unless((int) $demoSession->coach_id === (int) $coachId, 403);
+        abort_if($demoSession->status !== 'ACTIVE' || empty($demoSession->start_url), 404);
+
+        $date = Carbon::parse($demoSession->date)->toDateString();
+        $now = Carbon::now();
+
+        $coachAttendance = CoachAttendance::updateOrCreate(
+            ['demolead_id' => $demoSession->demolead_id],
+            [
+                'coach_id' => $demoSession->coach_id,
+                'type' => 'Demo',
+                'demolead_id' => $demoSession->demolead_id,
+                'date' => $date,
+                'time' => $now->format('H:i:s'),
+                'status' => 'STARTED',
+                'number_of_demo_sessions' => 0,
+            ]
+        );
+
+        $demoSession->coach_attendance_status = 'STARTED';
+        $demoSession->save();
+
+        $demoStart = $demoSession->time;
+        if (! $demoStart && $demoSession->slot && str_contains($demoSession->slot, ' - ')) {
+            $demoStart = trim(explode(' - ', $demoSession->slot)[0]);
+        }
+
+        if ($demoStart) {
+            $scheduledStart = Carbon::parse($date . ' ' . $demoStart);
+            $lateAt = $scheduledStart->copy()->addMinutes(5);
+
+            if ($now->gt($lateAt)) {
+                $delayedDemoKey = [
+                    'occurrence_type' => 'DEMO',
+                    'demo_session_id' => $demoSession->id,
+                    'demolead_id' => $demoSession->demolead_id,
+                    'date' => $date,
+                ];
+
+                DelayedBatch::where($delayedDemoKey)
+                    ->where('penalty_type', 'CANCELLED')
+                    ->delete();
+
+                DelayedBatch::updateOrCreate(
+                    $delayedDemoKey,
+                    [
+                        'coach_id' => $demoSession->coach_id,
+                        'coach_attendance_id' => $coachAttendance->id,
+                        'time' => $now->format('H:i:s'),
+                        'batch_name' => 'Demo - ' . trim(optional($demoSession->demolead)->first_name . ' ' . optional($demoSession->demolead)->last_name),
+                        'country' => optional($demoSession->demolead)->country ? [optional($demoSession->demolead)->country] : null,
+                        'batch_status' => optional($demoSession->demolead)->status,
+                        'level_name' => optional($demoSession->level)->name,
+                        'timeline' => sprintf(
+                            'Demo scheduled start: %s | Started at: %s',
+                            $scheduledStart->format('d-M-Y h:i:s A'),
+                            $now->format('d-M-Y h:i:s A')
+                        ),
+                        'penalty_type' => 'LATE',
+                        'fine_amount' => 100,
+                        'fine_currency' => 'INR',
+                        'late_popup_acknowledged_at' => null,
+                        'canceled_date' => null,
+                        'canceled_time' => null,
+                    ]
+                );
+            }
+        }
+
+        return redirect()->away($demoSession->start_url);
+    }
+
     public function pendingDelayedBatchNotices()
     {
         $coach = Coach::where('user_id', auth()->id())->first();

@@ -715,10 +715,31 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 ```text
 - Student certificate templates are image-backed and are stored in both storage/certificates for PDF generation and public/backend/tcul-imgs for dashboard preview.
 - Current certificate templates are portrait images; PDF generation uses A4 portrait.
-- Only the student full name is printed dynamically on the certificate template; the PDF filename uses the student portal ID.
+- Student full name and issue date are printed dynamically on the certificate template; issue date comes from the latest matching student batch end date for that certificate level.
+- Certificate grid labels are mapped to the actual templates: Beginner, Intermediate A, Intermediate B, Advanced 1, Advanced 2, and Expert Level.
+- Expert Level now uses the latest Expert_Certificate artwork in the Advanced_level_3 certificate slot.
 - Certificate unlock is based on historical student_batches.level_id values.
 - Beginner certificate unlocks for level IDs 1 or 2; the old overwrite bug that ignored level ID 1 is fixed.
 - PDF download now re-checks that the logged-in student owns the requested certificate and that the certificate level is unlocked before streaming the file.
+```
+
+## Coach Availability Fee-Due Reservation Notes
+
+```text
+- Coach availability must stay blocked for real active/standby batches until students are truly inactive and the batch can become UPCOMING.
+- Fee-due students still reserve the batch coach slot because they may pay and continue in the same batch.
+- CoachAvailabilityService now treats student_batches with is_fees_due = 1 and students.status = FEESDUE as reserved when checking dated demo/coverup/batch conflicts.
+- Active students still use StudentBatch::eligibleOn(date), so mid-joiner date rules remain intact.
+- Empty/no-active/no-fee-due active or standby batches are still handled by batchs:sync-empty-to-upcoming through BatchStatusService.
+```
+
+## Demo Penalty Start Tracking Notes
+
+```text
+- Demo Start from the coach dashboard now records a STARTED coach_attendances row before redirecting the coach to Zoom.
+- The demo cancel cron uses this attendance record to avoid wrongly marking a demo as CANCELLED when the coach has already opened/taken the demo.
+- If the coach starts the demo after the 5-minute demo late threshold, the same Start action records the DEMO late penalty; cancelled demo penalty remains reserved for demos that are not started.
+- Final demo attendance submission still updates the same record to COMPLETED, CANCELLED, or Student Absent as before.
 ```
 
 Known route/test caveats from prior analysis:

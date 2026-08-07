@@ -252,10 +252,29 @@ class CoachAvailabilityService
                     ->whereIn('status', ['ACTIVE', 'STANDBY'])
                     ->when(! empty($ignoredBatchIds), fn ($q) => $q->whereNotIn('id', $ignoredBatchIds))
                     ->when($useMidJoinerWindow && $date, function ($q) use ($date) {
-                        $q->whereHas('studentBatches', fn ($studentBatchQuery) => $studentBatchQuery->eligibleOn($date));
+                        $q->whereHas('studentBatches', function ($studentBatchQuery) use ($date) {
+                            $this->reservedStudentBatchForAvailability($studentBatchQuery, $date);
+                        });
                     });
             })
             ->first();
+    }
+
+    private function reservedStudentBatchForAvailability($query, string $date): void
+    {
+        $date = Carbon::parse($date)->toDateString();
+
+        $query->where(function ($reservedQuery) use ($date) {
+            $reservedQuery->where(function ($activeQuery) use ($date) {
+                    $activeQuery->eligibleOn($date);
+                })
+                ->orWhere(function ($feeDueQuery) {
+                    $feeDueQuery->where('is_fees_due', 1)
+                        ->whereHas('student', function ($studentQuery) {
+                            $studentQuery->where('status', 'FEESDUE');
+                        });
+                });
+        });
     }
 
     private function sameFamilyBatchIds(?int $batchId): array

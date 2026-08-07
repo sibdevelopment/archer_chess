@@ -8,56 +8,47 @@
         /* Ensure page settings */
         @page {
             margin: 0;
-            size: A4 landscape;
+            size: A4 portrait;
         }
+
+        html,
         body {
             margin: 0;
-            padding: 2;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             font-family: Arial, sans-serif;
         }
 
-        .abs {
-            position: absolute;
+        .certificate-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
         }
 
-        img {
+        .certificate-bg {
+            width: 100%;
             height: 100%;
-            width: auto;
+        }
+
+        .student-name {
+            position: absolute;
+            top: {{ $certificate['name_top'] }};
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: {{ $certificate['font_size'] }};
+            color: #0d2246;
+            white-space: nowrap;
+            text-align: center;
+            width: 80%;
         }
     </style>
 </head>
 <body>
-    <!-- Certificate Content based on Level -->
-    @if($level == 'BL')
-        <img src="{{ storage_path('certificates/bl_1.jpg') }}" alt="Expert Certificate">
-        <span class="abs" style="top:360px; left:50%; transform: translateX(-50%);font-weight: bold; font-size:40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }}
-        </span>
-    @elseif($level == 'IML_1')
-        <img src="{{ storage_path('certificates/iml_1.jpg') }}" alt="Intermediate Certificate">
-        <span class="abs" style="top:400px; left:50%; transform: translateX(-50%);font-weight: bold; font-size:40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }}
-        </span>
-    @elseif($level == 'IML_2')
-        <img src="{{ storage_path('certificates/iml_2.jpg') }}" alt="Beginner Certificate">
-        <span class="abs" style="top:390px; left:50%; transform: translateX(-50%);font-weight: bold; font-size: 40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }} 
-        </span>
-    @elseif($level == 'Advanced_level_1')
-        <img src="{{ storage_path('certificates/Advanced_level_1.jpg') }}" alt="Advanced Certificate">
-        <span class="abs" style="top:378px; left:50%; transform: translateX(-50%); font-weight: bold; font-size: 40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }}
-        </span>
-    @elseif($level == 'Advanced_level_2')
-        <img src="{{ storage_path('certificates/Advanced_level_2.jpg') }}" alt="Advanced Certificate">
-        <span class="abs" style="top:422px; left:50%; transform: translateX(-50%); font-weight: bold; font-size: 40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }}
-        </span>
-    @elseif($level == 'Advanced_level_3')
-        <img src="{{ storage_path('certificates/Advanced_level_3.jpg') }}" alt="Advanced Certificate">
-        <span class="abs" style="top:395px; left:50%; transform: translateX(-50%); font-weight: bold; font-size: 40px; white-space: nowrap;">
-            {{ ucwords(strtolower($full_name)) }}
-        </span>
-    @endif
+    <div class="certificate-container">
+        <img src="{{ storage_path('certificates/' . $certificate['image']) }}" alt="Certificate" class="certificate-bg">
+        <span class="student-name">{{ ucwords(strtolower($full_name)) }}</span>
+    </div>
 </body>
 </html>

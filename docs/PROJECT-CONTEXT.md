@@ -710,6 +710,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Razorpay account/currency support for SAR still needs to be confirmed/enabled from Razorpay side before live SAR checkout is considered final.
 ```
 
+## Student Certificate Notes
+
+```text
+- Student certificate templates are image-backed and are stored in both storage/certificates for PDF generation and public/backend/tcul-imgs for dashboard preview.
+- Current certificate templates are portrait images; PDF generation uses A4 portrait.
+- Only the student full name is printed dynamically on the certificate template; the PDF filename uses the student portal ID.
+- Certificate unlock is based on historical student_batches.level_id values.
+- Beginner certificate unlocks for level IDs 1 or 2; the old overwrite bug that ignored level ID 1 is fixed.
+- PDF download now re-checks that the logged-in student owns the requested certificate and that the certificate level is unlocked before streaming the file.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

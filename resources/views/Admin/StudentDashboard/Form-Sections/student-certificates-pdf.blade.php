@@ -22,26 +22,28 @@
 
         .certificate-container {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 595pt;
+            height: 842pt;
         }
 
         .certificate-bg {
-            width: 100%;
-            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 595pt;
+            height: 842pt;
         }
 
         .student-name {
             position: absolute;
-            top: {{ $certificate['name_top'] }};
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: {{ $certificate['pdf_name_top'] }};
+            left: 0;
             font-weight: bold;
-            font-size: {{ $certificate['font_size'] }};
+            font-size: {{ $certificate['pdf_font_size'] }};
             color: #0d2246;
             white-space: nowrap;
             text-align: center;
-            width: 80%;
+            width: 595pt;
         }
     </style>
 </head>

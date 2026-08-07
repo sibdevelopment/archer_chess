@@ -9,6 +9,25 @@
         position: relative;
     }
 
+    .certificate-preview {
+        height: 360px;
+        width: 100%;
+        object-fit: contain;
+        background: #f8f4ea;
+    }
+
+    .certificate-name {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #0d2246;
+        font-size: 12px;
+        white-space: nowrap;
+        font-weight: 700;
+        text-align: center;
+        width: 80%;
+    }
+
     /* .blurred-image {
         filter: blur(8px);
     } */
@@ -51,10 +70,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                     <div style="position: relative; display: inline-block;">
-                        <img src="/backend/tcul-imgs/bl_1.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                        <span style="position: absolute; top:48%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                            <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                        </span>
+                        <img src="/backend/tcul-imgs/bl_1.jpg" alt="" class="certificate-preview">
+                        <span class="certificate-name" style="top: 46%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                         @if($certificatesLevel['level_1'] == false)
                             <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">
                                 <i class="fas fa-lock lock-icon" style="font-size: 50px; color: rgba(255, 255, 255, 0.8);"></i>
@@ -78,10 +95,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                         <div style="position: relative; display: inline-block;">
-                            <img src="/backend/tcul-imgs/iml_1.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                            <span style="position: absolute; top:53%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                                <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                            </span>
+                            <img src="/backend/tcul-imgs/iml_1.jpg" alt="" class="certificate-preview">
+                            <span class="certificate-name" style="top: 44.5%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                             @if($certificatesLevel['level_2'] == false)
                                 <!-- Lock icon overlay -->
                                 <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">
@@ -107,10 +122,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                         <div style="position: relative; display: inline-block;">
-                            <img src="/backend/tcul-imgs/iml_2.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                            <span style="position: absolute; top:53%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                                <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                            </span>
+                            <img src="/backend/tcul-imgs/iml_2.jpg" alt="" class="certificate-preview">
+                            <span class="certificate-name" style="top: 47%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                             @if($certificatesLevel['level_3'] == false)
                                 <!-- Lock icon overlay -->
                                 <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">
@@ -137,10 +150,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                         <div style="position: relative; display: inline-block;">
-                            <img src="/backend/tcul-imgs/Advanced_level_1.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                            <span style="position: absolute; top:51%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                                <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                            </span>
+                            <img src="/backend/tcul-imgs/Advanced_level_1.jpg" alt="" class="certificate-preview">
+                            <span class="certificate-name" style="top: 40%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                             @if($certificatesLevel['level_4'] == false)
                                 <!-- Lock icon overlay -->
                                 <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">
@@ -165,10 +176,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                         <div style="position: relative; display: inline-block;">
-                            <img src="/backend/tcul-imgs/Advanced_level_2.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                            <span style="position: absolute; top:56%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                                <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                            </span>
+                            <img src="/backend/tcul-imgs/Advanced_level_2.jpg" alt="" class="certificate-preview">
+                            <span class="certificate-name" style="top: 43%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                             @if($certificatesLevel['level_5'] == false)
                                 <!-- Lock icon overlay -->
                                <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">
@@ -193,10 +202,8 @@
             <div class="card hover-img overflow-hidden rounded-2">
                 <div class="card-body p-0">
                         <div style="position: relative; display: inline-block;">
-                            <img src="/backend/tcul-imgs/Advanced_level_3.jpg" alt="" class="img-fluid w-100 object-fit-cover" style="height: 250px;">
-                            <span style="position: absolute; top:52%; left: 50%; transform: translate(-50%, -50%); color: rgb(1, 1, 1); font-size: 12px; white-space: nowrap;">
-                                <b>{{ isset($student->full_name) ? $student->full_name : '' }}</b>
-                            </span>
+                            <img src="/backend/tcul-imgs/Advanced_level_3.jpg" alt="" class="certificate-preview">
+                            <span class="certificate-name" style="top: 47%;">{{ isset($student->full_name) ? $student->full_name : '' }}</span>
                             @if($certificatesLevel['level_6'] == false)
                                 <!-- Lock icon overlay -->
                                 <div class="icon-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);">

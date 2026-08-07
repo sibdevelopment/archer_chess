@@ -25,6 +25,85 @@ use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
 {
+    private function studentCertificateDefinitions(): array
+    {
+        return [
+            'BL' => [
+                'key' => 'level_1',
+                'level_ids' => [1, 2],
+                'image' => 'bl_1.jpg',
+                'name_top' => '46%',
+                'pdf_name_top' => '387pt',
+                'font_size' => '30px',
+                'pdf_font_size' => '20pt',
+            ],
+            'IML_1' => [
+                'key' => 'level_2',
+                'level_ids' => [5],
+                'image' => 'iml_1.jpg',
+                'name_top' => '44.5%',
+                'pdf_name_top' => '375pt',
+                'font_size' => '28px',
+                'pdf_font_size' => '18pt',
+            ],
+            'IML_2' => [
+                'key' => 'level_3',
+                'level_ids' => [10],
+                'image' => 'iml_2.jpg',
+                'name_top' => '47%',
+                'pdf_name_top' => '396pt',
+                'font_size' => '28px',
+                'pdf_font_size' => '18pt',
+            ],
+            'Advanced_level_1' => [
+                'key' => 'level_4',
+                'level_ids' => [19],
+                'image' => 'Advanced_level_1.jpg',
+                'name_top' => '40%',
+                'pdf_name_top' => '337pt',
+                'font_size' => '28px',
+                'pdf_font_size' => '18pt',
+            ],
+            'Advanced_level_2' => [
+                'key' => 'level_5',
+                'level_ids' => [16],
+                'image' => 'Advanced_level_2.jpg',
+                'name_top' => '43%',
+                'pdf_name_top' => '362pt',
+                'font_size' => '28px',
+                'pdf_font_size' => '18pt',
+            ],
+            'Advanced_level_3' => [
+                'key' => 'level_6',
+                'level_ids' => [17, 18],
+                'image' => 'Advanced_level_3.jpg',
+                'name_top' => '47%',
+                'pdf_name_top' => '396pt',
+                'font_size' => '28px',
+                'pdf_font_size' => '18pt',
+            ],
+        ];
+    }
+
+    private function unlockedStudentCertificateLevels(Student $student): array
+    {
+        $levelIds = $student->studentBatches()
+            ->pluck('level_id')
+            ->filter()
+            ->map(fn($value) => (int) $value)
+            ->unique()
+            ->values()
+            ->all();
+
+        $unlocked = [];
+
+        foreach ($this->studentCertificateDefinitions() as $definition) {
+            $unlocked[$definition['key']] = ! empty(array_intersect($definition['level_ids'], $levelIds));
+        }
+
+        return $unlocked;
+    }
+
     private function canViewStudentEvents(?Student $student): bool
     {
         return $student && $student->status === 'ACTIVE';
@@ -641,70 +720,34 @@ class StudentDashboardController extends Controller
         $roleName = $user->roles->pluck('name')->first();
         $student  = Student::where('user_id', $user->id)->first();
 
-        $level_1  = false;
-        $level_2  = false;
-        $level_3  = false;
-        $level_4  = false;
-        $level_5  = false;
-        $level_6  = false;
-        
+        abort_if(! $student, 404);
 
-        $first_level_arr  = ['Beginner', '1'];
+        $certificatesLevel = $this->unlockedStudentCertificateLevels($student);
 
-        $second_level_arr = ['Intermediate', '5'];
-
-        $third_level_arr = ['AL-1', '10'];
-
-        $fourth_level_arr  = ['AL-2', '19'];
-
-        $fifth_level_arr  = ['Expert-1 (Module-1)', '16'];
-
-        $sixth_level_arr  = ['Expert-1 (Module-2)', '17'];
-
-        $seventh_level_arr  = ['Expert-1 (Module-3)', '18'];
-
-
-
-        $levelIds = $student->studentBatches()
-            ->orderBy('id', 'desc')
-            ->pluck('level_id')
-            ->unique()
-            ->map(fn($v) => (int) $v)  // ensure integers
-            ->all();
-
-        $level_1 = in_array(1,  $levelIds, true);  // Beginner
-        $level_1 = in_array(2,  $levelIds, true);  // Beginner
-        $level_2 = in_array(5,  $levelIds, true);  // Intermediate
-        $level_3 = in_array(10, $levelIds, true);  // AL-1
-        $level_4 = in_array(19, $levelIds, true);  // AL-2
-        $level_5 = in_array(16, $levelIds, true);  // Expert-1 (Module-1)
-        $level_6 = in_array(17, $levelIds, true);  // Expert-1 (Module-2)
-        $level_7 = in_array(18, $levelIds, true);  // Expert-1 (Module-3)
-
-        
-
-        $certificatesLevel = [
-            'level_1' => $level_1,
-            'level_2' => $level_2,
-            'level_3' => $level_3,
-            'level_4' => $level_4,
-            'level_5' => $level_5,
-            'level_6' => $level_6,
-        ];
-
-        // dd($certificatesLevel);
         return view('Admin.StudentDashboard.certificates', compact('student', 'certificatesLevel'));
     }
     public function studentCertificatesPdf(Request $request, Student $student)
     {
+        $authStudent = Student::where('user_id', Auth::id())->first();
+
+        abort_if(! $authStudent || $authStudent->id !== $student->id, 403);
+
+        $certificateKey = $request->level;
+        $definitions = $this->studentCertificateDefinitions();
+        abort_if(! isset($definitions[$certificateKey]), 404);
+
+        $certificatesLevel = $this->unlockedStudentCertificateLevels($student);
+        $definition = $definitions[$certificateKey];
+        abort_if(empty($certificatesLevel[$definition['key']]), 403);
 
         $data              = [];
         $data['full_name'] = isset($student->full_name) ? $student->full_name : 'Not Found';
-        $data['level']     = $request->level;
+        $data['level']     = $certificateKey;
         $data['studentId'] = $student->student_id;
+        $data['certificate'] = $definition;
 
         $pdf = PDF::loadView('Admin.StudentDashboard.Form-Sections.student-certificates-pdf', $data);
-        $pdf->setPaper('A4', 'landscape');
+        $pdf->setPaper('A4', 'portrait');
         // Stream the PDF without the first page (ensure the view is correctly formatted)
         $dompdf = $pdf->getDomPDF();
         $dompdf->render();

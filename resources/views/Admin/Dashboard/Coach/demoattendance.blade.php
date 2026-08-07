@@ -86,6 +86,7 @@
         <!-- Hidden input fields placed outside but immediately after the table -->
         <input type="hidden" name="coach_id" value="{{ $data->coach_id }}">
         <input type="hidden" name="type" value="Demo">
+        <input type="hidden" name="demo_session_id" value="{{ $data->id }}">
         <input type="hidden" name="demolead_id" value="{{ $data->demolead->id }}">
         <input type="hidden" name="slot" value="{{ $data->slot }}">
         <div class="col-2">

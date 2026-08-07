@@ -740,6 +740,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - The demo cancel cron uses this attendance record to avoid wrongly marking a demo as CANCELLED when the coach has already opened/taken the demo.
 - If the coach starts the demo after the 5-minute demo late threshold, the same Start action records the DEMO late penalty; cancelled demo penalty remains reserved for demos that are not started.
 - Final demo attendance submission still updates the same record to COMPLETED, CANCELLED, or Student Absent as before.
+- Demo start is now first-start-safe: repeated Start clicks do not overwrite the original STARTED attendance time or create a late penalty after a timely first start.
+- Demo attendance lookups now use demolead_id + coach_id + date, and attendance submission passes demo_session_id so rescheduled/multiple demo sessions for the same lead do not mix records across dates.
 ```
 
 Known route/test caveats from prior analysis:

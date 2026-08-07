@@ -625,7 +625,7 @@ class DashboardController extends Controller
         foreach ($demoSessions as $session) {
 
 
-             $demoAttendance = CoachAttendance::where('demolead_id', $session->id)
+             $demoAttendance = CoachAttendance::where('demolead_id', $session->demolead_id)
                             ->where('coach_id', $coachId)
                             ->whereDate('date', $date)
                             ->first();
@@ -1279,10 +1279,13 @@ class DashboardController extends Controller
 
             $levels = Level::where('status', 'ACTIVE')->get();
 
-            $studentAttendances = StudentAttendance::where('demolead_id', $data->demolead->id)->get();
+            $studentAttendances = StudentAttendance::where('demolead_id', $data->demolead->id)
+                ->whereDate('date', $data->date)
+                ->get();
 
             $coachAttendance = CoachAttendance::where('demolead_id', $data->demolead->id)
                 ->where('coach_id', $coachId)
+                ->whereDate('date', $data->date)
                 ->first();
 
             return view('Admin.Dashboard.Coach.demoattendance', [
@@ -1351,9 +1354,13 @@ class DashboardController extends Controller
         $date = Carbon::parse($demoSession->date)->toDateString();
         $now = Carbon::now();
 
-        $coachAttendance = CoachAttendance::updateOrCreate(
-            ['demolead_id' => $demoSession->demolead_id],
-            [
+        $coachAttendance = CoachAttendance::where('demolead_id', $demoSession->demolead_id)
+            ->where('coach_id', $demoSession->coach_id)
+            ->whereDate('date', $date)
+            ->first();
+
+        if (! $coachAttendance) {
+            $coachAttendance = CoachAttendance::create([
                 'coach_id' => $demoSession->coach_id,
                 'type' => 'Demo',
                 'demolead_id' => $demoSession->demolead_id,
@@ -1361,11 +1368,13 @@ class DashboardController extends Controller
                 'time' => $now->format('H:i:s'),
                 'status' => 'STARTED',
                 'number_of_demo_sessions' => 0,
-            ]
-        );
+            ]);
+        }
 
-        $demoSession->coach_attendance_status = 'STARTED';
-        $demoSession->save();
+        if (! in_array($demoSession->coach_attendance_status, ['STARTED', 'COMPLETED', 'CANCELLED', 'INACTIVE'])) {
+            $demoSession->coach_attendance_status = 'STARTED';
+            $demoSession->save();
+        }
 
         $demoStart = $demoSession->time;
         if (! $demoStart && $demoSession->slot && str_contains($demoSession->slot, ' - ')) {
@@ -1376,7 +1385,7 @@ class DashboardController extends Controller
             $scheduledStart = Carbon::parse($date . ' ' . $demoStart);
             $lateAt = $scheduledStart->copy()->addMinutes(5);
 
-            if ($now->gt($lateAt)) {
+            if ($coachAttendance->wasRecentlyCreated && $now->gt($lateAt)) {
                 $delayedDemoKey = [
                     'occurrence_type' => 'DEMO',
                     'demo_session_id' => $demoSession->id,
@@ -2077,12 +2086,20 @@ class DashboardController extends Controller
             'status'      => $request->input('status'),
         ];
         CoachAttendance::updateOrCreate(
-            ['demolead_id' => $request->input('demolead_id')],
+            [
+                'demolead_id' => $request->input('demolead_id'),
+                'coach_id' => $request->input('coach_id'),
+                'date' => $request->input('date'),
+            ],
             $coachAttendanceAttributes
         );
         // Update DemoSession level_id and coach_attendance_status if demolead_id, coach_id exist and status is ACTIVE
-        $demoSession = DemoSession::where('demolead_id', $request->input('demolead_id'))
+        $demoSession = DemoSession::when($request->filled('demo_session_id'), function ($query) use ($request) {
+                $query->where('id', $request->input('demo_session_id'));
+            })
+            ->where('demolead_id', $request->input('demolead_id'))
             ->where('coach_id', $request->input('coach_id'))
+            ->whereDate('date', $request->input('date'))
             ->where('status', 'ACTIVE')
             ->first();
         if ($demoSession) {
@@ -2193,7 +2210,11 @@ class DashboardController extends Controller
             'remark'      => $request->input('remark'),
         ];
         StudentAttendance::updateOrCreate(
-            ['demolead_id' => $request->input('demolead_id')], // Conditions to find existing record
+            [
+                'demolead_id' => $request->input('demolead_id'),
+                'coach_id' => $request->input('coach_id'),
+                'date' => $request->input('date'),
+            ],
             $studentAttendanceAttributes                       // Attributes to update or create
         );
 

@@ -952,7 +952,7 @@ class DashboardController extends Controller
         // $coverupClasses = Coverupclass::where('new_coach_id', $coachId)
         //     ->where('date', $date)
         //     ->get();
-        $coverupClasses = CoverUpClass::where('new_coach_id', $coachId)
+        $coverupClasses = Coverupclass::where('new_coach_id', $coachId)
             ->whereDate('date', $date)
             ->with(['batch.batchSchedules' => function ($query) use ($dayName) {
                 $query->where('weekday', $dayName)->where('status', 'ACTIVE');
@@ -1003,7 +1003,10 @@ class DashboardController extends Controller
         });
 
 
-        return view('Admin.Dashboard.Coach.schedule', ['schedules' => $combinedData]);
+        return view('Admin.Dashboard.Coach.schedule', [
+            'coach' => $coach,
+            'schedules' => $combinedData,
+        ]);
     }
 
     public function getCoachMasteClass(Request $request)

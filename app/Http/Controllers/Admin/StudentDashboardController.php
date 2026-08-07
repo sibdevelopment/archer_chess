@@ -30,55 +30,85 @@ class StudentDashboardController extends Controller
         return [
             'BL' => [
                 'key' => 'level_1',
+                'label' => 'Beginner Level',
                 'level_ids' => [1, 2],
                 'image' => 'bl_1.jpg',
                 'name_top' => '46%',
+                'date_top' => '92.5%',
+                'date_left' => '79%',
                 'pdf_name_top' => '387pt',
+                'pdf_date_top' => '779pt',
+                'pdf_date_left' => '410pt',
                 'font_size' => '30px',
                 'pdf_font_size' => '20pt',
             ],
             'IML_1' => [
                 'key' => 'level_2',
+                'label' => 'Intermediate A',
                 'level_ids' => [5],
                 'image' => 'iml_1.jpg',
                 'name_top' => '44.5%',
+                'date_top' => '88.5%',
+                'date_left' => '50%',
                 'pdf_name_top' => '375pt',
+                'pdf_date_top' => '745pt',
+                'pdf_date_left' => '265pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
             'IML_2' => [
                 'key' => 'level_3',
+                'label' => 'Intermediate B',
                 'level_ids' => [10],
                 'image' => 'iml_2.jpg',
                 'name_top' => '47%',
+                'date_top' => '91.5%',
+                'date_left' => '50%',
                 'pdf_name_top' => '396pt',
+                'pdf_date_top' => '770pt',
+                'pdf_date_left' => '265pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
             'Advanced_level_1' => [
                 'key' => 'level_4',
+                'label' => 'Advanced 1',
                 'level_ids' => [19],
                 'image' => 'Advanced_level_1.jpg',
                 'name_top' => '40%',
+                'date_top' => '91.5%',
+                'date_left' => '58%',
                 'pdf_name_top' => '337pt',
+                'pdf_date_top' => '770pt',
+                'pdf_date_left' => '315pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
             'Advanced_level_2' => [
                 'key' => 'level_5',
+                'label' => 'Advanced 2',
                 'level_ids' => [16],
                 'image' => 'Advanced_level_2.jpg',
                 'name_top' => '43%',
+                'date_top' => '89.5%',
+                'date_left' => '55%',
                 'pdf_name_top' => '362pt',
+                'pdf_date_top' => '754pt',
+                'pdf_date_left' => '300pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
             'Advanced_level_3' => [
                 'key' => 'level_6',
+                'label' => 'Expert Level',
                 'level_ids' => [17, 18],
                 'image' => 'Advanced_level_3.jpg',
-                'name_top' => '47%',
-                'pdf_name_top' => '396pt',
+                'name_top' => '45.5%',
+                'date_top' => '91.8%',
+                'date_left' => '56%',
+                'pdf_name_top' => '383pt',
+                'pdf_date_top' => '773pt',
+                'pdf_date_left' => '305pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
@@ -102,6 +132,26 @@ class StudentDashboardController extends Controller
         }
 
         return $unlocked;
+    }
+
+    private function studentCertificateIssueDates(Student $student): array
+    {
+        $issueDates = [];
+
+        foreach ($this->studentCertificateDefinitions() as $certificateKey => $definition) {
+            $endDate = $student->studentBatches()
+                ->whereIn('level_id', $definition['level_ids'])
+                ->whereNotNull('end_date')
+                ->orderBy('end_date', 'desc')
+                ->orderBy('id', 'desc')
+                ->value('end_date');
+
+            $issueDates[$certificateKey] = $endDate
+                ? Carbon::parse($endDate)->format('d M Y')
+                : null;
+        }
+
+        return $issueDates;
     }
 
     private function canViewStudentEvents(?Student $student): bool
@@ -723,8 +773,10 @@ class StudentDashboardController extends Controller
         abort_if(! $student, 404);
 
         $certificatesLevel = $this->unlockedStudentCertificateLevels($student);
+        $certificateDefinitions = $this->studentCertificateDefinitions();
+        $certificateIssueDates = $this->studentCertificateIssueDates($student);
 
-        return view('Admin.StudentDashboard.certificates', compact('student', 'certificatesLevel'));
+        return view('Admin.StudentDashboard.certificates', compact('student', 'certificatesLevel', 'certificateDefinitions', 'certificateIssueDates'));
     }
     public function studentCertificatesPdf(Request $request, Student $student)
     {
@@ -745,6 +797,7 @@ class StudentDashboardController extends Controller
         $data['level']     = $certificateKey;
         $data['studentId'] = $student->student_id;
         $data['certificate'] = $definition;
+        $data['issue_date'] = $this->studentCertificateIssueDates($student)[$certificateKey] ?? '';
 
         $pdf = PDF::loadView('Admin.StudentDashboard.Form-Sections.student-certificates-pdf', $data);
         $pdf->setPaper('A4', 'portrait');

@@ -36,7 +36,7 @@ class StudentDashboardController extends Controller
                 'name_top' => '43.5%',
                 'date_top' => '92.5%',
                 'date_left' => '79%',
-                'pdf_name_top' => '370pt',
+                'pdf_name_top' => '362pt',
                 'pdf_date_top' => '779pt',
                 'pdf_date_left' => '410pt',
                 'font_size' => '30px',

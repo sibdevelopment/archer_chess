@@ -758,6 +758,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Feedback rows now save the logged-in user_id correctly and attach student_id for student dashboard submissions.
 ```
 
+## Student Master Listing Notes
+
+```text
+- Student Master must list students from the students table even when no student_fees row exists.
+- Manual ERP-created students can be raw/inactive with no fees or batch yet; admin may add those manually later.
+- Fee-specific filters such as current-day fee due, fee end date, and fee start date can still use student_fees whereHas filtering.
+- Do not add a base whereHas(studentFees) gate to the Student Master listing, because it hides raw/manual students such as ARCHER_BYR43.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

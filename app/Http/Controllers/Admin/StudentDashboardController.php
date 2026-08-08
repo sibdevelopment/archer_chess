@@ -115,6 +115,31 @@ class StudentDashboardController extends Controller
         ];
     }
 
+    private function currentFeedbackCoachesForStudent(Student $student)
+    {
+        $today = Carbon::today()->toDateString();
+
+        $coachIds = StudentBatch::query()
+            ->where('student_id', $student->id)
+            ->eligibleOn($today)
+            ->whereHas('student', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
+            ->whereHas('batch', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
+            ->with('batch')
+            ->get()
+            ->pluck('batch.coach_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        return Coach::with('user')
+            ->whereIn('id', $coachIds)
+            ->get();
+    }
+
     private function unlockedStudentCertificateLevels(Student $student): array
     {
         $levelIds = $student->studentBatches()
@@ -463,7 +488,7 @@ class StudentDashboardController extends Controller
 
         }
 
-        $data['coaches']         = Coach::all();
+        $data['coaches']         = $student ? $this->currentFeedbackCoachesForStudent($student) : collect();
         $data['demoLeadEnquiry'] = DemoLeadEnquiry::where('user_id', $user->id)->first();
 
         // dd($data['demoLeadEnquiry']);

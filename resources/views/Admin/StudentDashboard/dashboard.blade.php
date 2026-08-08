@@ -1168,7 +1168,9 @@
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
                                     <select class="form-control" id="coach_id" name="coach_id">
-                                        <option value="" disabled selected>Select Coach</option>
+                                        <option value="" disabled selected>
+                                            {{ $data['coaches']->count() ? 'Select Coach' : 'No current coach available' }}
+                                        </option>
                                         @foreach ($data['coaches'] as $key => $coach)
                                             @if (isset($coach->user))
                                                 <option value="{{ $coach->id }}">{{ $coach->user->first_name }} &nbsp;

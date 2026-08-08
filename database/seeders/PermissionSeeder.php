@@ -53,6 +53,7 @@ class PermissionSeeder extends Seeder
                     'getUnmarkedAttendance',
                     'pendingDelayedBatchNotices',
                     'acknowledgeDelayedBatchNotice',
+                    'startDemoSession',
                 ],
                 'availability-view' => [
                     'availabilityIndex',

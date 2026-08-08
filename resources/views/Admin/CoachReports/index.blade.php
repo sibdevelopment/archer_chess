@@ -280,7 +280,9 @@
                                     <th>ID</th>
                                     <th>Student ID</th>
                                     <th>Full Name</th>
+                                    @unless ($isCoach)
                                     <th>Phone</th>
+                                    @endunless
                                     <th>Coach</th>
                                     <th>Batch</th>
                                     <th>Date</th>
@@ -480,7 +482,9 @@
                                     <th style="text-align: center;">#</th>
                                     <th style="text-align: center;">First Name</th>
                                     <th style="text-align: center;">Age</th>
+                                    @unless ($isCoach)
                                     <th style="text-align: center;">Mobile</th>
+                                    @endunless
                                     <th style="text-align: center;">Country</th>
                                     <th style="text-align: center;">Kids Time Zone</th>
                                     <th style="text-align: center;">Status</th>
@@ -665,7 +669,9 @@
                                     // Sequential number
                                     '<td>' + attendance.student_id + '</td>' +
                                     '<td>' + attendance.student.full_name + '</td>' +
+                                    @unless ($isCoach)
                                     '<td>' + attendance.student.phone + '</td>' +
+                                    @endunless
                                     '<td>' + attendance.coach.name + '</td>' +
                                     '<td>' + attendance.batch.name + '</td>' +
                                     '<td>' + attendance.date + '</td>' +
@@ -919,8 +925,10 @@
                                     .first_name + '</td>' +
                                     '<td style="text-align: center;">' + demo.age +
                                     '</td>' +
+                                    @unless ($isCoach)
                                     '<td style="text-align: center;">' + demo.mobile +
                                     '</td>' +
+                                    @endunless
                                     '<td style="text-align: center;">' + demo.country +
                                     '</td>' +
                                     '<td style="text-align: center;">' + demo

@@ -767,6 +767,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Do not add a base whereHas(studentFees) gate to the Student Master listing, because it hides raw/manual students such as ARCHER_BYR43.
 ```
 
+## Coach Report Contact Visibility Notes
+
+```text
+- Coach report pages are shared by Admin/SuperAdmin and Coach roles.
+- Admin/SuperAdmin can see student/demo contact numbers in report detail popups.
+- Coach role must not see student/demo phone numbers in report details, to avoid bypassing ERP communication flow.
+- The report JSON also strips phone/mobile values for Coach role, so contact data is not just hidden in the browser table.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

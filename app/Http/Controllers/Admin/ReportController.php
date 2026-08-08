@@ -169,6 +169,7 @@ class ReportController extends Controller
         $coachId   = $request->input('coachId');
         $startDate = $request->input('startDate');
         $endDate   = $request->input('endDate');
+        $isCoach   = in_array('Coach', auth()->user()->getRoleNames()->toArray());
 
         // Validate the input dates
         if (! $startDate || ! $endDate) {
@@ -246,7 +247,7 @@ class ReportController extends Controller
                 'student_id' => $attendance->student->student_id,
                 'student'    => [
                     'full_name' => $student ? $student->first_name . ' ' . $student->last_name : 'N/A',
-                    'phone'     => $student ? $student->mobile : 'N/A',
+                    'phone'     => (! $isCoach && $student) ? $student->mobile : null,
                 ],
                 'coach'      => [
                     'id'   => $coach ? $coach->id : 'N/A',
@@ -282,6 +283,7 @@ class ReportController extends Controller
         $coachId   = $request->input('coachId');
         $startDate = $request->input('startDate');
         $endDate   = $request->input('endDate');
+        $isCoach   = in_array('Coach', auth()->user()->getRoleNames()->toArray());
 
         // Fetch the count of completed demos from CoachAttendance
         $completedDemosCount = CoachAttendance::where('coach_id', $coachId)
@@ -301,7 +303,7 @@ class ReportController extends Controller
     
         // Format the demo session data
         
-        $demoData = $demoLeads->map(function ($demo) {
+        $demoData = $demoLeads->map(function ($demo) use ($isCoach) {
             $demolead  = $demo;
             $levelName = $demo->level ? $demo->level->name : 'N/A';
 
@@ -316,7 +318,7 @@ class ReportController extends Controller
                 'first_name'                      => $demolead->first_name,
                 'last_name'                       => $demolead->last_name,
                 'age'                             => $demolead->age,
-                'mobile'                          => $demolead->mobile,
+                'mobile'                          => $isCoach ? null : $demolead->mobile,
                 'city'                            => $demolead->city,
                 'country'                         => $demolead->country,
                 'kids_time_zone'                  => $demolead->kids_time_zone,

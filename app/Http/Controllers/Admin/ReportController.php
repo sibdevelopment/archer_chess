@@ -235,7 +235,7 @@ class ReportController extends Controller
             ->get();
 
         // Format the student attendance data
-        $formattedStudentAttendanceData = $studentAttendanceData->map(function ($attendance) {
+        $formattedStudentAttendanceData = $studentAttendanceData->map(function ($attendance) use ($isCoach) {
             $student  = $attendance->student;
             $coach    = $attendance->coach;
             $demoLead = $attendance->demoLead;

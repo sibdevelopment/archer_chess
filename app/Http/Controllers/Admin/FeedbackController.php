@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Admin;
 use DataTables;
 use App\Models\Feedback;
+use App\Models\Student;
+use App\Models\StudentBatch;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class FeedbackController extends Controller
 {
@@ -50,9 +53,22 @@ class FeedbackController extends Controller
     {
         $request->validate($this->rules, $this->customMessages);
         $user = Auth::user();
+        $student = Student::where('user_id', $user->id)->first();
+
+        if ($student) {
+            $allowedCoachIds = $this->currentCoachIdsForStudent($student);
+
+            $request->validate([
+                'coach_id' => ['required', Rule::in($allowedCoachIds)],
+            ], [
+                'coach_id.in' => 'You can submit feedback only for your current coach.',
+            ]);
+        }
+
         $feedback = new Feedback;
         $feedback->fill($request->all());
-        $feedback->user_id == $user->id;
+        $feedback->user_id = $user->id;
+        $feedback->student_id = $student ? $student->id : $request->student_id;
         $feedback->save();
 
         return response()->json([
@@ -107,5 +123,25 @@ class FeedbackController extends Controller
         'coach_id.required' => 'The coach is required.',
         'feedback.required' => 'The feedback field is required.',
     ];
+
+    private function currentCoachIdsForStudent(Student $student): array
+    {
+        return StudentBatch::query()
+            ->where('student_id', $student->id)
+            ->eligibleOn(now()->toDateString())
+            ->whereHas('student', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
+            ->whereHas('batch', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
+            ->with('batch')
+            ->get()
+            ->pluck('batch.coach_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
 
 }

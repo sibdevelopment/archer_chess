@@ -746,6 +746,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Dashboard permission methods include startDemoSession under dashboard-view; deploys must run PermissionSeeder and permission cache reset after this change to avoid middleware 403 on the demo Start route.
 ```
 
+## Student Feedback Coach Scope Notes
+
+```text
+- Student dashboard feedback no longer lists all coaches.
+- Feedback coach dropdown is limited to the coach/coaches from the logged-in student's current ACTIVE eligible student_batches whose linked batch is ACTIVE.
+- This respects mid-joiner/current-date eligibility through StudentBatch::eligibleOn(today).
+- Feedback submit now validates the selected coach against the same current-coach list, so students cannot post feedback for unrelated coaches by changing the request.
+- Feedback rows now save the logged-in user_id correctly and attach student_id for student dashboard submissions.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -744,6 +744,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Demo attendance lookups now use demolead_id + coach_id + date, and attendance submission passes demo_session_id so rescheduled/multiple demo sessions for the same lead do not mix records across dates.
 - Demo Start route authorization allows the assigned coach id, the logged-in coach id, or a coach record with the same underlying user_id. This avoids false 403s when duplicate/alternate coach records exist for the same coach user while still blocking unrelated users.
 - Dashboard permission methods include startDemoSession under dashboard-view; deploys must run PermissionSeeder and permission cache reset after this change to avoid middleware 403 on the demo Start route.
+- Demo completion now preserves the original STARTED coach_attendances.time and stores final submission in attendance_submitted_at, so a demo started on time is not wrongly fined late just because the coach submitted final attendance after the class.
+- Demo late penalty cleanup on completion removes an existing LATE penalty if the preserved start time is within the 5-minute demo grace window.
 ```
 
 ## Student Feedback Coach Scope Notes

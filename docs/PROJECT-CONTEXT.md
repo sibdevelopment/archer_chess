@@ -742,6 +742,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Final demo attendance submission still updates the same record to COMPLETED, CANCELLED, or Student Absent as before.
 - Demo start is now first-start-safe: repeated Start clicks do not overwrite the original STARTED attendance time or create a late penalty after a timely first start.
 - Demo attendance lookups now use demolead_id + coach_id + date, and attendance submission passes demo_session_id so rescheduled/multiple demo sessions for the same lead do not mix records across dates.
+- Demo Start route authorization allows the assigned coach id, the logged-in coach id, or a coach record with the same underlying user_id. This avoids false 403s when duplicate/alternate coach records exist for the same coach user while still blocking unrelated users.
 ```
 
 Known route/test caveats from prior analysis:

@@ -1348,7 +1348,19 @@ class DashboardController extends Controller
 
     public function startDemoSession(Request $request, $coachId, DemoSession $demoSession): RedirectResponse
     {
-        abort_unless((int) $demoSession->coach_id === (int) $coachId, 403);
+        $loggedInCoach = Coach::where('user_id', auth()->id())->first();
+        $routeCoach = Coach::find($coachId);
+        $demoCoach = $demoSession->coach;
+
+        $isAssignedCoach = (int) $demoSession->coach_id === (int) $coachId;
+        $isLoggedInCoach = $loggedInCoach && (int) $demoSession->coach_id === (int) $loggedInCoach->id;
+        $isSameCoachUser = $demoCoach
+            && (
+                ($loggedInCoach && (int) $demoCoach->user_id === (int) $loggedInCoach->user_id)
+                || ($routeCoach && (int) $demoCoach->user_id === (int) $routeCoach->user_id)
+            );
+
+        abort_unless($isAssignedCoach || $isLoggedInCoach || $isSameCoachUser, 403);
         abort_if($demoSession->status !== 'ACTIVE' || empty($demoSession->start_url), 404);
 
         $date = Carbon::parse($demoSession->date)->toDateString();

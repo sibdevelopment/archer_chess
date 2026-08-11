@@ -718,6 +718,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Student full name and issue date are printed dynamically on the certificate template; issue date comes from the latest matching student batch end date for that certificate level.
 - Certificate grid labels are mapped to the actual templates: Beginner, Intermediate A, Intermediate B, Advanced 1, Advanced 2, and Expert Level.
 - Advanced 1 certificate preview/PDF name and issue-date coordinates are tuned separately from the other certificate templates so the overlays sit above their printed guide lines.
+- Expert Level certificate preview/PDF coordinates are tuned separately so the name sits slightly higher and the issue date aligns left on the printed date line.
 - Expert Level now uses the latest Expert_Certificate artwork in the Advanced_level_3 certificate slot.
 - Certificate unlock is based on historical student_batches.level_id values.
 - Beginner certificate unlocks for level IDs 1 or 2; the old overwrite bug that ignored level ID 1 is fixed.

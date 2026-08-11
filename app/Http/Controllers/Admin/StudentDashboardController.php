@@ -63,7 +63,7 @@ class StudentDashboardController extends Controller
                 'image' => 'iml_2.jpg',
                 'name_top' => '45%',
                 'date_top' => '91.7%',
-                'date_left' => '56%',
+                'date_left' => '58%',
                 'pdf_name_top' => '372pt',
                 'pdf_date_top' => '770pt',
                 'pdf_date_left' => '328pt',
@@ -270,9 +270,9 @@ class StudentDashboardController extends Controller
             return response()->json([
                 'message' => 'Class not started yet please try again later',
                 'status' => 'error'
-            ], 404);    
+            ], 404);
         }
-      
+
     }
 
     /**
@@ -727,7 +727,7 @@ class StudentDashboardController extends Controller
         return view('Admin.StudentBatches.index', $data);
     }
 
- 
+
     public function studentFees()
     {
         $user     = Auth::user();
@@ -741,7 +741,7 @@ class StudentDashboardController extends Controller
             'nextPaymentLevel'       => null,
             'nextThreePaymentLevels' => [],
         ];
-        
+
 
         if (isset($student) && !empty($student)) {
             $studentFees = $student->studentFees;
@@ -751,7 +751,7 @@ class StudentDashboardController extends Controller
             // Apply next level logic only for Indian students
             // if ($student->country != 'QATAR' && $student->country != 'SINGAPORE') {
                 $student_last_batch = StudentBatch::where('student_id', $student->id)->orderBy('id', 'desc')->first();
-                
+
                 if ($student_last_batch) {
                     $lastpayment_level = Paymentlevel::where('level_id', $student_last_batch->batch->level_id)->where('status', 'ACTIVE')->first();
 
@@ -782,10 +782,10 @@ class StudentDashboardController extends Controller
                         $data['nextPaymentLevel'] = $nextPaymentLevel;
                         $data['nextThreePaymentLevels'] = $nextThreePaymentLevels;
                     }
-                } 
+                }
             // }
         }
-        
+
         return view('Admin.StudentDashboard.fees', $data);
     }
 

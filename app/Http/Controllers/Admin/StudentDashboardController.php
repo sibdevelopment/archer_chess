@@ -63,7 +63,7 @@ class StudentDashboardController extends Controller
                 'image' => 'iml_2.jpg',
                 'name_top' => '45%',
                 'date_top' => '91.7%',
-                'date_left' => '58%',
+                'date_left' => '60%',
                 'pdf_name_top' => '372pt',
                 'pdf_date_top' => '770pt',
                 'pdf_date_left' => '328pt',

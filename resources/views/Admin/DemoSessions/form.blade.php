@@ -190,9 +190,47 @@
             $('input[name="date"], input[name="time"], select[name="coach_id"]').change();
         });
 
+        function resetDemoSubmitLoader(form) {
+            $('#loaderImage').hide();
+            $(form).find('button[type=submit]').show();
+        }
+
+        function normalizeDemoTime(time) {
+            return time ? String(time).substring(0, 5) : '';
+        }
+
+        function validateDemoTimes(form) {
+            let date = $('input[name="date"]').val();
+            let time = normalizeDemoTime($('input[name="time"]').val());
+            let today = "{{ now()->toDateString() }}";
+            let slot = $('select[name="slot"]').val() || $('input[name="saved_slot_normal"]').val() || '';
+            let slotParts = slot.split(' - ');
+
+            $('#time-error').empty();
+            $('#slot-error').empty();
+
+            if (date === today && time === '00:00') {
+                $('#time-error').html('Please select a future demo time. 12:00 AM is already past for the same date.');
+                resetDemoSubmitLoader(form);
+                return false;
+            }
+
+            if (slotParts.length === 2 && normalizeDemoTime(slotParts[1]) === '00:00') {
+                $('#slot-error').html('Please use 11:59 PM as the day-ending demo slot time. Do not use 12:00 AM.');
+                resetDemoSubmitLoader(form);
+                return false;
+            }
+
+            return true;
+        }
+
         $('#demosessions-form').submit(function(e) {
             e.preventDefault();
             $('div[id$="-error"]').empty();
+            if (!validateDemoTimes(this)) {
+                e.stopImmediatePropagation();
+                return;
+            }
             var form = $(this);
             var url = form.attr('action');
             $.ajax({

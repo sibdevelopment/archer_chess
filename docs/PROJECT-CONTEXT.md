@@ -813,6 +813,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - If the first recorded demo start time is after the 5-minute demo late threshold, the LATE penalty remains valid unless a CANCELLED penalty exists.
 ```
 
+## Day-End Time Input Rule
+
+```text
+- Same-day/day-ending operational forms should use 11:59 PM, not 12:00 AM, as the end time.
+- Batch create/edit rejects schedule end time 12:00 AM in UI and backend.
+- Leave apply already rejects same-day 12:00 AM end time; the form now also resets the submit loader when this validation blocks submit.
+- Demo scheduling rejects same-day 12:00 AM start time and demo slots ending at 12:00 AM; use 11:59 PM for day-end coverage.
+- Existing old rows with 12:00 AM remain backward-compatible in availability overlap calculations, but new entries should not save 12:00 AM as same-day/day-end input.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

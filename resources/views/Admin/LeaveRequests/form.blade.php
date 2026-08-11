@@ -125,17 +125,26 @@
         toggleTimeFields();
     });
 
+    function resetLeaveSubmitLoader(form) {
+        $('#loaderImage').hide();
+        $(form).find('button[type=submit]').show();
+    }
+
     $('#leaverequests-form').submit(function(e) {
         e.preventDefault();
         $('div[id$="-error"]').empty();
         var fromTime = $('#from_time').val();
         var toTime = $('#to_time').val();
         if (toTime === '00:00') {
+            e.stopImmediatePropagation();
             $('#to_time-error').html('Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM for the same day.');
+            resetLeaveSubmitLoader(this);
             return;
         }
         if (fromTime && toTime && toTime <= fromTime) {
+            e.stopImmediatePropagation();
             $('#to_time-error').html('Leave end time must be later than start time for the same day.');
+            resetLeaveSubmitLoader(this);
             return;
         }
 

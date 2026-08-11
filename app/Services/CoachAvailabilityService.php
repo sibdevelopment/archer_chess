@@ -9,6 +9,7 @@ use App\Models\CoachAvailability;
 use App\Models\CoachAttendance;
 use App\Models\Coverupclass;
 use App\Models\DemoSession;
+use App\Models\Masterclass;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
@@ -174,6 +175,12 @@ class CoachAvailabilityService
             return $this->blocked("Coach already has coverup class on {$date} {$coverupConflict->batchSchedule->from_time} - {$coverupConflict->batchSchedule->to_time}.");
         }
 
+        $masterclassConflict = $this->masterclassConflict($coachId, $date, $fromTime, $toTime, $ignoreType === 'masterclass' ? $ignoreId : null);
+        if ($masterclassConflict) {
+            $masterclassEnd = Carbon::parse($masterclassConflict->time)->addMinutes(40)->format('H:i:s');
+            return $this->blocked("Coach already has masterclass {$masterclassConflict->name} on {$date} {$masterclassConflict->time} - {$masterclassEnd}.");
+        }
+
         return $this->ok();
     }
 
@@ -199,11 +206,13 @@ class CoachAvailabilityService
         return CoachAvailability::where('coach_id', $coachId)
             ->where('day_of_week', $weekday)
             ->where('status', 'ACTIVE')
-            ->whereHas('periods', function ($query) use ($fromTime, $toTime) {
-                $query->where('from_period', '<=', $fromTime)
-                    ->where('to_period', '>=', $toTime);
-            })
-            ->exists();
+            ->with('periods')
+            ->get()
+            ->contains(function (CoachAvailability $availability) use ($fromTime, $toTime) {
+                return $availability->periods->contains(function ($period) use ($fromTime, $toTime) {
+                    return $this->timeContains($period->from_period, $period->to_period, $fromTime, $toTime);
+                });
+            });
     }
 
     public function coachMatchesAnyCountry(Coach $coach, array $countries): bool
@@ -245,8 +254,6 @@ class CoachAvailabilityService
         return BatchSchedule::with('batch')
             ->where('weekday', $weekday)
             ->where('status', 'ACTIVE')
-            ->whereTime('from_time', '<', $toTime)
-            ->whereTime('to_time', '>', $fromTime)
             ->whereHas('batch', function ($query) use ($coachId, $date, $ignoredBatchIds, $useMidJoinerWindow) {
                 $query->where('coach_id', $coachId)
                     ->whereIn('status', ['ACTIVE', 'STANDBY'])
@@ -257,7 +264,10 @@ class CoachAvailabilityService
                         });
                     });
             })
-            ->first();
+            ->get()
+            ->first(function (BatchSchedule $schedule) use ($fromTime, $toTime) {
+                return $this->timeOverlaps($fromTime, $toTime, $schedule->from_time, $schedule->to_time);
+            });
     }
 
     private function reservedStudentBatchForAvailability($query, string $date): void
@@ -345,6 +355,29 @@ class CoachAvailabilityService
             });
     }
 
+    private function masterclassConflict(int $coachId, string $date, string $fromTime, string $toTime, ?int $ignoreMasterclassId = null): ?Masterclass
+    {
+        if ($this->isPastDate($date)) {
+            return null;
+        }
+
+        return Masterclass::where('coach_id', $coachId)
+            ->where('status', 'ACTIVE')
+            ->whereDate('date', $date)
+            ->when($ignoreMasterclassId, fn ($query) => $query->where('id', '!=', $ignoreMasterclassId))
+            ->get()
+            ->first(function (Masterclass $masterclass) use ($fromTime, $toTime) {
+                if (!$masterclass->time) {
+                    return false;
+                }
+
+                $masterclassFrom = $this->normalizeTime($masterclass->time);
+                $masterclassTo = Carbon::parse($masterclassFrom)->addMinutes(40)->format('H:i:s');
+
+                return $this->timeOverlaps($fromTime, $toTime, $masterclassFrom, $masterclassTo);
+            });
+    }
+
     private function isPastDate(string $date): bool
     {
         return Carbon::parse($date)->lt(Carbon::today());
@@ -366,15 +399,44 @@ class CoachAvailabilityService
         return $attendance && $this->isFinishedAttendanceStatus($attendance->status);
     }
 
-    private function timeOverlaps(string $fromA, string $toA, string $fromB, string $toB): bool
+    public function timeOverlaps(string $fromA, string $toA, string $fromB, string $toB): bool
     {
-        return $this->normalizeTime($fromA) < $this->normalizeTime($toB)
-            && $this->normalizeTime($toA) > $this->normalizeTime($fromB);
+        [$startA, $endA] = $this->timeWindow($fromA, $toA);
+        [$startB, $endB] = $this->timeWindow($fromB, $toB);
+
+        return $startA->lt($endB) && $endA->gt($startB);
     }
 
-    private function normalizeTime(string $time): string
+    public function normalizeTime(string $time): string
     {
         return Carbon::parse($time)->format('H:i:s');
+    }
+
+    private function timeContains(string $availableFrom, string $availableTo, string $slotFrom, string $slotTo): bool
+    {
+        [$availableStart, $availableEnd] = $this->timeWindow($availableFrom, $availableTo);
+        [$slotStart, $slotEnd] = $this->timeWindow($slotFrom, $slotTo);
+
+        return $availableStart->lte($slotStart) && $availableEnd->gte($slotEnd);
+    }
+
+    private function timeWindow(string $fromTime, string $toTime): array
+    {
+        $start = Carbon::parse('2000-01-01 ' . $this->normalizeTime($fromTime));
+        $end = Carbon::parse('2000-01-01 ' . $this->normalizeTime($toTime));
+
+        if ($this->isEndOfDayTime($toTime)) {
+            $end = Carbon::parse('2000-01-01 23:59:59');
+        } elseif ($end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+        }
+
+        return [$start, $end];
+    }
+
+    private function isEndOfDayTime(string $time): bool
+    {
+        return in_array($this->normalizeTime($time), ['00:00:00', '23:59:00', '23:59:59'], true);
     }
 
     private function ok(): array

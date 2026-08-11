@@ -23,6 +23,7 @@ use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
 use App\Services\BatchOccurrenceService;
 use App\Services\CoachAvailabilityService;
+use Illuminate\Validation\ValidationException;
 
 class LeaveRequestController extends Controller
 {
@@ -160,6 +161,7 @@ class LeaveRequestController extends Controller
 
     public function store(Request $request)
     {
+        $this->validateLeaveTimeWindow($request);
         $request->validate($this->rules, $this->customMessages);
 
         $leaverequest = new LeaveRequest;
@@ -185,6 +187,7 @@ class LeaveRequestController extends Controller
 
     public function update(Request $request, LeaveRequest $leaverequest)
     {
+        $this->validateLeaveTimeWindow($request);
         $request->validate($this->rules, $this->customMessages);
         $leaverequest->fill($request->all());
         $leaverequest->save();
@@ -837,6 +840,30 @@ class LeaveRequestController extends Controller
     public function destroy($id)
     {
 
+    }
+
+    private function validateLeaveTimeWindow(Request $request): void
+    {
+        if (!$request->from_time || !$request->to_time) {
+            return;
+        }
+
+        $fromDate = $request->from_date ? Carbon::parse($request->from_date)->toDateString() : null;
+        $toDate = $request->to_date ? Carbon::parse($request->to_date)->toDateString() : $fromDate;
+        $fromTime = Carbon::parse($request->from_time)->format('H:i:s');
+        $toTime = Carbon::parse($request->to_time)->format('H:i:s');
+
+        if ($fromDate && $fromDate === $toDate && $toTime === '00:00:00') {
+            throw ValidationException::withMessages([
+                'to_time' => 'Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM for the same day.',
+            ]);
+        }
+
+        if ($fromDate && $fromDate === $toDate && $toTime <= $fromTime) {
+            throw ValidationException::withMessages([
+                'to_time' => 'Leave end time must be later than start time for the same day.',
+            ]);
+        }
     }
 
     private $rules = [

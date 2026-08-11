@@ -26,6 +26,7 @@ use App\Models\StudentBatch;
 use App\Models\StudentFee;
 use App\Models\User;
 use App\Services\BatchOccurrenceService;
+use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -2929,7 +2930,7 @@ class DashboardController extends Controller
 
         foreach ($availabilityPeriods as $period) {
             $fromTime = Carbon::parse($period->from_period);
-            $toTime   = Carbon::parse($period->to_period);
+            $toTime   = $this->availabilityPeriodEnd($period->from_period, $period->to_period);
 
             for ($time = $fromTime->copy(); $time->lt($toTime); $time->addMinutes(30)) {
                 $timeStr    = $time->format('H:i:s'); 
@@ -2998,14 +2999,23 @@ class DashboardController extends Controller
 
     private function checkCoachLeave($coach, $date, $slot = null, $endSlot = null)
     {
-        return $coach->leaves()
+        $leaves = $coach->leaves()
             ->whereDate('from_date', '<=', $date)
             ->whereDate('to_date', '>=', $date)
-            ->when($slot, function ($query) use ($slot, $endSlot) {
-                $query->whereTime('from_time', '<', $endSlot)
-                    ->whereTime('to_time', '>', $slot);
-            })
-            ->exists();
+            ->get();
+
+        if (!$slot || !$endSlot) {
+            return $leaves->isNotEmpty();
+        }
+
+        return $leaves->contains(function ($leave) use ($slot, $endSlot) {
+            return app(BatchOccurrenceService::class)->timeRangesOverlap(
+                $slot,
+                $endSlot,
+                $leave->from_time,
+                $leave->to_time
+            );
+        });
     }
 
     private function checkDemoAssign($coach, $date, $weekday, $from_time, $to_time)
@@ -3041,13 +3051,10 @@ class DashboardController extends Controller
                     ->where('status', '!=', 'INACTIVE')->where('start_date', '<=', $date)->where('end_date', '>=', $date);
             })
             ->where('weekday', $weekday)
-            ->where(function ($query) use ($from_time, $to_time) {
-                $query->where(function ($q) use ($from_time, $to_time) {
-                    $q->where('from_time', '<', $to_time)
-                    ->where('to_time', '>', $from_time);
-                });
-            })
-            ->exists();
+            ->get()
+            ->contains(function ($schedule) use ($from_time, $to_time) {
+                return $this->availabilityTimesOverlap($from_time, $to_time, $schedule->from_time, $schedule->to_time);
+            });
             // dd( $aa );
         return $aa;
     }
@@ -3063,17 +3070,23 @@ class DashboardController extends Controller
 
         $isCoverupScheduleExist = Coverupclass::whereDate('date', $dateOnly)
             ->where('new_coach_id', $coach->id)
-            ->whereHas('batch', function ($batchQuery) use ($coach, $dateOnly, $weekdayName, $from_time, $to_time) {
-                $batchQuery->whereHas('batchSchedules', function ($schedQ) use ($weekdayName, $from_time, $to_time) {
-                    $schedQ->where('weekday', $weekdayName)
-                        ->where(function ($subQ) use ($from_time, $to_time) {
-                            $subQ->where('from_time', '<', $to_time)
-                                ->where('to_time', '>', $from_time);
-                        });
+            ->whereHas('batch', function ($batchQuery) use ($coach, $dateOnly, $weekdayName) {
+                $batchQuery->whereHas('batchSchedules', function ($schedQ) use ($weekdayName) {
+                    $schedQ->where('weekday', $weekdayName);
                 });
             })
             ->get()
-            ->contains(function (Coverupclass $coverupclass) use ($coach, $dateOnly) {
+            ->contains(function (Coverupclass $coverupclass) use ($coach, $dateOnly, $weekdayName, $from_time, $to_time) {
+                $schedule = $coverupclass->batch?->batchSchedules
+                    ?->first(function ($schedule) use ($weekdayName, $from_time, $to_time) {
+                        return $schedule->weekday === $weekdayName
+                            && $this->availabilityTimesOverlap($from_time, $to_time, $schedule->from_time, $schedule->to_time);
+                    });
+
+                if (!$schedule) {
+                    return false;
+                }
+
                 $attendance = CoachAttendance::where('coach_id', $coach->id)
                     ->where('batch_id', $coverupclass->batch_id)
                     ->whereDate('date', $dateOnly)
@@ -3098,25 +3111,33 @@ class DashboardController extends Controller
 
     private function availabilityTimesOverlap(string $fromA, string $toA, string $fromB, string $toB): bool
     {
-        return Carbon::parse($fromA)->format('H:i:s') < Carbon::parse($toB)->format('H:i:s')
-            && Carbon::parse($toA)->format('H:i:s') > Carbon::parse($fromB)->format('H:i:s');
+        return app(CoachAvailabilityService::class)->timeOverlaps($fromA, $toA, $fromB, $toB);
     }
 
 
     public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id)
     {
         $dayOfWeek = Carbon::parse($date)->dayName;
-
-        $availability = CoachAvailability::where('coach_id', $coach_id)
-            ->where('day_of_week', $dayOfWeek)
-            ->where('status', 'ACTIVE')
-            ->whereHas('periods', function ($query) use ($from_time, $to_time) {
-                $query->where('from_period', '<=', $from_time)
-                    ->where('to_period', '>=', $to_time);
-            })
-            ->exists();
+        $availability = app(CoachAvailabilityService::class)
+            ->coachHasBaseAvailability((int) $coach_id, $dayOfWeek, $from_time, $to_time);
 
         return $availability ? Coach::where('id', $coach_id)->with('user')->get() : collect([]);
+    }
+
+    private function availabilityPeriodEnd(string $fromTime, string $toTime): Carbon
+    {
+        $from = Carbon::parse($fromTime);
+        $to = Carbon::parse($toTime);
+
+        if (in_array($to->format('H:i:s'), ['00:00:00', '23:59:00', '23:59:59'], true)) {
+            return Carbon::parse('23:59:59');
+        }
+
+        if ($to->lessThanOrEqualTo($from)) {
+            $to->addDay();
+        }
+
+        return $to;
     }
 
 

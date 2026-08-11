@@ -193,6 +193,34 @@ Coach Availability
     $('#coachavailability-form').submit(function (e) {
         e.preventDefault();
         $('div[id$="-error"]').empty();
+
+        var periodError = null;
+        $('.from_period').each(function () {
+            var row = $(this).closest('[id^="whole-div-"]');
+            var fromTime = $(this).val();
+            var toTime = row.find('.to_period').val();
+
+            if (!fromTime || !toTime) {
+                return true;
+            }
+
+            if (toTime === '00:00') {
+                periodError = 'Please use 11:59 PM as the day-ending availability time. Do not use 12:00 AM for the same day.';
+                return false;
+            }
+
+            if (toTime <= fromTime) {
+                periodError = 'Availability end time must be later than start time for the same day.';
+                return false;
+            }
+        });
+
+        if (periodError) {
+            $('#day_name-error').html(periodError);
+            toastr.error(periodError, '');
+            return;
+        }
+
         var form = $(this);
         var url = form.attr('action');
         $.ajax({

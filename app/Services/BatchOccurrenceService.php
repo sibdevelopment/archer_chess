@@ -269,9 +269,9 @@ class BatchOccurrenceService
         }
 
         $startA = Carbon::parse($fromA);
-        $endA = Carbon::parse($toA);
+        $endA = $this->timeRangeEnd($fromA, $toA);
         $startB = Carbon::parse($fromB);
-        $endB = Carbon::parse($toB);
+        $endB = $this->timeRangeEnd($fromB, $toB);
 
         if ($endA->lessThanOrEqualTo($startA)) {
             $endA->addDay();
@@ -282,6 +282,23 @@ class BatchOccurrenceService
         }
 
         return $startA->lt($endB) && $endA->gt($startB);
+    }
+
+    private function timeRangeEnd(string $fromTime, string $toTime): Carbon
+    {
+        $start = Carbon::parse($fromTime);
+        $end = Carbon::parse($toTime);
+        $normalizedTo = $end->format('H:i:s');
+
+        if (in_array($normalizedTo, ['00:00:00', '23:59:00', '23:59:59'], true)) {
+            return Carbon::parse('23:59:59');
+        }
+
+        if ($end->lessThanOrEqualTo($start)) {
+            $end->addDay();
+        }
+
+        return $end;
     }
 
     private function nextScheduledDate(Carbon $fromDate, array $scheduledDays): Carbon

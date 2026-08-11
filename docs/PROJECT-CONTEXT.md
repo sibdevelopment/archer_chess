@@ -782,6 +782,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - The report JSON also strips phone/mobile values for Coach role, so contact data is not just hidden in the browser table.
 ```
 
+## End-Of-Day Leave And Availability Notes
+
+```text
+- New same-day coach leave requests and coach availability periods should use 11:59 PM as the day-ending time, not 12:00 AM.
+- Server-side validation blocks new same-day leave/availability rows where end time is 00:00 or not later than start time.
+- Existing coach availability rows ending at 00:00 remain backward-compatible and are interpreted as end-of-day during availability checks.
+- Shared coach availability overlap logic now treats 00:00, 23:59, and 23:59:59 as day-end boundaries so late-night slots do not become incorrectly available.
+- Coach availability roster, batch assignment/edit validation, demo, coverup, and masterclass conflicts use the shared overlap interpretation instead of plain SQL/string time comparisons where needed.
+- Masterclass scheduling now validates coach country/base availability and conflicts using the same shared service, assuming the existing 40-minute masterclass meeting duration.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

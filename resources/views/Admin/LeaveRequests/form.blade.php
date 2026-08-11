@@ -64,7 +64,7 @@
                                 <div id="from_time-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-3" id="to_time_container">
-                                <label class="control-label col-form-label">From Time <sup class="tcul-star-restrict">*</sup></label>
+                                <label class="control-label col-form-label">To Time <sup class="tcul-star-restrict">*</sup></label>
                                 <input type="time" class="form-control" name="to_time" id="to_time"
                                     value="{{ isset($leaverequest) ? date('H:i', strtotime($leaverequest->to_time)) : '' }}"
                                     step="60" min="00:00" max="23:59" />
@@ -103,6 +103,10 @@
         const toTimeContainer = document.getElementById('to_time_container');
 
         function toggleTimeFields() {
+            if (!fromDateInput || !toDateInput) {
+                return;
+            }
+
             if (fromDateInput.value === toDateInput.value && fromDateInput.value !== '') {
                 fromTimeContainer.style.display = 'block';
                 toTimeContainer.style.display = 'block';
@@ -112,8 +116,10 @@
             }
         }
 
-        fromDateInput.addEventListener('change', toggleTimeFields);
-        toDateInput.addEventListener('change', toggleTimeFields);
+        if (fromDateInput && toDateInput) {
+            fromDateInput.addEventListener('change', toggleTimeFields);
+            toDateInput.addEventListener('change', toggleTimeFields);
+        }
 
         // Initial check in case the dates are already set
         toggleTimeFields();
@@ -122,6 +128,17 @@
     $('#leaverequests-form').submit(function(e) {
         e.preventDefault();
         $('div[id$="-error"]').empty();
+        var fromTime = $('#from_time').val();
+        var toTime = $('#to_time').val();
+        if (toTime === '00:00') {
+            $('#to_time-error').html('Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM for the same day.');
+            return;
+        }
+        if (fromTime && toTime && toTime <= fromTime) {
+            $('#to_time-error').html('Leave end time must be later than start time for the same day.');
+            return;
+        }
+
         var form = $(this);
         var url = form.attr('action');
         $.ajax({

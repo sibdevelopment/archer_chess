@@ -802,6 +802,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - This is a listing-only filter and does not change leave approval, coverup, class shifting, holiday, or penalty behavior.
 ```
 
+## Demo Penalty Occurrence Notes
+
+```text
+- Demo late/cancel penalties must be tied to the real demo occurrence, not only one demo_sessions.id.
+- A real demo occurrence is matched by demolead_id + coach_id + date + same scheduled start time/slot.
+- This protects reassigned/rescheduled demos where old inactive demo_session rows still exist for the same lead and slot.
+- If coach attendance already exists for that demo occurrence, the cron clears stale demo penalties and does not create another penalty.
+- When demo attendance is submitted as COMPLETED/on-time, stale LATE/CANCELLED penalties for matching duplicate demo rows are cleared.
+- If the first recorded demo start time is after the 5-minute demo late threshold, the LATE penalty remains valid unless a CANCELLED penalty exists.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -215,8 +215,13 @@ class CancelDelayBatch extends Command
                 ->whereDate('date', $date)
                 ->exists();
 
+            if ($coachAttendanceExists) {
+                $this->clearDemoOccurrencePenalties($demoSession, $date, $demoStartTime);
+                continue;
+            }
+
             if (! $coachAttendanceExists && $now->greaterThan($lateTime)) {
-                $cancelledPenaltyExists = DelayedBatch::where($delayedDemoKey)
+                $cancelledPenaltyExists = $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStartTime)
                     ->where('penalty_type', 'CANCELLED')
                     ->exists();
 
@@ -276,7 +281,7 @@ class CancelDelayBatch extends Command
 
                 DemoLead::where('id', $demoSession->demolead_id)->update(['status' => 'CANCELLED']);
 
-                DelayedBatch::where($delayedDemoKey)
+                $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStartTime)
                     ->where('penalty_type', 'LATE')
                     ->delete();
 
@@ -316,6 +321,47 @@ class CancelDelayBatch extends Command
         }
 
         return trim(explode(' - ', $demoSession->slot)[0]);
+    }
+
+    private function clearDemoOccurrencePenalties(DemoSession $demoSession, string $date, string $demoStartTime): void
+    {
+        $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStartTime)->delete();
+    }
+
+    private function demoOccurrencePenaltyQuery(DemoSession $demoSession, string $date, string $demoStartTime)
+    {
+        $demoSessionIds = $this->matchingDemoOccurrenceIds($demoSession, $date, $demoStartTime);
+
+        return DelayedBatch::where('occurrence_type', 'DEMO')
+            ->where('demolead_id', $demoSession->demolead_id)
+            ->where('coach_id', $demoSession->coach_id)
+            ->whereDate('date', $date)
+            ->whereIn('demo_session_id', $demoSessionIds);
+    }
+
+    private function matchingDemoOccurrenceIds(DemoSession $demoSession, string $date, string $demoStartTime): array
+    {
+        $demoStartTime = $this->normalizeDemoTime($demoStartTime);
+
+        return DemoSession::where('demolead_id', $demoSession->demolead_id)
+            ->where('coach_id', $demoSession->coach_id)
+            ->whereDate('date', $date)
+            ->get()
+            ->filter(function (DemoSession $candidate) use ($demoStartTime) {
+                $candidateStart = $candidate->time ?: $this->demoSlotStart($candidate);
+
+                return $candidateStart && $this->normalizeDemoTime($candidateStart) === $demoStartTime;
+            })
+            ->pluck('id')
+            ->push($demoSession->id)
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    private function normalizeDemoTime(string $time): string
+    {
+        return Carbon::parse($time)->format('H:i:s');
     }
 
 }

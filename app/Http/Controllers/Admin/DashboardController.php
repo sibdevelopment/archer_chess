@@ -1398,6 +1398,11 @@ class DashboardController extends Controller
             $scheduledStart = Carbon::parse($date . ' ' . $demoStart);
             $lateAt = $scheduledStart->copy()->addMinutes(5);
 
+            if (! $coachAttendance->wasRecentlyCreated || ! $now->gt($lateAt)) {
+                $this->clearDemoOccurrencePenalties($demoSession, $date, $demoStart);
+                return redirect()->away($demoSession->start_url);
+            }
+
             if ($coachAttendance->wasRecentlyCreated && $now->gt($lateAt)) {
                 $delayedDemoKey = [
                     'occurrence_type' => 'DEMO',
@@ -1406,7 +1411,7 @@ class DashboardController extends Controller
                     'date' => $date,
                 ];
 
-                DelayedBatch::where($delayedDemoKey)
+                $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
                     ->where('penalty_type', 'CANCELLED')
                     ->delete();
 
@@ -2147,7 +2152,7 @@ class DashboardController extends Controller
                 ];
 
                 if ($request->input('status') === 'CANCELLED' && $submittedAt->greaterThanOrEqualTo($cancelAt)) {
-                    DelayedBatch::where($delayedDemoKey)
+                    $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
                         ->where('penalty_type', 'LATE')
                         ->delete();
 
@@ -2175,12 +2180,16 @@ class DashboardController extends Controller
                         ]
                     );
                 } elseif ($request->input('status') !== 'CANCELLED') {
+                    $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
+                        ->where('penalty_type', 'CANCELLED')
+                        ->delete();
+
                     if (! $actualAt->gt($lateAt)) {
-                        DelayedBatch::where($delayedDemoKey)
+                        $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
                             ->where('penalty_type', 'LATE')
                             ->delete();
                     } else {
-                        $cancelledPenaltyExists = DelayedBatch::where($delayedDemoKey)
+                        $cancelledPenaltyExists = $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
                             ->where('penalty_type', 'CANCELLED')
                             ->exists();
 
@@ -3138,6 +3147,56 @@ class DashboardController extends Controller
         }
 
         return $to;
+    }
+
+    private function clearDemoOccurrencePenalties(DemoSession $demoSession, string $date, string $demoStartTime): void
+    {
+        $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStartTime)->delete();
+    }
+
+    private function demoOccurrencePenaltyQuery(DemoSession $demoSession, string $date, string $demoStartTime)
+    {
+        $demoSessionIds = $this->matchingDemoOccurrenceIds($demoSession, $date, $demoStartTime);
+
+        return DelayedBatch::where('occurrence_type', 'DEMO')
+            ->where('demolead_id', $demoSession->demolead_id)
+            ->where('coach_id', $demoSession->coach_id)
+            ->whereDate('date', $date)
+            ->whereIn('demo_session_id', $demoSessionIds);
+    }
+
+    private function matchingDemoOccurrenceIds(DemoSession $demoSession, string $date, string $demoStartTime): array
+    {
+        $demoStartTime = $this->normalizeDemoTime($demoStartTime);
+
+        return DemoSession::where('demolead_id', $demoSession->demolead_id)
+            ->where('coach_id', $demoSession->coach_id)
+            ->whereDate('date', $date)
+            ->get()
+            ->filter(function (DemoSession $candidate) use ($demoStartTime) {
+                $candidateStart = $candidate->time ?: $this->demoSlotStart($candidate);
+
+                return $candidateStart && $this->normalizeDemoTime($candidateStart) === $demoStartTime;
+            })
+            ->pluck('id')
+            ->push($demoSession->id)
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    private function demoSlotStart(DemoSession $demoSession): ?string
+    {
+        if (! $demoSession->slot || ! str_contains($demoSession->slot, ' - ')) {
+            return null;
+        }
+
+        return trim(explode(' - ', $demoSession->slot)[0]);
+    }
+
+    private function normalizeDemoTime(string $time): string
+    {
+        return Carbon::parse($time)->format('H:i:s');
     }
 
 

@@ -33,12 +33,12 @@ class StudentDashboardController extends Controller
                 'label' => 'Beginner Level',
                 'level_ids' => [1, 2],
                 'image' => 'bl_1.jpg',
-                'name_top' => '43.5%',
-                'date_top' => '92.5%',
+                'name_top' => '42.7%',
+                'date_top' => '93.2%',
                 'date_left' => '79%',
-                'pdf_name_top' => '362pt',
+                'pdf_name_top' => '354pt',
                 'pdf_date_top' => '779pt',
-                'pdf_date_left' => '410pt',
+                'pdf_date_left' => '450pt',
                 'font_size' => '30px',
                 'pdf_font_size' => '20pt',
             ],
@@ -47,11 +47,11 @@ class StudentDashboardController extends Controller
                 'label' => 'Intermediate A',
                 'level_ids' => [5],
                 'image' => 'iml_1.jpg',
-                'name_top' => '44%',
-                'date_top' => '91.2%',
+                'name_top' => '44.6%',
+                'date_top' => '91.8%',
                 'date_left' => '50%',
-                'pdf_name_top' => '353pt',
-                'pdf_date_top' => '760pt',
+                'pdf_name_top' => '361pt',
+                'pdf_date_top' => '768pt',
                 'pdf_date_left' => '300pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
@@ -61,12 +61,12 @@ class StudentDashboardController extends Controller
                 'label' => 'Intermediate B',
                 'level_ids' => [10],
                 'image' => 'iml_2.jpg',
-                'name_top' => '45.7%',
-                'date_top' => '92.2%',
-                'date_left' => '50%',
-                'pdf_name_top' => '380pt',
+                'name_top' => '45%',
+                'date_top' => '91.7%',
+                'date_left' => '60%',
+                'pdf_name_top' => '372pt',
                 'pdf_date_top' => '770pt',
-                'pdf_date_left' => '318pt',
+                'pdf_date_left' => '328pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
@@ -75,11 +75,11 @@ class StudentDashboardController extends Controller
                 'label' => 'Advanced 1',
                 'level_ids' => [19],
                 'image' => 'Advanced_level_1.jpg',
-                'name_top' => '39.5%',
-                'date_top' => '89.6%',
+                'name_top' => '38.7%',
+                'date_top' => '88.7%',
                 'date_left' => '55.5%',
-                'pdf_name_top' => '325pt',
-                'pdf_date_top' => '748pt',
+                'pdf_name_top' => '316pt',
+                'pdf_date_top' => '739pt',
                 'pdf_date_left' => '315pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
@@ -103,12 +103,12 @@ class StudentDashboardController extends Controller
                 'label' => 'Expert Level',
                 'level_ids' => [17, 18],
                 'image' => 'Advanced_level_3.jpg',
-                'name_top' => '43.8%',
-                'date_top' => '92.5%',
-                'date_left' => '58%',
-                'pdf_name_top' => '359pt',
+                'name_top' => '42.6%',
+                'date_top' => '91.7%',
+                'date_left' => '55.5%',
+                'pdf_name_top' => '352pt',
                 'pdf_date_top' => '774pt',
-                'pdf_date_left' => '348pt',
+                'pdf_date_left' => '332pt',
                 'font_size' => '28px',
                 'pdf_font_size' => '18pt',
             ],
@@ -270,9 +270,9 @@ class StudentDashboardController extends Controller
             return response()->json([
                 'message' => 'Class not started yet please try again later',
                 'status' => 'error'
-            ], 404);    
+            ], 404);
         }
-      
+
     }
 
     /**
@@ -727,7 +727,7 @@ class StudentDashboardController extends Controller
         return view('Admin.StudentBatches.index', $data);
     }
 
- 
+
     public function studentFees()
     {
         $user     = Auth::user();
@@ -741,7 +741,7 @@ class StudentDashboardController extends Controller
             'nextPaymentLevel'       => null,
             'nextThreePaymentLevels' => [],
         ];
-        
+
 
         if (isset($student) && !empty($student)) {
             $studentFees = $student->studentFees;
@@ -751,7 +751,7 @@ class StudentDashboardController extends Controller
             // Apply next level logic only for Indian students
             // if ($student->country != 'QATAR' && $student->country != 'SINGAPORE') {
                 $student_last_batch = StudentBatch::where('student_id', $student->id)->orderBy('id', 'desc')->first();
-                
+
                 if ($student_last_batch) {
                     $lastpayment_level = Paymentlevel::where('level_id', $student_last_batch->batch->level_id)->where('status', 'ACTIVE')->first();
 
@@ -782,10 +782,10 @@ class StudentDashboardController extends Controller
                         $data['nextPaymentLevel'] = $nextPaymentLevel;
                         $data['nextThreePaymentLevels'] = $nextThreePaymentLevels;
                     }
-                } 
+                }
             // }
         }
-        
+
         return view('Admin.StudentDashboard.fees', $data);
     }
 

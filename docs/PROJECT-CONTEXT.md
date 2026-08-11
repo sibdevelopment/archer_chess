@@ -793,6 +793,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Masterclass scheduling now validates coach country/base availability and conflicts using the same shared service, assuming the existing 40-minute masterclass meeting duration.
 ```
 
+## Leave Request Listing Notes
+
+```text
+- Leave Request master has a status filter in the listing.
+- Supported filter values are ACTIVE, APPROVED, REJECTED, and INACTIVE.
+- Empty status filter means all leave requests, while selected status applies directly to leaverequests.status.
+- This is a listing-only filter and does not change leave approval, coverup, class shifting, holiday, or penalty behavior.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

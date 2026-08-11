@@ -89,6 +89,9 @@ class LeaveRequestController extends Controller
         if ($request->to_date) {
             $query->whereDate('to_date', '<=', $request->to_date);
         }
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
 
         return DataTables::eloquent($query)
             ->addColumn('coach_name', function ($leaverequest) {

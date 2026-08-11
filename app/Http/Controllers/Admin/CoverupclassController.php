@@ -116,19 +116,19 @@ class CoverupclassController extends Controller
                     '<div class="d-flex justify-content-end">' . $totalActiveStudentsBadge . '&nbsp;&nbsp;' . $feesDueStudentBadge . '</div>' . '</div>';
             })
             ->editColumn('change_coach', function ($coverupclass) {
-                $date = $coverupclass->date;
+                $date = Carbon::parse($coverupclass->date)->startOfDay();
                 $batch_schedule = BatchSchedule::where('id', $coverupclass->batchschedule_id)->first();
 
                 if (!$batch_schedule) {
                     return ''; // Avoid errors if schedule is not found
                 }
 
-                $from_time = Carbon::parse($batch_schedule->from_time); // Convert time to Carbon
                 $now = Carbon::now();
                 $today = Carbon::today(); // Get today's date without time
+                $classStart = Carbon::parse($coverupclass->date . ' ' . $batch_schedule->from_time);
 
                 // Hide if date is in the past OR if it's today and class time has already passed
-                if ($date < $today || ($date == $today->toDateString() && $from_time < $now)) {
+                if ($date->isBefore($today) || ($date->isSameDay($today) && $classStart->isBefore($now))) {
                     return '';
                 }
 

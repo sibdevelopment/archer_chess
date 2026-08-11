@@ -543,6 +543,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Both flows should follow the same country, base availability, real batch, demo, and coverup conflict rules.
 - Leave approval also keeps the extra guard that the selected replacement coach must not be on approved leave for the coverup date.
 - Leave approval revalidates the selected coach again while saving, not only while building the dropdown.
+- Coverup listing "Change Coach" button is date/time gated with normalized Carbon values: future coverups show it, today's coverups show it until class start time, and past/started coverups hide it.
 ```
 
 ## SuperAdmin Dashboard Student Batch Column Notes

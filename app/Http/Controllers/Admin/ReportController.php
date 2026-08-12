@@ -898,14 +898,10 @@ class ReportController extends Controller
                 ->where('status', 'ACTIVE'); // Ensure batchSchedules have 'ACTIVE' status
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->where('status', 'ACTIVE') // Count only 'ACTIVE' studentBatches
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->where('status', 'ACTIVE') // Ensure studentBatches have 'ACTIVE' status
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             })
             ->where('coach_id', $coachId)
             ->where('status', 'ACTIVE')
@@ -1047,9 +1043,7 @@ class ReportController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->where('status', 'ACTIVE') // Count only 'ACTIVE' studentBatches
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             // ->whereHas('studentBatches', function ($query) use ($date) {
             //     $query->where('status', 'ACTIVE') // Ensure studentBatches have 'ACTIVE' status
@@ -1360,13 +1354,10 @@ class ReportController extends Controller
         }])
             ->
             withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             })
             ->whereIn('id', $coverupClassBatchIds)
             // ->where('status', 'ACTIVE')

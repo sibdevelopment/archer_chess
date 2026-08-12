@@ -811,6 +811,8 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - If coach attendance already exists for that demo occurrence, the cron clears stale demo penalties and does not create another penalty.
 - When demo attendance is submitted as COMPLETED/on-time, stale LATE/CANCELLED penalties for matching duplicate demo rows are cleared.
 - If the first recorded demo start time is after the 5-minute demo late threshold, the LATE penalty remains valid unless a CANCELLED penalty exists.
+- If a coach started the demo on time and later submits the demo as CANCELLED because the student did not join, no coach penalty should remain; matching demo penalties are cleared.
+- A CANCELLED demo penalty is valid only when the coach did not start on time/within the demo late threshold.
 ```
 
 ## Day-End Time Input Rule
@@ -821,6 +823,16 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Leave apply already rejects same-day 12:00 AM end time; the form now also resets the submit loader when this validation blocks submit.
 - Demo scheduling rejects same-day 12:00 AM start time and demo slots ending at 12:00 AM; use 11:59 PM for day-end coverage.
 - Existing old rows with 12:00 AM remain backward-compatible in availability overlap calculations, but new entries should not save 12:00 AM as same-day/day-end input.
+```
+
+## Same-Day Fee Due Student Count
+
+```text
+- StudentBatch has a shared countableForClassOn(date) scope for coach dashboard/report class student counts.
+- Normal active student-batch rows are counted when start_date <= class date <= end_date.
+- Same-day fee-due rows are also counted only when student_batches.status is INACTIVE, is_fees_due = 1, and end_date equals the class date.
+- This fixes students whose fee becomes due on the class day: they still count for that day's taught class, but do not count after the fee end date.
+- The rule is used in coach dashboard schedules, coverup schedule counts, and admin/coach report schedule counts; batch-list active/fee-due badges remain separate.
 ```
 
 Known route/test caveats from prior analysis:

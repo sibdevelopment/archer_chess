@@ -426,10 +426,7 @@ class DashboardController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($yesterdayDate) {
-                $query
-                // ->where('status', 'ACTIVE') // Count only 'ACTIVE' studentBatches
-                    ->where('start_date', '<=', $yesterdayDate)
-                    ->where('end_date', '>=', $yesterdayDate);
+                $query->countableForClassOn($yesterdayDate);
             }])
         // ->whereHas('studentBatches', function ($query) use ($yesterdayDate) {
         //     $query->where('status', 'ACTIVE') // Ensure studentBatches have 'ACTIVE' status
@@ -447,14 +444,10 @@ class DashboardController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->where('status', 'ACTIVE')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->where('status', 'ACTIVE')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             })
             ->where('coach_id', $coachId)
             ->where('status', 'ACTIVE')
@@ -659,14 +652,10 @@ class DashboardController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->where('status', 'ACTIVE') // Count only 'ACTIVE' studentBatches
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->where('status', 'ACTIVE') // Ensure studentBatches have 'ACTIVE' status
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             })
             ->whereIn('id', $coverupClassBatchIds)
             ->where('status', 'ACTIVE')
@@ -736,10 +725,7 @@ class DashboardController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($yesterdayDate) {
-                $query
-                // ->where('status', 'ACTIVE') // Count only 'ACTIVE' studentBatches
-                    ->where('start_date', '<=', $yesterdayDate)
-                    ->where('end_date', '>=', $yesterdayDate);
+                $query->countableForClassOn($yesterdayDate);
             }])
         // ->whereHas('studentBatches', function ($query) use ($yesterdayDate) {
         //     $query->where('status', 'ACTIVE') // Ensure studentBatches have 'ACTIVE' status
@@ -757,14 +743,10 @@ class DashboardController extends Controller
                 ->where('status', 'ACTIVE');
         }])
             ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->where('status', 'ACTIVE')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->where('status', 'ACTIVE')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date);
+                $query->countableForClassOn($date);
             })
             ->where('coach_id', $coachId)
             ->where('status', 'ACTIVE')
@@ -2152,33 +2134,37 @@ class DashboardController extends Controller
                 ];
 
                 if ($request->input('status') === 'CANCELLED' && $submittedAt->greaterThanOrEqualTo($cancelAt)) {
-                    $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
-                        ->where('penalty_type', 'LATE')
-                        ->delete();
+                    if (! $actualAt->gt($lateAt)) {
+                        $this->clearDemoOccurrencePenalties($demoSession, $date, $demoStart);
+                    } else {
+                        $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
+                            ->where('penalty_type', 'LATE')
+                            ->delete();
 
-                    DelayedBatch::updateOrCreate(
-                        $delayedDemoKey,
-                        [
-                            'coach_id' => $request->input('coach_id'),
-                            'coach_attendance_id' => $coachAttendance->id,
-                            'time' => $submittedAt->format('H:i:s'),
-                            'batch_name' => 'Demo - ' . trim($demoSession->demolead->first_name . ' ' . $demoSession->demolead->last_name),
-                            'country' => $demoSession->demolead->country ? [$demoSession->demolead->country] : null,
-                            'batch_status' => $demoSession->demolead->status,
-                            'level_name' => optional($demoSession->level)->name,
-                            'timeline' => sprintf(
-                                'Demo scheduled start: %s | Marked at: %s',
-                                $scheduledStart->format('d-M-Y h:i:s A'),
-                                $submittedAt->format('d-M-Y h:i:s A')
-                            ),
-                            'canceled_date' => $date,
-                            'canceled_time' => $submittedAt->format('H:i:s'),
-                            'penalty_type' => 'CANCELLED',
-                            'fine_amount' => 100,
-                            'fine_currency' => 'INR',
-                            'late_popup_acknowledged_at' => null,
-                        ]
-                    );
+                        DelayedBatch::updateOrCreate(
+                            $delayedDemoKey,
+                            [
+                                'coach_id' => $request->input('coach_id'),
+                                'coach_attendance_id' => $coachAttendance->id,
+                                'time' => $submittedAt->format('H:i:s'),
+                                'batch_name' => 'Demo - ' . trim($demoSession->demolead->first_name . ' ' . $demoSession->demolead->last_name),
+                                'country' => $demoSession->demolead->country ? [$demoSession->demolead->country] : null,
+                                'batch_status' => $demoSession->demolead->status,
+                                'level_name' => optional($demoSession->level)->name,
+                                'timeline' => sprintf(
+                                    'Demo scheduled start: %s | Marked at: %s',
+                                    $scheduledStart->format('d-M-Y h:i:s A'),
+                                    $submittedAt->format('d-M-Y h:i:s A')
+                                ),
+                                'canceled_date' => $date,
+                                'canceled_time' => $submittedAt->format('H:i:s'),
+                                'penalty_type' => 'CANCELLED',
+                                'fine_amount' => 100,
+                                'fine_currency' => 'INR',
+                                'late_popup_acknowledged_at' => null,
+                            ]
+                        );
+                    }
                 } elseif ($request->input('status') !== 'CANCELLED') {
                     $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStart)
                         ->where('penalty_type', 'CANCELLED')

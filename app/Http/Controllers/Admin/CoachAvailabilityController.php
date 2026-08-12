@@ -8,6 +8,8 @@ use App\Models\CoachAvailability;
 use App\Models\CoachAvailabilityPeriod;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class CoachAvailabilityController extends Controller
 {
@@ -100,6 +102,7 @@ class CoachAvailabilityController extends Controller
 
     public function store(Request $request)
     {
+        $this->validateAvailabilityPeriods($request);
         //dd($request->all());
         // Store Days ::
         foreach ($request->day_of_week as $key => $day) {
@@ -150,6 +153,7 @@ class CoachAvailabilityController extends Controller
 
     public function updateAll(Request $request)
     {
+        $this->validateAvailabilityPeriods($request);
         // Extract Request Data
         $coachId = $request->input('coach_id');
         $daysOfWeek = $request->input('day_of_week', []);
@@ -229,6 +233,40 @@ class CoachAvailabilityController extends Controller
         ], 201);
     }
 
+    private function validateAvailabilityPeriods(Request $request): void
+    {
+        $fromPeriods = $request->input('from_period', []);
+        $toPeriods = $request->input('to_period', []);
+
+        foreach ($fromPeriods as $dayIndex => $periods) {
+            if (!is_array($periods)) {
+                continue;
+            }
+
+            foreach ($periods as $periodIndex => $fromTime) {
+                $toTime = $toPeriods[$dayIndex][$periodIndex] ?? null;
+                if (!$fromTime || !$toTime) {
+                    continue;
+                }
+
+                $from = Carbon::parse($fromTime)->format('H:i:s');
+                $to = Carbon::parse($toTime)->format('H:i:s');
+
+                if ($to === '00:00:00') {
+                    throw ValidationException::withMessages([
+                        'day_name' => 'Please use 11:59 PM as the day-ending availability time. Do not use 12:00 AM for the same day.',
+                    ]);
+                }
+
+                if ($to <= $from) {
+                    throw ValidationException::withMessages([
+                        'day_name' => 'Availability end time must be later than start time for the same day.',
+                    ]);
+                }
+            }
+        }
+    }
+
     private $rules = [
         'coach_id' => 'required',
     ];
@@ -237,4 +275,3 @@ class CoachAvailabilityController extends Controller
         'coach_id.required' => 'CoachAvailability ID is required',
     ];
 }
-

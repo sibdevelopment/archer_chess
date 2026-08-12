@@ -9,6 +9,7 @@
                    value="{{ isset($coachavailabilityperiod) ? $coachavailabilityperiod->from_period : '' }}"
                    class="form-control from_period"
                    data-unique-row-id="{{ $coachavailabilityperiod->id }}"
+                   step="60" min="00:00" max="23:59"
                    placeholder="From Time" />
         </div>
         <div class="col-md-5">
@@ -17,6 +18,7 @@
                    value="{{ isset($coachavailabilityperiod) ? $coachavailabilityperiod->to_period : '' }}"
                    class="form-control to_period"
                    data-unique-row-id="{{ $coachavailabilityperiod->id }}"
+                   step="60" min="00:00" max="23:59"
                    placeholder="To Time" />
         </div>
         <div class="col-2" style="margin-top: 5px;">

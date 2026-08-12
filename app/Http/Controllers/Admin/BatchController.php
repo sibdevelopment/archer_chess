@@ -25,10 +25,36 @@ use App\Services\CoachAvailabilityService;
 use App\Services\BatchStatusService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 
 class BatchController extends Controller
 {
+    private function validateBatchScheduleTimes(array $fromTimes, array $toTimes): void
+    {
+        foreach ($toTimes as $key => $toTime) {
+            if (empty($toTime)) {
+                continue;
+            }
+
+            $fromTime = $fromTimes[$key] ?? null;
+            $normalizedTo = Carbon::parse($toTime)->format('H:i:s');
+            $normalizedFrom = $fromTime ? Carbon::parse($fromTime)->format('H:i:s') : null;
+
+            if ($normalizedTo === '00:00:00') {
+                throw ValidationException::withMessages([
+                    'to_time' => 'Please use 11:59 PM as the day-ending batch time. Do not use 12:00 AM.',
+                ]);
+            }
+
+            if ($normalizedFrom && $normalizedTo <= $normalizedFrom) {
+                throw ValidationException::withMessages([
+                    'to_time' => 'Batch end time must be later than start time.',
+                ]);
+            }
+        }
+    }
+
     private function joiningStartDateForStudent(Student $student, $fallbackDate = null): string
     {
         $batchStartDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
@@ -899,6 +925,7 @@ class BatchController extends Controller
         $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
         $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
         $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $this->validateBatchScheduleTimes($fromTimes, $toTimes);
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
 
         $coachValidation = $availability->validateRawBatchCoach(
@@ -1002,6 +1029,7 @@ class BatchController extends Controller
         $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
         $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
         $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $this->validateBatchScheduleTimes($fromTimes, $toTimes);
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
         $countries  = normalizeCountryValues($request->input('country', $batch->country ?? []));
 

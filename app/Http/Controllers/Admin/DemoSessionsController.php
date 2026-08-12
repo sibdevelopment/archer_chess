@@ -23,9 +23,30 @@ use DateTime;
 use DateTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class DemoSessionsController extends Controller
 {
+    private function validateDemoTimeWindow(Request $request, ?array $slot = null): void
+    {
+        if ($request->filled('date') && $request->filled('time')) {
+            $date = Carbon::parse($request->date)->toDateString();
+            $time = Carbon::parse($request->time)->format('H:i:s');
+
+            if ($date === Carbon::today()->toDateString() && $time === '00:00:00') {
+                throw ValidationException::withMessages([
+                    'time' => 'Please select a future demo time. 12:00 AM is already past for the same date.',
+                ]);
+            }
+        }
+
+        if ($slot && ($slot[1] ?? null) === '00:00:00') {
+            throw ValidationException::withMessages([
+                'slot' => 'Please use 11:59 PM as the day-ending demo slot time. Do not use 12:00 AM.',
+            ]);
+        }
+    }
+
     public function index(DemoLead $demolead)
     {
         $demoleads = DemoLead::all();
@@ -469,6 +490,7 @@ class DemoSessionsController extends Controller
                 ],
             ], 422);
         }
+        $this->validateDemoTimeWindow($request, $slot);
 
         $coachValidation = $availability->validateCoachForSingleEvent(
             (int) $request->coach_id,
@@ -628,6 +650,7 @@ class DemoSessionsController extends Controller
                 ],
             ], 422);
         }
+        $this->validateDemoTimeWindow($request, $slot);
 
         $coachValidation = $availability->validateCoachForSingleEvent(
             (int) $coachIdForValidation,

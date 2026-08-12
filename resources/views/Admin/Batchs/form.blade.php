@@ -293,9 +293,46 @@
         });
     </script>
     <script>
+        function resetBatchSubmitLoader(form) {
+            $('#loaderImage').hide();
+            $(form).find('button[type=submit]').show();
+        }
+
+        function validateBatchScheduleTimes(form) {
+            let isValid = true;
+            $('.to_time').each(function() {
+                let key = $(this).data('unique-row-id');
+                let fromTime = $('#from_time-' + key).val();
+                let toTime = $(this).val();
+                $('#to_time-error-' + key).empty();
+
+                if (toTime === '00:00') {
+                    $('#to_time-error-' + key).html('Please use 11:59 PM as the day-ending batch time. Do not use 12:00 AM.');
+                    isValid = false;
+                    return false;
+                }
+
+                if (fromTime && toTime && toTime <= fromTime) {
+                    $('#to_time-error-' + key).html('Batch end time must be later than start time.');
+                    isValid = false;
+                    return false;
+                }
+            });
+
+            if (!isValid) {
+                resetBatchSubmitLoader(form);
+            }
+
+            return isValid;
+        }
+
         $('#batchs-form').submit(function(e) {
             e.preventDefault();
             $('div[id$="-error"]').empty();
+            if (!validateBatchScheduleTimes(this)) {
+                e.stopImmediatePropagation();
+                return;
+            }
             var form = $(this);
             var url = form.attr('action');
             $.ajax({

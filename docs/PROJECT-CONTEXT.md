@@ -543,6 +543,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Both flows should follow the same country, base availability, real batch, demo, and coverup conflict rules.
 - Leave approval also keeps the extra guard that the selected replacement coach must not be on approved leave for the coverup date.
 - Leave approval revalidates the selected coach again while saving, not only while building the dropdown.
+- Coverup listing "Change Coach" button is date/time gated with normalized Carbon values: future coverups show it, today's coverups show it until class start time, and past/started coverups hide it.
 ```
 
 ## SuperAdmin Dashboard Student Batch Column Notes
@@ -779,6 +780,59 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Admin/SuperAdmin can see student/demo contact numbers in report detail popups.
 - Coach role must not see student/demo phone numbers in report details, to avoid bypassing ERP communication flow.
 - The report JSON also strips phone/mobile values for Coach role, so contact data is not just hidden in the browser table.
+```
+
+## End-Of-Day Leave And Availability Notes
+
+```text
+- New same-day coach leave requests and coach availability periods should use 11:59 PM as the day-ending time, not 12:00 AM.
+- Server-side validation blocks new same-day leave/availability rows where end time is 00:00 or not later than start time.
+- Existing coach availability rows ending at 00:00 remain backward-compatible and are interpreted as end-of-day during availability checks.
+- Shared coach availability overlap logic now treats 00:00, 23:59, and 23:59:59 as day-end boundaries so late-night slots do not become incorrectly available.
+- Coach availability roster, batch assignment/edit validation, demo, coverup, and masterclass conflicts use the shared overlap interpretation instead of plain SQL/string time comparisons where needed.
+- Masterclass scheduling now validates coach country/base availability and conflicts using the same shared service, assuming the existing 40-minute masterclass meeting duration.
+```
+
+## Leave Request Listing Notes
+
+```text
+- Leave Request master has a status filter in the listing.
+- Supported filter values are ACTIVE, APPROVED, REJECTED, and INACTIVE.
+- Empty status filter means all leave requests, while selected status applies directly to leaverequests.status.
+- This is a listing-only filter and does not change leave approval, coverup, class shifting, holiday, or penalty behavior.
+```
+
+## Demo Penalty Occurrence Notes
+
+```text
+- Demo late/cancel penalties must be tied to the real demo occurrence, not only one demo_sessions.id.
+- A real demo occurrence is matched by demolead_id + coach_id + date + same scheduled start time/slot.
+- This protects reassigned/rescheduled demos where old inactive demo_session rows still exist for the same lead and slot.
+- If coach attendance already exists for that demo occurrence, the cron clears stale demo penalties and does not create another penalty.
+- When demo attendance is submitted as COMPLETED/on-time, stale LATE/CANCELLED penalties for matching duplicate demo rows are cleared.
+- If the first recorded demo start time is after the 5-minute demo late threshold, the LATE penalty remains valid unless a CANCELLED penalty exists.
+- If a coach started the demo on time and later submits the demo as CANCELLED because the student did not join, no coach penalty should remain; matching demo penalties are cleared.
+- A CANCELLED demo penalty is valid only when the coach did not start on time/within the demo late threshold.
+```
+
+## Day-End Time Input Rule
+
+```text
+- Same-day/day-ending operational forms should use 11:59 PM, not 12:00 AM, as the end time.
+- Batch create/edit rejects schedule end time 12:00 AM in UI and backend.
+- Leave apply already rejects same-day 12:00 AM end time; the form now also resets the submit loader when this validation blocks submit.
+- Demo scheduling rejects same-day 12:00 AM start time and demo slots ending at 12:00 AM; use 11:59 PM for day-end coverage.
+- Existing old rows with 12:00 AM remain backward-compatible in availability overlap calculations, but new entries should not save 12:00 AM as same-day/day-end input.
+```
+
+## Same-Day Fee Due Student Count
+
+```text
+- StudentBatch has a shared countableForClassOn(date) scope for coach dashboard/report class student counts.
+- Normal active student-batch rows are counted when start_date <= class date <= end_date.
+- Same-day fee-due rows are also counted only when student_batches.status is INACTIVE, is_fees_due = 1, and end_date equals the class date.
+- This fixes students whose fee becomes due on the class day: they still count for that day's taught class, but do not count after the fee end date.
+- The rule is used in coach dashboard schedules, coverup schedule counts, and admin/coach report schedule counts; batch-list active/fee-due badges remain separate.
 ```
 
 Known route/test caveats from prior analysis:

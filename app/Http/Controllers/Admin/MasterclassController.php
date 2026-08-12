@@ -14,8 +14,10 @@ use App\Mail\MasterclassMail;
 use Illuminate\Support\Carbon;
 use App\Models\MasterclassData;
 use App\Http\Controllers\Controller;
+use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class MasterclassController extends Controller
 { 
@@ -171,6 +173,7 @@ class MasterclassController extends Controller
     {
 
         $request->validate($this->rules, $this->customMessages);
+        $this->validateCoachAvailability($request);
         $countries = $request->country;
         $coach = Coach::find($request->coach_id);
 
@@ -399,6 +402,7 @@ class MasterclassController extends Controller
     public function update(Request $request, Masterclass $masterclass)
     {
         $request->validate($this->rules, $this->customMessages);
+        $this->validateCoachAvailability($request, $masterclass->id);
         $countries = $request->country;
         $masterclass->fill($request->all());
         $masterclass->save();
@@ -593,4 +597,26 @@ class MasterclassController extends Controller
         'coach_id.required' => 'Coach is required',
         'country.required' => 'Country is required',
     ];
+
+    private function validateCoachAvailability(Request $request, ?int $ignoreMasterclassId = null): void
+    {
+        $fromTime = Carbon::parse($request->time)->format('H:i:s');
+        $toTime = Carbon::parse($fromTime)->addMinutes(40)->format('H:i:s');
+
+        $validation = app(CoachAvailabilityService::class)->validateCoachForSingleEvent(
+            (int) $request->coach_id,
+            $request->date,
+            $fromTime,
+            $toTime,
+            (array) $request->country,
+            'masterclass',
+            $ignoreMasterclassId
+        );
+
+        if (!$validation['ok']) {
+            throw ValidationException::withMessages([
+                'coach_id' => $validation['message'],
+            ]);
+        }
+    }
 }

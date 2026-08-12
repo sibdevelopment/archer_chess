@@ -28,10 +28,10 @@
                 <div class="card w-100 position-relative overflow-hidden">
                     <div class="card-header px-4 py-3 border-bottom">
                         <div class="row">
-                            <div class="col-3 d-flex justify-content-start">
+                            <div class="col-2 d-flex justify-content-start">
                                 <h5 class="card-title fw-semibold mb-0 lh-sm">Leave Request</h5>
                             </div>
-                            <div class="col-3">
+                            <div class="col-2">
                                 @if (!$isCoach)
                                     <select name="coach" id="coach"
                                         class="select2 form-select form-select-sm pure-white"
@@ -43,6 +43,17 @@
                                         @endforeach
                                     </select>
                                 @endif
+                            </div>
+                            <div class="col-2">
+                                <select name="leave_status" id="leave_status"
+                                    class="select2 form-select form-select-sm pure-white"
+                                    aria-label=".form-select-sm example">
+                                    <option value="">Select Status</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="APPROVED">Approved</option>
+                                    <option value="REJECTED">Rejected</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                </select>
                             </div>
                             <div class="col-md-2 d-flex justify-content-end">
                                 <input type="date" class="form-control  pure-white " placeholder="Start Date"
@@ -192,6 +203,7 @@
                         d.from_date = $('#from_date').val();
                         d.to_date = $('#to_date').val();
                         d.coach = $('#coach').val();
+                        d.status = $('#leave_status').val();
                     }
                 },
                 columns: [{
@@ -243,6 +255,9 @@
                 dataTable.ajax.reload(null, false);
             });
             $('#coach').on('change', function() {
+                dataTable.ajax.reload(null, false);
+            });
+            $('#leave_status').on('change', function() {
                 dataTable.ajax.reload(null, false);
             });
         });

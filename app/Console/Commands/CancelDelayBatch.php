@@ -10,6 +10,7 @@ use App\Models\StudentBatch;
 use App\Models\StudentFee;  
 use App\Models\BatchSchedule;
 use App\Models\CoachAttendance;
+use App\Models\Coverupclass;
 use Illuminate\Console\Command;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\Log;
@@ -170,9 +171,150 @@ class CancelDelayBatch extends Command
             }
         }
 
+        $this->markDelayedCoverupClasses($now, $occurrences);
         $this->markDelayedDemoSessions($now);
 
         $this->info('Batch auto-cancellation and extension completed.');
+    }
+
+    private function markDelayedCoverupClasses(Carbon $now, BatchOccurrenceService $occurrences): void
+    {
+        $date = $now->toDateString();
+        $today = $now->format('l');
+
+        $coverups = Coverupclass::with(['batch.level', 'batchSchedule', 'schedule'])
+            ->whereDate('date', $date)
+            ->whereNotNull('new_coach_id')
+            ->get();
+
+        foreach ($coverups as $coverup) {
+            $batch = $coverup->batch;
+
+            if (! $batch || $batch->status !== 'ACTIVE') {
+                continue;
+            }
+
+            $schedule = $coverup->batchSchedule
+                ?: $coverup->schedule
+                ?: BatchSchedule::where('batch_id', $batch->id)
+                    ->where('weekday', $today)
+                    ->where('status', 'ACTIVE')
+                    ->first();
+
+            if (! $schedule || $schedule->status !== 'ACTIVE') {
+                continue;
+            }
+
+            $scheduledStart = Carbon::parse($date . ' ' . $schedule->from_time);
+            $lateTime = $scheduledStart->copy()->addMinutes(3);
+            $cutoffTime = $scheduledStart->copy()->addMinutes(8);
+            $delayedCoverupKey = [
+                'occurrence_type' => 'COVERUP',
+                'batch_id' => $batch->id,
+                'batchschedule_id' => $schedule->id,
+                'date' => $date,
+            ];
+
+            $coachAttendance = CoachAttendance::where('batch_id', $batch->id)
+                ->where('coach_id', $coverup->new_coach_id)
+                ->whereDate('date', $date)
+                ->whereRaw('UPPER(type) = ?', ['COVERUP'])
+                ->orderByDesc('id')
+                ->first();
+
+            if ($coachAttendance) {
+                if ($coachAttendance->status !== 'CANCELLED') {
+                    DelayedBatch::where($delayedCoverupKey)->delete();
+                }
+
+                continue;
+            }
+
+            if ($now->greaterThan($lateTime)) {
+                $cancelledPenaltyExists = DelayedBatch::where($delayedCoverupKey)
+                    ->where('penalty_type', 'CANCELLED')
+                    ->exists();
+
+                if (! $cancelledPenaltyExists) {
+                    DelayedBatch::updateOrCreate(
+                        $delayedCoverupKey,
+                        [
+                            'coach_id' => $coverup->new_coach_id,
+                            'time' => $now->format('H:i:s'),
+                            'batch_name' => $batch->name,
+                            'country' => $batch->country,
+                            'batch_status' => $batch->status,
+                            'level_name' => optional($batch->level)->name,
+                            'timeline' => sprintf(
+                                'Coverup scheduled start: %s | Marked late at: %s',
+                                $scheduledStart->format('d-M-Y h:i:s A'),
+                                $now->format('d-M-Y h:i:s A')
+                            ),
+                            'penalty_type' => 'LATE',
+                            'fine_amount' => 150,
+                            'fine_currency' => 'INR',
+                            'late_popup_acknowledged_at' => null,
+                            'canceled_date' => null,
+                            'canceled_time' => null,
+                        ]
+                    );
+                }
+            }
+
+            if ($now->greaterThanOrEqualTo($cutoffTime)) {
+                $occurrences->shiftCancelledOccurrence($batch, $schedule, $date, 'Coverup Cancelled');
+
+                $coachAttendance = CoachAttendance::create([
+                    'coach_id' => $coverup->new_coach_id,
+                    'batch_id' => $batch->id,
+                    'type' => 'COVERUP',
+                    'level_id' => $schedule->level_id,
+                    'date' => $date,
+                    'time' => $now->format('H:i:s'),
+                    'status' => 'CANCELLED',
+                    'number_of_batch_sessions' => 0,
+                ]);
+
+                StudentAttendance::where('batch_id', $batch->id)
+                    ->whereDate('date', $date)
+                    ->where('status', 'CANCELLED')
+                    ->update([
+                        'type' => 'COVERUP',
+                        'coach_id' => $coverup->new_coach_id,
+                        'remark' => 'Coverup Cancelled',
+                    ]);
+
+                DelayedBatch::where($delayedCoverupKey)
+                    ->where('penalty_type', 'LATE')
+                    ->delete();
+
+                DelayedBatch::updateOrCreate(
+                    $delayedCoverupKey,
+                    [
+                        'coach_id' => $coverup->new_coach_id,
+                        'coach_attendance_id' => $coachAttendance->id,
+                        'time' => $now->format('H:i:s'),
+                        'batch_name' => $batch->name,
+                        'country' => $batch->country,
+                        'batch_status' => $batch->status,
+                        'level_name' => optional($batch->level)->name,
+                        'timeline' => sprintf(
+                            'Coverup scheduled start: %s | Auto-cancelled at: %s',
+                            $scheduledStart->format('d-M-Y h:i:s A'),
+                            $now->format('d-M-Y h:i:s A')
+                        ),
+                        'canceled_date' => $date,
+                        'canceled_time' => $now->format('H:i:s'),
+                        'penalty_type' => 'CANCELLED',
+                        'fine_amount' => 350,
+                        'fine_currency' => 'INR',
+                        'late_popup_acknowledged_at' => null,
+                    ]
+                );
+
+                $this->info("Marked CANCELLED for coverup batch {$batch->id}");
+            }
+        }
     }
 
     private function markDelayedDemoSessions(Carbon $now): void

@@ -1738,8 +1738,9 @@ class DashboardController extends Controller
             $actualAt = $this->actualAttendanceDateTime($attendanceDate, $request->input('time'));
 
             if ($actualAt->gt($scheduledStart->copy()->addMinutes(3))) {
+                $attendanceType = strtoupper($request->input('type', 'BATCH'));
                 $delayedBatchKey = [
-                    'occurrence_type' => 'BATCH',
+                    'occurrence_type' => $attendanceType === 'COVERUP' ? 'COVERUP' : 'BATCH',
                     'batch_id' => $batchId,
                     'batchschedule_id' => $schedule->id,
                     'date' => $attendanceDate,

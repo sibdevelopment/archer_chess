@@ -463,7 +463,7 @@ class ReportController extends Controller
                 }
 
                 return implode('|', [
-                    'BATCH',
+                    $row->occurrence_type === 'COVERUP' ? 'COVERUP' : 'BATCH',
                     $row->batch_id,
                     $date,
                     $row->batchschedule_id ?: 'legacy',

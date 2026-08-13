@@ -835,6 +835,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - The rule is used in coach dashboard schedules, coverup schedule counts, and admin/coach report schedule counts; batch-list active/fee-due badges remain separate.
 ```
 
+## Coverup No-Show Cancellation
+
+```text
+- The cancel:delay-batch scheduler now checks assigned coverup classes separately after normal batch checks.
+- If the replacement/coverup coach does not start the coverup, a COVERUP late penalty is created after 3 minutes.
+- If the replacement/coverup coach still does not take the class after 8 minutes, the COVERUP late penalty is replaced by a single CANCELLED penalty of INR 350.
+- Coverup cancellation creates coach attendance as CANCELLED, marks the missed student attendance as CANCELLED, and shifts the batch/student-batch/active-fee end dates using the same compensation service as normal cancelled classes.
+- The original batch occurrence is still skipped when a coverup exists, so the missed class compensation is applied only once from the coverup cancellation path.
+- Manual coverup attendance penalties also use occurrence_type COVERUP so reports distinguish coverup penalties from normal batch penalties.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

@@ -2254,6 +2254,7 @@ class DashboardController extends Controller
     public function getCalendarData(Request $request, $coachId)
     {
         \Log::debug('Coach ID:', ['coachId' => $coachId]);
+        $occurrences  = app(BatchOccurrenceService::class);
         $today        = Carbon::now();
         $todayDayName = $today->format('l');
         $todayDate    = $today->format('Y-m-d');
@@ -2294,10 +2295,11 @@ class DashboardController extends Controller
                     $toTimeCarbon      = Carbon::createFromFormat('H:i:s', $schedule->to_time);
                     $formattedFromTime = $fromTimeCarbon->format('g') . ($fromTimeCarbon->format('i') === '00' ? ' ' . $fromTimeCarbon->format('A') : ':' . $fromTimeCarbon->format('i A'));
                     $formattedToTime   = $toTimeCarbon->format('g') . ($toTimeCarbon->format('i') === '00' ? ' ' . $toTimeCarbon->format('A') : ':' . $toTimeCarbon->format('i A'));
+                    $isHolidayDate     = (bool) $occurrences->holidayForBatch($batch, $date->format('Y-m-d'));
                     $calendarData[]    = [
                         'title'     => $formattedFromTime . ' - ' . $formattedToTime,
                         'start'     => $date->format('Y-m-d'),
-                        'color'     => $batch->is_one_to_one ? '#0f766e' : 'red',
+                        'color'     => $isHolidayDate ? '#f59e0b' : ($batch->is_one_to_one ? '#0f766e' : 'red'),
                         'textColor' => 'white',
                     ];
                     $date->addWeek();

@@ -5,6 +5,20 @@
             <div class="row gx-0">
                 <div class="col-lg-12">
                     <div class="p-3 calender-sidebar app-calendar">
+                        <div class="row g-2 mb-3">
+                            <div class="col d-flex justify-content-center">
+                                <span class="badge bg-danger">BATCH ACTIVE</span>
+                            </div>
+                            <div class="col d-flex justify-content-center">
+                                <span class="badge" style="background-color: #0f766e;">1-1 BATCH</span>
+                            </div>
+                            <div class="col d-flex justify-content-center">
+                                <span class="badge bg-secondary">DEMO SESSION</span>
+                            </div>
+                            <div class="col d-flex justify-content-center">
+                                <span class="badge" style="background-color: #f59e0b;">HOLIDAY</span>
+                            </div>
+                        </div>
                         <div id="calendar"></div>
                     </div>
                 </div>
@@ -33,5 +47,4 @@
         calendar.render();
     });
 </script>
-
 

@@ -864,6 +864,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Multi-country batches no longer require every batch country to be present in the holiday row; one matching country is enough.
 - Coverup no-show cancellation also checks the original batch holiday before applying coverup penalties.
 - Holiday master create/edit country list is aligned with batch countries, including SOUTH AFRICA and SAUDI ARABIA.
+- HOLIDAY occurrences are hidden from coach/admin today schedule tables so no attendance action is shown, but still appear on calendars with an amber holiday color.
 ```
 
 ### Demo Leads Manage Display

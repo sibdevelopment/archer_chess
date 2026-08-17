@@ -41,7 +41,7 @@
     </thead>
     <tbody>
         @foreach ($schedules as $schedule)
-            
+            @continue(($schedule['status'] ?? null) === 'HOLIDAY' || ($schedule['type'] ?? null) === 'Holiday')
             <tr>
                 <td style="text-align: center;">
                     @if ($schedule['type'] == 'Batch')

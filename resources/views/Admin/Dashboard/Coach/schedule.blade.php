@@ -25,6 +25,7 @@
     </thead>
     <tbody>
         @foreach ($schedules as $schedule)
+            @continue(($schedule['status'] ?? null) === 'HOLIDAY' || ($schedule['type'] ?? null) === 'Holiday')
             @php
                 // dd($schedules);
                 $todaysDate = date('Y-m-d');

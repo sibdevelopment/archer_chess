@@ -2047,7 +2047,7 @@ class DashboardController extends Controller
             'date'        => 'required|date',
             'time'        => 'required',
             'status'      => 'required|in:COMPLETED,CANCELLED,Student Absent',
-            'remark'      => 'required|string',
+            'remark'      => 'nullable|string',
         ];
         $messages = [
             'level_id.required' => 'Please select level.',
@@ -2055,11 +2055,16 @@ class DashboardController extends Controller
         ];
         if ($request->input('status') === 'COMPLETED') {
             $rules['level_id'] = 'required|integer';
+            $rules['remark'] = 'required|string';
         }
         $validator = Validator::make($request->all(), $rules, $messages);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
+
+        $isCompletedDemo = $request->input('status') === 'COMPLETED';
+        $demoLevelId = $isCompletedDemo ? $request->input('level_id') : null;
+        $demoRemark = $isCompletedDemo ? $request->input('remark') : null;
 
         // Slot and time validation
         $date                      = $request->input('date');
@@ -2113,7 +2118,7 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->first();
         if ($demoSession) {
-            $demoSession->level_id                = $request->input('level_id');
+            $demoSession->level_id                = $demoLevelId;
             $demoSession->coach_attendance_status = $request->input('status');
             $demoSession->save();
 
@@ -2222,11 +2227,11 @@ class DashboardController extends Controller
             'type'        => $request->input('type'),
             'coach_id'    => $request->input('coach_id'),
             'demolead_id' => $request->input('demolead_id'),
-            'level_id'    => $request->input('level_id'),
+            'level_id'    => $demoLevelId,
             'status'      => $request->input('status'),
             'date'        => $request->input('date'),
             'time'        => $request->input('time'),
-            'remark'      => $request->input('remark'),
+            'remark'      => $demoRemark,
         ];
         StudentAttendance::updateOrCreate(
             [

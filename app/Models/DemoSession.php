@@ -23,6 +23,7 @@ class DemoSession extends BaseModel
         'time',
         'coach_id',
         'slot',
+        'reason',
         'level_id',
         'coach_attendance_status',
         'created_by',

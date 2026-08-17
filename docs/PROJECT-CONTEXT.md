@@ -874,6 +874,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - We are not clearing historical DB rows by default.
 - Demo Leads manage/list now hides level/chapter/read-more for CANCELLED leads so stale demo attendance data does not show as "- 1 Read more".
 - New cancelled demo attendance already saves without requiring or storing level/chapter.
+- Demo session creation stores an optional `demo_sessions.reason`; the first demo session for a lead does not require it, but every additional session for the same lead must include a reason. The reason is visible in Demo Session manage/history so repeated sessions are accountable.
 ```
 
 Known route/test caveats from prior analysis:

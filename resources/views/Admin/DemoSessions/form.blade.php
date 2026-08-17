@@ -111,6 +111,19 @@
                             </div>
                             <div id="zoom-error" style="color:red"></div>
                         </div>
+                        <div class="row mt-3">
+                            <div class="col-sm-12">
+                                <label class="control-label col-form-label">
+                                    Reason
+                                    @if ($requires_reason ?? false)
+                                        <sup class="tcul-star-restrict">*</sup>
+                                    @endif
+                                </label>
+                                <textarea class="form-control" name="reason" rows="3"
+                                    placeholder="{{ ($requires_reason ?? false) ? 'Enter reason for creating another demo session' : 'Optional reason' }}">{{ old('reason', $demosessions->reason ?? '') }}</textarea>
+                                <div id="reason-error" style="color:red"></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <button type="submit" class="btn btn-primary">

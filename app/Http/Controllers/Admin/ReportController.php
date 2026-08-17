@@ -30,7 +30,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use App\Services\BatchOccurrenceService;
 
 class ReportController extends Controller
 {
@@ -1444,8 +1443,6 @@ class ReportController extends Controller
 
     private function getBatchCalendarData($coachId, $role, $todayDate)
     {
-        $occurrences = app(BatchOccurrenceService::class);
-
         // Fetch batches with ACTIVE status
         $activeBatches = Batch::with(['batchSchedules' => function ($query) {
             $query->where('status', 'ACTIVE');
@@ -1535,7 +1532,11 @@ class ReportController extends Controller
                         }
                     }
 
-                    $isHolidayDate = (bool) $occurrences->holidayForBatch($batch, $date->format('Y-m-d'));
+                    $isHolidayDate = CoachAttendance::where('batch_id', $batch->id)
+                        ->where('coach_id', $coachId)
+                        ->whereDate('date', $date->format('Y-m-d'))
+                        ->where('status', 'HOLIDAY')
+                        ->exists();
 
                     if ($isHolidayDate || ! $isLeaveDate) {
                         $color     = $batch->is_one_to_one ? '#0f766e' : 'red';

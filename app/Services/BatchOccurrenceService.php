@@ -59,7 +59,7 @@ class BatchOccurrenceService
                 $holidayCountries = $this->normalizeCountries($holiday->country ?? []);
 
                 return ! empty($holidayCountries)
-                    && empty(array_diff($batchCountries, $holidayCountries));
+                    && ! empty(array_intersect($batchCountries, $holidayCountries));
             });
     }
 
@@ -329,7 +329,13 @@ class BatchOccurrenceService
         return collect($countries)
             ->flatten()
             ->filter()
-            ->map(fn ($country) => strtoupper(trim((string) $country)))
+            ->map(function ($country) {
+                if (function_exists('normalizeCountryValue')) {
+                    return normalizeCountryValue($country);
+                }
+
+                return strtoupper(trim((string) $country));
+            })
             ->unique()
             ->values()
             ->toArray();

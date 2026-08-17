@@ -846,6 +846,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Manual coverup attendance penalties also use occurrence_type COVERUP so reports distinguish coverup penalties from normal batch penalties.
 ```
 
+## Holiday Region Matching
+
+```text
+- Holiday matching is based on batch countries/regions, not coach region.
+- If any one country/region in a batch matches an active holiday, that scheduled class is treated as HOLIDAY.
+- Holiday classes should not create late/cancel coach penalties.
+- Multi-country batches no longer require every batch country to be present in the holiday row; one matching country is enough.
+- Coverup no-show cancellation also checks the original batch holiday before applying coverup penalties.
+- Holiday master create/edit country list is aligned with batch countries, including SOUTH AFRICA and SAUDI ARABIA.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

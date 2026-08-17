@@ -3,6 +3,26 @@
     Holiday
 @endsection
 @section('content')
+    @php
+        $selectedCountries = normalizeCountryValues($holiday->country ?? []);
+        $holidayCountries = [
+            'USA' => 'USA',
+            'CANADA' => 'CANADA',
+            'AUSTRALIA' => 'AUSTRALIA',
+            'NEWZEALAND' => 'NEW ZEALAND',
+            'INDIA' => 'INDIA',
+            'UAE' => 'UAE',
+            'UK' => 'UK',
+            'SINGAPORE' => 'SINGAPORE',
+            'SOUTH AFRICA' => 'SOUTH AFRICA',
+            'QATAR' => 'QATAR',
+            'BAHRAIN' => 'BAHRAIN',
+            'KUWAIT' => 'KUWAIT',
+            'EUROPEAN UNION' => 'EUROPEAN UNION',
+            'OMAN' => 'OMAN',
+            'SAUDI ARABIA' => 'SAUDI ARABIA',
+        ];
+    @endphp
     <form method="POST"
         action="{{ Route::is('admin.holidays.create') ? route('admin.holidays.store') : route('admin.holidays.update', ['holiday' => $holiday->route_key]) }}"
         method="POST" enctype="multipart/form-data" autocomplete="off" id="holidays-form">
@@ -20,20 +40,9 @@
                             <div class="col-sm-12 col-md-6">
                                 <label class="control-label col-form-label">Country <sup class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control select2" name="country[]" multiple="multiple">
-                                    <option value="USA" {{ (isset($holiday) && in_array('USA', $holiday->country ?? [])) ? 'selected' : '' }}>USA</option>
-                                    <option value="CANADA" {{ (isset($holiday) && in_array('CANADA', $holiday->country ?? [])) ? 'selected' : '' }}>CANADA</option>
-                                    <option value="AUSTRALIA" {{ (isset($holiday) && in_array('AUSTRALIA', $holiday->country ?? [])) ? 'selected' : '' }}>AUSTRALIA</option>
-                                    <option value="NEWZEALAND" {{ (isset($holiday) && in_array('NEWZEALAND', $holiday->country ?? [])) ? 'selected' : '' }}>NEW ZEALAND</option>
-                                    <option value="INDIA" {{ (isset($holiday) && in_array('INDIA', $holiday->country ?? [])) ? 'selected' : '' }}>INDIA</option>    
-                                    <option value="UAE" {{ (isset($holiday) && in_array('UAE', $holiday->country ?? [])) ? 'selected' : '' }}>UAE</option>
-                                    <option value="UK" {{ (isset($holiday) && in_array('UK', $holiday->country ?? [])) ? 'selected' : '' }}>UK</option>
-                                    <option value="SINGAPORE" {{ (isset($holiday) && in_array('SINGAPORE', $holiday->country ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
-                                    <option value="QATAR" {{ (isset($holiday) && in_array('QATAR', $holiday->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
-                                    <option value="BAHRAIN" {{ (isset($holiday) && in_array('BAHRAIN', $holiday->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
-                                    <option value="KUWAIT" {{ (isset($holiday) && in_array('KUWAIT', $holiday->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>
-                                    <option value="EUROPEAN UNION" {{ (isset($holiday) && in_array('EUROPEAN UNION', $holiday->country ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
-                                    <option value="OMAN" {{ (isset($holiday) && in_array('OMAN', $holiday->countries ?? [])) ? 'selected' : '' }}>OMAN</option>
-                                    <option value="SAUDI ARABIA" {{ (isset($holiday) && in_array('SAUDI ARABIA', $holiday->countries ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
+                                    @foreach ($holidayCountries as $value => $label)
+                                        <option value="{{ $value }}" {{ in_array($value, $selectedCountries, true) ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>

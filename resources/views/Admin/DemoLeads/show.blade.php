@@ -114,6 +114,7 @@
                     <th scope="col">Time</th>
                     <th scope="col">Coach</th>
                     <th scope="col">Slot</th>
+                    <th scope="col">Reason</th>
                     <th scope="col">Level <br> <span style="font-size: 12px;">(Given By Coach)</span> </th>
                 </tr>
             </thead>
@@ -135,6 +136,7 @@
                             $endTime = \Carbon\Carbon::parse($times[1])->format('g:i A');
                         @endphp
                         <td>{{ $startTime . ' - ' . $endTime }}</td>
+                        <td>{{ $demosession->reason ?: '-' }}</td>
                         <td>{{ optional($demosession->level)->name ?? ' ' }}</td>
                     </tr>
                 @endforeach

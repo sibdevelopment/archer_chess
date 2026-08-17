@@ -109,6 +109,9 @@
                                             <h6 class="fs-3 fw-semibold mb-0">Slot</h6>
                                         </th>
                                         <th width="">
+                                            <h6 class="fs-3 fw-semibold mb-0">Reason</h6>
+                                        </th>
+                                        <th width="">
                                             <h6 class="fs-3 fw-semibold mb-0">Level</h6>
                                         </th>
                                     </tr>
@@ -202,6 +205,11 @@
                     {
                         data: 'slot',
                         name: 'demosessions.slot',
+                        orderable: false
+                    },
+                    {
+                        data: 'reason',
+                        name: 'demosessions.reason',
                         orderable: false
                     },
                     {

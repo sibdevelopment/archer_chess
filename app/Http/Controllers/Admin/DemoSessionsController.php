@@ -138,6 +138,9 @@ class DemoSessionsController extends Controller
                 $endTime = \Carbon\Carbon::parse($times[1])->format('g:i A');
                 return $startTime . ' - ' . $endTime;
             })
+            ->editColumn('reason', function ($demosessions) {
+                return e($demosessions->reason ?: '-');
+            })
             ->editColumn('level', function ($demosessions) {
                 return $demosessions->level ? $demosessions->level->name : ' ';
             })
@@ -471,12 +474,18 @@ class DemoSessionsController extends Controller
         $levels = Level::where('status', 'ACTIVE')->get();
         $saved_coach_name = null;
         $saved_slot = null;
-        return view('Admin.DemoSessions.form', compact('demolead', 'coaches', 'coachAvailabilities', 'slots', 'levels', 'saved_coach_name', 'saved_slot'));
+        $requires_reason = DemoSession::where('demolead_id', $demolead->id)->exists();
+        return view('Admin.DemoSessions.form', compact('demolead', 'coaches', 'coachAvailabilities', 'slots', 'levels', 'saved_coach_name', 'saved_slot', 'requires_reason'));
     }
 
     public function store(Request $request, CoachAvailabilityService $availability)
     {
-        $request->validate($this->rules, $this->customMessages);
+        $rules = $this->rules;
+        $rules['reason'] = DemoSession::where('demolead_id', $request->demolead_id)->exists()
+            ? 'required|string|min:3|max:1000'
+            : 'nullable|string|max:1000';
+
+        $request->validate($rules, $this->customMessages);
 
         $coach = Coach::find($request->coach_id);
         $demolead = DemoLead::find($request->demolead_id);
@@ -624,19 +633,21 @@ class DemoSessionsController extends Controller
 
             $saved_slot = $start_dt->format('g : i a') . ' to ' . $end_dt->format('g : i a');
         }
-        return view('Admin.DemoSessions.form', compact('demosessions', 'demoleads', 'demolead', 'coaches', 'slots', 'levels', 'saved_coach_name', 'saved_slot', 'saved_coach_id', 'saved_slot_normal'));
+        $requires_reason = false;
+        return view('Admin.DemoSessions.form', compact('demosessions', 'demoleads', 'demolead', 'coaches', 'slots', 'levels', 'saved_coach_name', 'saved_slot', 'saved_coach_id', 'saved_slot_normal', 'requires_reason'));
     }
 
     public function update(DemoLead $demolead, Request $request, DemoSession $demosessions, CoachAvailabilityService $availability)
     {
         $rules = [
             'demolead_id' => 'required',
+            'reason' => 'nullable|string|max:1000',
         ];
         $customMessages = [
             'demolead_id.required' => 'DemoSession ID is required',
         ];
         $request->validate($rules, $customMessages);
-        $fieldsToUpdate = $request->only(['demolead_id', 'date', 'time', 'level_id']);
+        $fieldsToUpdate = $request->only(['demolead_id', 'date', 'time', 'level_id', 'reason']);
         $coachIdForValidation = $request->input('coach_id') ?: $request->input('saved_coach_id', $demosessions->coach_id);
         $slotForValidation = $request->input('slot') ?: $request->input('saved_slot_normal', $demosessions->slot);
         $dateForValidation = $request->input('date', $demosessions->date);
@@ -799,5 +810,8 @@ class DemoSessionsController extends Controller
         'demolead_id.required' => 'DemoSession ID is required',
         'coach_id.required' => 'Coach ID is required',
         'slot.required' => 'Slot is required',
+        'reason.required' => 'Please enter the reason for creating another demo session.',
+        'reason.min' => 'Reason must be at least 3 characters.',
+        'reason.max' => 'Reason must not be more than 1000 characters.',
     ];
 }

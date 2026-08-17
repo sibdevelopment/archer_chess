@@ -2254,7 +2254,6 @@ class DashboardController extends Controller
     public function getCalendarData(Request $request, $coachId)
     {
         \Log::debug('Coach ID:', ['coachId' => $coachId]);
-        $occurrences  = app(BatchOccurrenceService::class);
         $today        = Carbon::now();
         $todayDayName = $today->format('l');
         $todayDate    = $today->format('Y-m-d');
@@ -2295,7 +2294,11 @@ class DashboardController extends Controller
                     $toTimeCarbon      = Carbon::createFromFormat('H:i:s', $schedule->to_time);
                     $formattedFromTime = $fromTimeCarbon->format('g') . ($fromTimeCarbon->format('i') === '00' ? ' ' . $fromTimeCarbon->format('A') : ':' . $fromTimeCarbon->format('i A'));
                     $formattedToTime   = $toTimeCarbon->format('g') . ($toTimeCarbon->format('i') === '00' ? ' ' . $toTimeCarbon->format('A') : ':' . $toTimeCarbon->format('i A'));
-                    $isHolidayDate     = (bool) $occurrences->holidayForBatch($batch, $date->format('Y-m-d'));
+                    $isHolidayDate     = CoachAttendance::where('batch_id', $batch->id)
+                        ->where('coach_id', $coachId)
+                        ->whereDate('date', $date->format('Y-m-d'))
+                        ->where('status', 'HOLIDAY')
+                        ->exists();
                     $calendarData[]    = [
                         'title'     => $formattedFromTime . ' - ' . $formattedToTime,
                         'start'     => $date->format('Y-m-d'),

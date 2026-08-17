@@ -815,6 +815,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - A CANCELLED demo penalty is valid only when the coach did not start on time/within the demo late threshold.
 ```
 
+## Demo Attendance Cancellation Fields
+
+```text
+- Demo attendance marked COMPLETED requires level and chapter number.
+- Demo attendance marked CANCELLED does not require level or chapter number.
+- Cancelled demo attendance clears level/chapter values in demo_sessions and student_attendances even if stale form values are submitted.
+- Existing cancelled demo rows with old level/chapter values can be cleaned separately by SQL if needed.
+```
+
 ## Day-End Time Input Rule
 
 ```text
@@ -855,6 +864,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Multi-country batches no longer require every batch country to be present in the holiday row; one matching country is enough.
 - Coverup no-show cancellation also checks the original batch holiday before applying coverup penalties.
 - Holiday master create/edit country list is aligned with batch countries, including SOUTH AFRICA and SAUDI ARABIA.
+```
+
+### Demo Leads Manage Display
+
+```text
+- Cancelled demo leads can have old historical level/chapter data from the previous workflow.
+- We are not clearing historical DB rows by default.
+- Demo Leads manage/list now hides level/chapter/read-more for CANCELLED leads so stale demo attendance data does not show as "- 1 Read more".
+- New cancelled demo attendance already saves without requiring or storing level/chapter.
 ```
 
 Known route/test caveats from prior analysis:

@@ -16,6 +16,9 @@
 <form method="POST" action="{{ route('admin.dashboard.demoAttendance', ['coachId' => $data->coach_id]) }}"
     enctype="multipart/form-data" autocomplete="off" id="coachDemoAttendanceForm">
     @csrf
+    @php
+        $isCancelledDemoAttendance = $studentAttendances->first() && $studentAttendances->first()->status == 'CANCELLED';
+    @endphp
     <table
         class="table table-bordered m-t-30 table-hover contact-list footable footable-5 footable-paging footable-paging-center breakpoint-lg">
         <thead>
@@ -39,7 +42,7 @@
                 </td>
                 <td style="text-align: center;">
                     <div class="col-sm-12 col-md-12">
-                        <select class="form-control" name="status">
+                        <select class="form-control" name="status" onchange="syncDemoAttendanceFields(this.form)">
                             <option value="COMPLETED" {{ ($studentAttendances->first() &&
                                 $studentAttendances->first()->status == 'COMPLETED') ? 'selected' : '' }}>COMPLETED
                             </option>
@@ -52,7 +55,7 @@
                 </td>
                 <td style="text-align: center;">
                     <div class="col-sm-12 col-md-12">
-                        <select class="form-control" name="level_id">
+                        <select class="form-control" name="level_id" {{ $isCancelledDemoAttendance ? 'disabled' : '' }}>
                             <option value="">Select Level</option>
                             @foreach($levels as $level)
                             <option value="{{ $level->id }}" {{ ($studentAttendances->first() &&
@@ -66,7 +69,7 @@
                 <td style="text-align: center;">
                     {{-- <input type="number" class="form-control" name="remark" placeholder="Enter chapter number here"
                         value="{{ $studentAttendances->first()->remark ?? '' }}"> --}}
-                    <select name="remark" class="form-control">
+                    <select name="remark" class="form-control" {{ $isCancelledDemoAttendance ? 'disabled' : '' }}>
                         <option value="">Select chapter number</option>
                         @for ($i = 1; $i <= 100; $i++)
                             <option value="{{ $i }}" 
@@ -110,3 +113,27 @@
         </div>
     </div>
 </form>
+<script>
+    function syncDemoAttendanceFields(form) {
+        if (!form) {
+            return;
+        }
+
+        const status = form.querySelector('[name="status"]');
+        const level = form.querySelector('[name="level_id"]');
+        const remark = form.querySelector('[name="remark"]');
+        const shouldDisableDetails = status && status.value !== 'COMPLETED';
+
+        [level, remark].forEach((field) => {
+            if (!field) {
+                return;
+            }
+            field.disabled = shouldDisableDetails;
+            if (shouldDisableDetails) {
+                field.value = '';
+            }
+        });
+    }
+
+    syncDemoAttendanceFields(document.getElementById('coachDemoAttendanceForm'));
+</script>

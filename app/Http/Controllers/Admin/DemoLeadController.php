@@ -154,7 +154,11 @@ class DemoLeadController extends Controller
                     ->latest()
                     ->first();
 
-                $remark = $latestStudentAttendance ? $latestStudentAttendance->remark : '';
+                $isCancelledDemoLead = strtoupper((string) $demolead->status) === 'CANCELLED';
+                $levelName = !$isCancelledDemoLead && !empty($latestDemoSession->level->name)
+                    ? $latestDemoSession->level->name
+                    : '';
+                $remark = (!$isCancelledDemoLead && $latestStudentAttendance) ? (string) $latestStudentAttendance->remark : '';
 
                 $short_remark = strlen($remark) > 10 ? substr($remark, 0, 5) . '...' : $remark;
 
@@ -168,7 +172,7 @@ class DemoLeadController extends Controller
                             (' . $demolead->country . ')
                     </div>
                     <div class="mx-3 text-muted">
-                        <span>' . (!empty($latestDemoSession->level->name) ? htmlspecialchars($latestDemoSession->level->name) : '') . '</span>
+                        <span>' . htmlspecialchars($levelName) . '</span>
                         ' . (!empty($short_remark)
                     ? ' - <span>
                                     <span class="remark-short">' . $escapedShortRemark . '</span>

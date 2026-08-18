@@ -630,6 +630,7 @@ class DashboardController extends Controller
             $formattedEndTime          = Carbon::createFromFormat('H:i:s', $endTime)->format('h:i A');
             $combinedData[]            = [
                 'id'              => $session->id, // Include the session ID
+                'demolead_id'     => $session->demolead_id,
                 'name'            => $session->demolead->first_name . ' ' . $session->demolead->last_name,
                 'slot'            => $formattedStartTime . ' - ' . $formattedEndTime,
                 'status'          => $session->demolead->status,
@@ -638,7 +639,7 @@ class DashboardController extends Controller
                 'start_url' => $session->start_url,
                 'homework_link' => $session ? $session->homework_link : null,
                 'attendance_exists' =>  $demoAttendance ? true : false,
-                'attendance_time' => $session ? $session->created_at->format('Y-m-d H:i:s') : null,
+                'attendance_time' => $demoAttendance ? $demoAttendance->created_at->format('Y-m-d H:i:s') : null,
             ];
         }
 
@@ -921,6 +922,7 @@ class DashboardController extends Controller
             $formattedEndTime          = Carbon::createFromFormat('H:i:s', $endTime)->format('h:i A');
             $combinedData[]            = [
                 'id'              => $session->id, // Include the session ID
+                'demolead_id'     => $session->demolead_id,
                 'name'            => $session->demolead->first_name . ' ' . $session->demolead->last_name,
                 'slot'            => $formattedStartTime . ' - ' . $formattedEndTime,
                 'status'          => $session->demolead->status,
@@ -1366,7 +1368,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        if (! in_array($demoSession->coach_attendance_status, ['STARTED', 'COMPLETED', 'CANCELLED', 'INACTIVE'])) {
+        if (! in_array($demoSession->coach_attendance_status, ['JOINED', 'STARTED', 'COMPLETED', 'CANCELLED', 'INACTIVE'])) {
             $demoSession->coach_attendance_status = 'STARTED';
             $demoSession->save();
         }

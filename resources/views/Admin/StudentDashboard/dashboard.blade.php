@@ -1027,7 +1027,9 @@
                                                     <h6 class="mb-0 text-muted">Level</h6>
                                                 </div>
                                                 <div class="col border-end text-center">
-                                                    <h2 class="fs-3">{{ $demosession->status }}</h2>
+                                                    <h2 class="fs-3">
+                                                        {{ $demosession->coach_attendance_status ?: $demosession->status }}
+                                                    </h2>
                                                     <h6 class="mb-0 text-muted">Status</h6>
                                                 </div>
                                                 @if (!empty($demosession->date) && !empty($demosession->time) && $demosession->status == 'ACTIVE')
@@ -1044,7 +1046,7 @@
                                                     @endphp
                                                     @if ($now->between($showFrom, $showTill))
                                                         <div class="col border-end text-center">
-                                                            <a href="{{ isset($demosession) ? $demosession->join_url : '#' }}"
+                                                            <a href="{{ route('admin.student-dashboard.demo-session.join', $demosession) }}"
                                                                 class="btn btn-info mt-3" target="_blank">
                                                                 <span class="f-3"> Join&nbsp;now&nbsp;<i
                                                                         class="ti ti-plus"></i></span>

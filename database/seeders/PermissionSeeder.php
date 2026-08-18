@@ -685,6 +685,8 @@ class PermissionSeeder extends Seeder
                 'student-dashboard-view' => [
                     'studentDashboard',
                     'markAttendance',
+                    'joinClass',
+                    'joinDemoSession',
                 ],
                 'student-store' => [
                     'create',

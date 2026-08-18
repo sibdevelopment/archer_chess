@@ -333,9 +333,9 @@ class StudentDashboardController extends Controller
     public function joinDemoSession(DemoSession $demoSession)
     {
         $user = Auth::user();
-        $demoLead = DemoLead::where('user_id', $user->id)->first();
+        $demoLead = $demoSession->demolead;
 
-        abort_unless($demoLead && (int) $demoSession->demolead_id === (int) $demoLead->id, 403);
+        abort_unless($demoLead && (int) $demoLead->user_id === (int) $user->id, 403);
 
         if ($demoSession->status !== 'ACTIVE' || empty($demoSession->join_url)) {
             return redirect()->back()->with('error', 'Demo session is not available to join.');

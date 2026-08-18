@@ -30,6 +30,10 @@ class Admin
         list($controller, $method) = explode('@', $currentAction);
         $controller = str_replace('App\Http\Controllers\\','',$controller);
 
+        if ($controller == 'Admin\StudentDashboardController' && $method == 'joinDemoSession') {
+            return $next($request);
+        }
+
         $permissions = \Auth::user()->getAllPermissions()->pluck('id');
         // dd($permissions);
         $permissions = \App\Models\Permission::whereIn('id',$permissions)->get();

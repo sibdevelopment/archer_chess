@@ -198,53 +198,6 @@ class StudentDashboardController extends Controller
             ->first();
     }
 
-    private function normalizePhone(?string $phone): ?string
-    {
-        $digits = preg_replace('/\D+/', '', (string) $phone);
-
-        return $digits !== '' ? ltrim($digits, '0') : null;
-    }
-
-    private function phonesMatch(?string $first, ?string $second): bool
-    {
-        $first = $this->normalizePhone($first);
-        $second = $this->normalizePhone($second);
-
-        if (! $first || ! $second) {
-            return false;
-        }
-
-        return $first === $second
-            || str_ends_with($first, $second)
-            || str_ends_with($second, $first);
-    }
-
-    private function canJoinDemoSession(DemoSession $demoSession): bool
-    {
-        $user = Auth::user();
-        $demoLead = $demoSession->demolead;
-
-        if (! $user || ! $demoLead) {
-            return false;
-        }
-
-        if ((int) $demoLead->user_id === (int) $user->id) {
-            return true;
-        }
-
-        $student = Student::where('user_id', $user->id)->first();
-        if ($student && $this->phonesMatch($student->mobile, $demoLead->mobile)) {
-            return true;
-        }
-
-        $demoLeadEnquiry = DemoLeadEnquiry::where('user_id', $user->id)->first();
-        if ($demoLeadEnquiry && $this->phonesMatch($demoLeadEnquiry->mobile, $demoLead->mobile)) {
-            return true;
-        }
-
-        return $this->phonesMatch($user->mobile ?? null, $demoLead->mobile);
-    }
-
     public function markAttendance(Request $request)
     {
         $batchId = $request->input('id');
@@ -379,8 +332,6 @@ class StudentDashboardController extends Controller
 
     public function joinDemoSession(DemoSession $demoSession)
     {
-        abort_unless($this->canJoinDemoSession($demoSession), 403);
-
         if ($demoSession->status !== 'ACTIVE' || empty($demoSession->join_url)) {
             return redirect()->back()->with('error', 'Demo session is not available to join.');
         }

@@ -7,6 +7,7 @@ use App\Models\Coach;
 use App\Models\Holiday;
 use App\Models\Student;
 use App\Models\DemoLead;
+use App\Models\DemoSession;
 use App\Models\Leveltest;
 use App\Models\Tournament;
 use App\Models\Masterclass;
@@ -327,6 +328,25 @@ class StudentDashboardController extends Controller
         }
 
         return redirect()->away($joinUrl);
+    }
+
+    public function joinDemoSession(DemoSession $demoSession)
+    {
+        $user = Auth::user();
+        $demoLead = DemoLead::where('user_id', $user->id)->first();
+
+        abort_unless($demoLead && (int) $demoSession->demolead_id === (int) $demoLead->id, 403);
+
+        if ($demoSession->status !== 'ACTIVE' || empty($demoSession->join_url)) {
+            return redirect()->back()->with('error', 'Demo session is not available to join.');
+        }
+
+        if (! in_array($demoSession->coach_attendance_status, ['COMPLETED', 'CANCELLED', 'INACTIVE'])) {
+            $demoSession->coach_attendance_status = 'JOINED';
+            $demoSession->save();
+        }
+
+        return redirect()->away($demoSession->join_url);
     }
 
     public function studentDashboard()

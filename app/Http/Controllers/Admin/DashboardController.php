@@ -1366,7 +1366,7 @@ class DashboardController extends Controller
             ]);
         }
 
-        if (! in_array($demoSession->coach_attendance_status, ['STARTED', 'COMPLETED', 'CANCELLED', 'INACTIVE'])) {
+        if (! in_array($demoSession->coach_attendance_status, ['JOINED', 'STARTED', 'COMPLETED', 'CANCELLED', 'INACTIVE'])) {
             $demoSession->coach_attendance_status = 'STARTED';
             $demoSession->save();
         }

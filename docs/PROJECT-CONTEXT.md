@@ -880,6 +880,15 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Coach dashboard demo rows now check attendance by `demolead_id + coach_id + date` instead of incorrectly checking `batch_id = demo_session_id`, so started demos do not reopen the attendance form or look unmarked.
 ```
 
+### Leave Approval Status And Backdate Rules
+
+```text
+- Leave effects are now status-aware: only APPROVED leaves can create coverup/on-leave/cancelled attendance and compensation.
+- If an approved leave is later rejected/inactivated, stale coverup records and ON LEAVE attendance artifacts for that leave slot are removed.
+- If a leave is approved after its batch schedule slot has already passed, the ERP only waives/removes matching delayed penalties; it does not create coverup, mark ON LEAVE, or shift batch/student dates.
+- Pending or non-approved leaves no longer block dashboard schedules as leave; if the coach does not start class, normal late/cancel cron logic applies.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

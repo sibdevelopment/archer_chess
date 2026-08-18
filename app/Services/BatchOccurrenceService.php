@@ -179,6 +179,97 @@ class BatchOccurrenceService
             ->delete();
     }
 
+    public function leaveOccurrenceHasPassed(string $date, ?string $toTime): bool
+    {
+        if (! $toTime) {
+            return Carbon::parse($date)->endOfDay()->lessThanOrEqualTo(now());
+        }
+
+        return Carbon::parse($date . ' ' . $toTime)->lessThanOrEqualTo(now());
+    }
+
+    public function clearDelayedPenaltiesForLeave(LeaveRequest $leaveRequest): void
+    {
+        foreach ($this->leaveOccurrences($leaveRequest) as $occurrence) {
+            $this->clearDelayedPenalty(
+                $occurrence['batch']->id,
+                $occurrence['schedule']->id,
+                $occurrence['date']
+            );
+        }
+    }
+
+    public function cleanupApprovedLeaveArtifacts(LeaveRequest $leaveRequest): void
+    {
+        foreach ($this->leaveOccurrences($leaveRequest) as $occurrence) {
+            $batch = $occurrence['batch'];
+            $schedule = $occurrence['schedule'];
+            $date = $occurrence['date'];
+
+            Coverupclass::where('batch_id', $batch->id)
+                ->where('batchschedule_id', $schedule->id)
+                ->whereDate('date', $date)
+                ->delete();
+
+            CoachAttendance::where('batch_id', $batch->id)
+                ->where('coach_id', $batch->coach_id)
+                ->whereDate('date', $date)
+                ->where('status', 'ON LEAVE')
+                ->delete();
+
+            StudentAttendance::where('batch_id', $batch->id)
+                ->whereDate('date', $date)
+                ->where('status', 'CANCELLED')
+                ->where('remark', 'Cancelled due to approved coach leave')
+                ->delete();
+        }
+    }
+
+    public function leaveOccurrences(LeaveRequest $leaveRequest): array
+    {
+        $leaveStartDate = Carbon::parse($leaveRequest->from_date);
+        $leaveEndDate = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
+        $occurrences = [];
+
+        for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+            $dateString = $date->toDateString();
+            $weekday = $date->format('l');
+
+            $batches = Batch::with(['batchSchedules' => function ($query) use ($weekday) {
+                $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+            }])
+                ->where('coach_id', $leaveRequest->coach_id)
+                ->where('status', 'ACTIVE')
+                ->whereDate('start_date', '<=', $dateString)
+                ->whereDate('end_date', '>=', $dateString)
+                ->whereHas('batchSchedules', function ($query) use ($weekday) {
+                    $query->where('status', 'ACTIVE')->where('weekday', $weekday);
+                })
+                ->get();
+
+            foreach ($batches as $batch) {
+                foreach ($batch->batchSchedules as $schedule) {
+                    if (! $this->timeRangesOverlap(
+                        $schedule->from_time,
+                        $schedule->to_time,
+                        $leaveRequest->from_time,
+                        $leaveRequest->to_time
+                    )) {
+                        continue;
+                    }
+
+                    $occurrences[] = [
+                        'batch' => $batch,
+                        'schedule' => $schedule,
+                        'date' => $dateString,
+                    ];
+                }
+            }
+        }
+
+        return $occurrences;
+    }
+
     public function shiftCancelledOccurrence(
         Batch $batch,
         BatchSchedule $schedule,

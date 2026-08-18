@@ -204,10 +204,32 @@ class LeaveRequestController extends Controller
 
     public function changeStatus(Request $request, CoachAvailabilityService $availability)
     {
-        $leaverequest         = LeaveRequest::find($request->leaverequest_id);
+        $leaverequest = LeaveRequest::find($request->leaverequest_id);
+        if (! $leaverequest) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Leave request not found.',
+            ], 404);
+        }
+
+        $previousStatus = $leaverequest->status;
         $leaverequest->status = $request->status;
         $occurrences = app(BatchOccurrenceService::class);
         $handledOccurrences = [];
+
+        if ($leaverequest->status !== 'APPROVED') {
+            $leaverequest->save();
+
+            if ($previousStatus === 'APPROVED') {
+                $occurrences->cleanupApprovedLeaveArtifacts($leaverequest);
+            }
+
+            return response()->json([
+                'status'       => 'success',
+                'message'      => $leaverequest->name . ' Request has been marked ' . $leaverequest->status . ' successfully',
+                'leaverequest' => $leaverequest,
+            ], 201);
+        }
 
         if (isset($request->affectedData)) {
             foreach ($request->affectedData as $data) {
@@ -226,6 +248,11 @@ class LeaveRequestController extends Controller
 
                 $occurrenceKey = $this->leaveOccurrenceKey($batch->id, $schedule->id, $leaverequest->from_date);
                 $handledOccurrences[] = $occurrenceKey;
+
+                if ($occurrences->leaveOccurrenceHasPassed($leaverequest->from_date, $schedule->to_time)) {
+                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $leaverequest->from_date);
+                    continue;
+                }
 
                 if ($data['coach_id']) {
                     $coach = Coach::find($data['coach_id']);
@@ -559,6 +586,10 @@ class LeaveRequestController extends Controller
                         continue;
                     }
 
+                    if ($occurrences->leaveOccurrenceHasPassed($dateString, $schedule->to_time)) {
+                        continue;
+                    }
+
                     $scheduleKey = strtolower($schedule->weekday);
 
                     if (! isset($combinedAffectedBatches[$batch->id])) {
@@ -732,6 +763,11 @@ class LeaveRequestController extends Controller
                     }
 
                     if ($occurrences->coverupForOccurrence($batch->id, $schedule->id, $dateString)) {
+                        continue;
+                    }
+
+                    if ($occurrences->leaveOccurrenceHasPassed($dateString, $schedule->to_time)) {
+                        $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $dateString);
                         continue;
                     }
 

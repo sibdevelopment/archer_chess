@@ -239,6 +239,9 @@ class DemoLeadController extends Controller
                     case 'DEMO DONE':
                         $badgeColor = 'success';
                         break;
+                    case 'JOINED':
+                        $badgeColor = 'info';
+                        break;
                     case 'CANCELLED':
                         $badgeColor = 'danger';
                         break;

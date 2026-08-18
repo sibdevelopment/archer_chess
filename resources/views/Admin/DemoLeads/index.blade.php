@@ -139,6 +139,7 @@
                                         <option value="SCHEDULED">SCHEDULED</option>
                                         <option value="RESCHEDULED">RESCHEDULED</option>
                                         <option value="DEMO DONE">DEMO DONE</option>
+                                        <option value="JOINED">JOINED</option>
                                         <option value="CANCELLED">CANCELLED</option>
                                         <option value="CONVERTED">CONVERTED</option>
                                         <option value="ROWLEAD">ROWLEAD</option>
@@ -192,6 +193,9 @@
                                 <button class="btn btn-outline-primary btn-sm status-ui-btn"
                                     onclick="$('#status').val('DEMO DONE'); $('#status').trigger('change');">Demo
                                     Done</button>
+
+                                <button class="btn btn-outline-primary btn-sm status-ui-btn"
+                                    onclick="$('#status').val('JOINED'); $('#status').trigger('change');">Joined</button>
 
                                 <button class="btn btn-outline-primary btn-sm status-ui-btn"
                                     onclick="$('#status').val('CANCELLED'); $('#status').trigger('change');">Cancelled</button>
@@ -288,6 +292,7 @@
                                     <option value="SCHEDULED">SCHEDULED</option>
                                     <option value="RESCHEDULED">RESCHEDULED</option>
                                     <option value="DEMO DONE">DEMO DONE</option>
+                                    <option value="JOINED">JOINED</option>
                                     <option value="CANCELLED">CANCELLED</option>
                                     <option value="CONVERTED">CONVERTED</option>
                                     <option value="ROWLEAD">ROWLEAD</option>

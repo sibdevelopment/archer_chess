@@ -341,6 +341,11 @@ class StudentDashboardController extends Controller
         if (! in_array($demoSession->coach_attendance_status, ['COMPLETED', 'CANCELLED', 'INACTIVE'])) {
             $demoSession->coach_attendance_status = 'JOINED';
             $demoSession->save();
+
+            if ($demoSession->demolead && in_array($demoSession->demolead->status, ['SCHEDULED', 'RESCHEDULED', 'JOINED'], true)) {
+                $demoSession->demolead->status = 'JOINED';
+                $demoSession->demolead->save();
+            }
         }
 
         return redirect()->away($demoSession->join_url);

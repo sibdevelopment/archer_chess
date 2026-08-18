@@ -330,8 +330,10 @@ class StudentDashboardController extends Controller
         return redirect()->away($joinUrl);
     }
 
-    public function joinDemoSession(DemoSession $demoSession)
+    public function joinDemoSession(DemoSession $demo_session)
     {
+        $demoSession = $demo_session;
+
         if ($demoSession->status !== 'ACTIVE' || empty($demoSession->join_url)) {
             return redirect()->back()->with('error', 'Demo session is not available to join.');
         }

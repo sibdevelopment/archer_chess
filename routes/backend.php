@@ -352,7 +352,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::get('/student-recordings', [StudentDashboardController::class, 'studentRecordings'])->name('student.recordings');
         Route::post('/student-dashboard/mark-attendance', [StudentDashboardController::class, 'markAttendance'])->name('student-dashboard.mark-attendance');
         Route::get('/student-dashboard/join-class', [StudentDashboardController::class, 'joinClass'])->name('student-dashboard.join-class');
-        Route::get('/student-dashboard/demo-session/{demoSession}/join', [StudentDashboardController::class, 'joinDemoSession'])->name('student-dashboard.demo-session.join');
+        Route::get('/student-dashboard/demo-session/{demo_session}/join', [StudentDashboardController::class, 'joinDemoSession'])->name('student-dashboard.demo-session.join');
 
         // -------------------------------------------------------
         // Coach Dashboard routes ------------------------------

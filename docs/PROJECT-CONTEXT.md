@@ -877,6 +877,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Demo session creation stores an optional `demo_sessions.reason`; the first demo session for a lead does not require it, but every additional session for the same lead must include a reason. The reason is visible in Demo Session manage/history so repeated sessions are accountable.
 - Demo student join now goes through the ERP before redirecting to Zoom; this marks `demo_sessions.coach_attendance_status` as `JOINED` until coach attendance later changes it to `COMPLETED` or `CANCELLED`.
 - Demo student join is allowed through the permission middleware and guarded by the opaque demo-session route key plus `ACTIVE` session status/join URL. This avoids false 403 errors from old/rescheduled demo rows where demo lead user linkage is incomplete.
+- Coach dashboard demo rows now check attendance by `demolead_id + coach_id + date` instead of incorrectly checking `batch_id = demo_session_id`, so started demos do not reopen the attendance form or look unmarked.
 ```
 
 Known route/test caveats from prior analysis:

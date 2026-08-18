@@ -29,9 +29,19 @@
             @php
                 // dd($schedules);
                 $todaysDate = date('Y-m-d');
-                $isAttendaceMarked = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                    ->whereDate('date', $todaysDate)
-                    ->exists();
+                $isDemoSchedule = ($schedule['type'] ?? null) === 'Demo';
+                $isAttendaceMarked = false;
+
+                if ($isDemoSchedule && !empty($schedule['demolead_id'])) {
+                    $isAttendaceMarked = App\Models\CoachAttendance::where('demolead_id', $schedule['demolead_id'])
+                        ->where('coach_id', $coach->id)
+                        ->whereDate('date', $todaysDate)
+                        ->exists();
+                } elseif (!$isDemoSchedule) {
+                    $isAttendaceMarked = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
+                        ->whereDate('date', $todaysDate)
+                        ->exists();
+                }
 
                 if($schedule['id'] == '4584'){
                     // dd($isAttendaceMarked);
@@ -141,8 +151,9 @@
                         }
 
                         $demoLatestAttendance = null;
-                        if ($schedule['type'] === 'Demo') {
-                            $demoLatestAttendance = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
+                        if ($schedule['type'] === 'Demo' && !empty($schedule['demolead_id'])) {
+                            $demoLatestAttendance = App\Models\CoachAttendance::where('demolead_id', $schedule['demolead_id'])
+                                ->where('coach_id', $coach->id)
                                 ->whereDate('date', $todaysDate)
                                 ->latest()
                                 ->first();
@@ -150,10 +161,14 @@
                             // dd($demoLatestAttendance);
                         }
 
-                        $latestAttendance = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                            ->whereDate('date', $todaysDate)
-                            ->latest()
-                            ->first();
+                        if ($schedule['type'] === 'Demo') {
+                            $latestAttendance = $demoLatestAttendance;
+                        } else {
+                            $latestAttendance = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
+                                ->whereDate('date', $todaysDate)
+                                ->latest()
+                                ->first();
+                        }
 
                         $timeDiff = $now->diffInMinutes($slotStartTime, false); // Negative if now is before start
                         // dd($now->lte($slotEndTime));

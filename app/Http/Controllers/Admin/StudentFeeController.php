@@ -431,7 +431,7 @@ class StudentFeeController extends Controller
             'currency' => 'required|string|in:' . implode(',', availableCurrencyCodes()),
             'monthly_fees' => 'required|numeric|min:0',
             'total_amount_paid' => 'required|numeric|min:0',
-            'remark' => 'nullable|string|max:1000',
+            'remark' => 'required|string|max:1000',
         ];
     }
 
@@ -449,5 +449,6 @@ class StudentFeeController extends Controller
         'total_amount_paid.required' => 'Total amount paid is required',
         'total_amount_paid.numeric' => 'Total amount paid must be a number',
         'total_amount_paid.min' => 'Total amount paid must be at least 0',
+        'remark.required' => 'Remark is required',
     ];
 }

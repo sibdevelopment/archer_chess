@@ -400,7 +400,8 @@
                             </a>
                         </li>
 
-                        <li class="sidebar-item">
+                        {{-- Hidden to avoid duplicate attendance reports; Multiple Std Attendance is retained. --}}
+                        {{-- <li class="sidebar-item">
                             <a href="{{ route('same_day_multiple_student_attendance') }}" target="_blank"
                                 class="sidebar-link">
                                 <div class="round-16 d-flex align-items-center justify-content-center">
@@ -408,7 +409,7 @@
                                 </div>
                                 <span class="hide-menu">Same Day Attendance</span>
                             </a>
-                        </li>
+                        </li> --}}
 
                         {{-- <li class="sidebar-item">
                             <a href="{{ route('dummy') }}" target="_blank" class="sidebar-link">
@@ -449,6 +450,16 @@
 
                         <li class="sidebar-item">
                             <a href="javascript:void(0);" data-bs-toggle="modal"
+                                data-bs-target="#zeroFeesRecordModal" class="sidebar-link">
+                                <div class="round-16 d-flex align-items-center justify-content-center">
+                                    <i class="ti ti-circle"></i>
+                                </div>
+                                <span class="hide-menu">Zero Fee Records</span>
+                            </a>
+                        </li>
+
+                        <li class="sidebar-item">
+                            <a href="javascript:void(0);" data-bs-toggle="modal"
                                 data-bs-target="#feesCollectionModal" class="sidebar-link">
                                 <div class="round-16 d-flex align-items-center justify-content-center">
                                     <i class="ti ti-circle"></i>
@@ -478,14 +489,15 @@
                         </li>
 
 
-                        <li class="sidebar-item">
+                        {{-- Hidden per report cleanup request. --}}
+                        {{-- <li class="sidebar-item">
                             <a href="{{ route('student_cancelled_attendance') }}" target="_blank" class="sidebar-link">
                                 <div class="round-16 d-flex align-items-center justify-content-center">
                                     <i class="ti ti-circle"></i>
                                 </div>
                                 <span class="hide-menu">Student Cancelled Batch</span>
                             </a>
-                        </li>
+                        </li> --}}
 
                     </ul>
                 </li>

@@ -300,6 +300,8 @@ class DataController extends Controller
 
             foreach ($attendances as $attendance) {
                 $attendanceDate = Carbon::parse($attendance->date)->toDateString();
+                $batchCountry = optional($attendance->batch)->country;
+                $batchCountry = is_array($batchCountry) ? implode(', ', array_filter($batchCountry)) : ($batchCountry ?? 'N/A');
 
                 $hasLeave = \App\Models\LeaveRequest::where('coach_id', $attendance->coach_id)
                     ->where('status', 'APPROVED')
@@ -314,7 +316,7 @@ class DataController extends Controller
                 $rows[] = [
                     Carbon::parse($attendance->date)->format('d-m-Y'),
                     optional($attendance->batch)->name ?? 'N/A',
-                    optional($attendance->batch)->country ?? 'N/A',
+                    $batchCountry,
                     trim((optional($attendance->coach?->user)->first_name ?? '') . ' ' . (optional($attendance->coach?->user)->last_name ?? '')),
                 ];
             }

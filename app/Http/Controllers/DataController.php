@@ -51,6 +51,7 @@ class DataController extends Controller
                 'student_fees.id',
                 'students.first_name as student_first',
                 'students.last_name as student_last',
+                'students.country as student_country',
                 'student_fees.start_date',
                 'student_fees.end_date',
                 'student_fees.currency',
@@ -73,11 +74,12 @@ class DataController extends Controller
         }
 
         $rows = [];
-        $rows[] = ['Student Name', 'Start Date', 'End Date', 'Currency', 'Monthly Fees', 'Total Paid', 'Status'];
+        $rows[] = ['Student Name', 'Country', 'Start Date', 'End Date', 'Currency', 'Monthly Fees', 'Total Paid', 'Status'];
 
         foreach ($fees as $fee) {
             $rows[] = [
                 trim($fee->student_first . ' ' . $fee->student_last),
+                $fee->student_country,
                 $fee->start_date,
                 $fee->end_date,
                 $fee->currency,
@@ -190,6 +192,16 @@ class DataController extends Controller
      */
     public function feesList(string $year ,string $month, string $country)
     {
+        return $this->renderFeesList($year, $month, $country);
+    }
+
+    public function zeroFeesList(string $year, string $month, string $country)
+    {
+        return $this->renderFeesList($year, $month, $country, true);
+    }
+
+    private function renderFeesList(string $year, string $month, string $country, bool $zeroOnly = false)
+    {
         $month = $month ?: date('m');
         $year  = $year ?: date('Y');
 
@@ -200,41 +212,65 @@ class DataController extends Controller
             }
         };
 
-        
+        $zeroFeeFilter = function ($query) use ($zeroOnly) {
+            if (! $zeroOnly) {
+                return;
+            }
 
-        $current_month_fees_due = StudentFee::whereMonth('end_date', $month)
+            $query->where(function ($q) {
+                $q->where('monthly_fees', 0)
+                    ->orWhere('total_amount_paid', 0);
+            });
+        };
+
+        $currentMonthFeesDueQuery = StudentFee::with('student')
+            ->whereMonth('end_date', $month)
             ->whereYear('end_date', $year)
-            ->whereHas('student', $countryFilter)
+            ->whereHas('student', $countryFilter);
+        $zeroFeeFilter($currentMonthFeesDueQuery);
+        $current_month_fees_due = $currentMonthFeesDueQuery
             ->orderBy('end_date')
             ->get();
 
-        $current_month_fees_enter = StudentFee::whereMonth('start_date', $month)
+        $currentMonthFeesEnterQuery = StudentFee::with('student')
+            ->whereMonth('start_date', $month)
             ->whereYear('start_date', $year)
-            ->whereHas('student', $countryFilter)
+            ->whereHas('student', $countryFilter);
+        $zeroFeeFilter($currentMonthFeesEnterQuery);
+        $current_month_fees_enter = $currentMonthFeesEnterQuery
             ->orderBy('start_date')
             ->get();
 
-        $fees_due_and_inactive = StudentFee::whereMonth('end_date', $month)
+        $feesDueAndInactiveQuery = StudentFee::with('student')
+            ->whereMonth('end_date', $month)
             ->whereYear('end_date', $year)
             ->whereHas('student', function ($q) use ($country, $countryFilter) {
                 $countryFilter($q);
                 $q->where('status', 'INACTIVE');
-            })
+            });
+        $zeroFeeFilter($feesDueAndInactiveQuery);
+        $fees_due_and_inactive = $feesDueAndInactiveQuery
             ->orderBy('end_date')
             ->get();
 
-        $fees_enter_by_creation_date = StudentFee::whereMonth('created_at', $month)
+        $feesEnterByCreationDateQuery = StudentFee::with('student')
+            ->whereMonth('created_at', $month)
             ->whereYear('created_at', $year)
-            ->whereHas('student', $countryFilter)
+            ->whereHas('student', $countryFilter);
+        $zeroFeeFilter($feesEnterByCreationDateQuery);
+        $fees_enter_by_creation_date = $feesEnterByCreationDateQuery
             ->orderBy('created_at')
             ->get();
+
+        $reportTitle = $zeroOnly ? 'Zero Fee Records' : 'Fees Records';
 
         return view('fees_list', compact(
             'current_month_fees_due',
             'month',
             'current_month_fees_enter',
             'fees_due_and_inactive',
-            'fees_enter_by_creation_date'
+            'fees_enter_by_creation_date',
+            'reportTitle'
         ));
     }
 
@@ -260,7 +296,7 @@ class DataController extends Controller
             }
 
             $rows = [];
-            $rows[] = ['Date', 'Batch Name', 'Coach Name'];
+            $rows[] = ['Date', 'Batch Name', 'Countries', 'Coach Name'];
 
             foreach ($attendances as $attendance) {
                 $attendanceDate = Carbon::parse($attendance->date)->toDateString();
@@ -278,6 +314,7 @@ class DataController extends Controller
                 $rows[] = [
                     Carbon::parse($attendance->date)->format('d-m-Y'),
                     optional($attendance->batch)->name ?? 'N/A',
+                    optional($attendance->batch)->country ?? 'N/A',
                     trim((optional($attendance->coach?->user)->first_name ?? '') . ' ' . (optional($attendance->coach?->user)->last_name ?? '')),
                 ];
             }
@@ -323,10 +360,14 @@ class DataController extends Controller
         $monthName = date('F', mktime(0, 0, 0, (int)$month, 1));
 
         $rows = [];
-        $rows[] = ['Student Name (ID)', 'Coach Name & Status', 'Updated By', 'Updated At', 'Status'];
+        $rows[] = ['Student Name (ID)', 'Country', 'Coach Name & Status', 'Last Fee Start Date', 'Last Fee End Date', 'Last Fee Amount', 'Updated By', 'Updated At', 'Status'];
 
         foreach ($students as $student) {
             $updatedByUser = $student->updated_by ? User::find($student->updated_by) : null;
+            $lastFee = StudentFee::where('student_id', $student->id)
+                ->orderByDesc('end_date')
+                ->orderByDesc('id')
+                ->first();
 
             $coachName = '-';
             $statusBadgeText = '';
@@ -340,7 +381,11 @@ class DataController extends Controller
 
             $rows[] = [
                 trim($student->first_name . ' ' . $student->last_name) . ' (' . $student->student_id . ')',
+                $student->country ?? '-',
                 $coachName !== '-' ? $coachName . $statusBadgeText : '-',
+                $lastFee?->start_date ? Carbon::parse($lastFee->start_date)->format('d M Y') : '-',
+                $lastFee?->end_date ? Carbon::parse($lastFee->end_date)->format('d M Y') : '-',
+                $lastFee ? trim(($lastFee->currency ?? '') . ' ' . number_format((float) $lastFee->total_amount_paid, 2)) : '-',
                 $updatedByUser ? trim($updatedByUser->first_name . ' ' . $updatedByUser->last_name) : '-',
                 $student->updated_at?->format('d M Y'),
                 ucfirst(strtolower($student->status)),

@@ -427,13 +427,9 @@
 
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="feesYear" class="form-label">Select Year</label>
-                            <select id="feesYear" class="form-select" required>
-                                <option value="">-- Select Year --</option>
-                                @foreach (range(date('Y'), 2024) as $year)
-                                    <option value="{{ $year }}">{{ $year }}</option>
-                                @endforeach
-                            </select>
+                            <label for="feesYear" class="form-label">Year</label>
+                            <input type="number" id="feesYear" class="form-control" placeholder="e.g. 2026"
+                                min="2024" max="2100" required>
                         </div>
                         <div class="mb-3">
                             <label for="feesMonth" class="form-label">Select Month</label>
@@ -480,6 +476,71 @@
             </div>
         </div>
     </div>
+
+    <!-- Zero Fees Record Modal -->
+    <div class="modal fade" id="zeroFeesRecordModal" tabindex="-1" aria-labelledby="zeroFeesRecordModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form target="_blank">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="zeroFeesRecordModalLabel">View Zero Fee Record</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="zeroFeesYear" class="form-label">Year</label>
+                            <input type="number" id="zeroFeesYear" class="form-control" placeholder="e.g. 2026"
+                                min="2024" max="2100" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="zeroFeesMonth" class="form-label">Select Month</label>
+                            <select id="zeroFeesMonth" class="form-select" required>
+                                <option value="">-- Select Month --</option>
+                                @foreach (range(1, 12) as $m)
+                                    <option value="{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}">
+                                        {{ date('F', mktime(0, 0, 0, $m, 1)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="zeroFeesCountry" class="form-label">Select Country</label>
+                            <select id="zeroFeesCountry" class="form-select" required>
+                                <option value="">-- Select Country --</option>
+                                <option value="ALL">ALL</option>
+                                <option value="USA">USA</option>
+                                <option value="CANADA">CANADA</option>
+                                <option value="AUSTRALIA">AUSTRALIA</option>
+                                <option value="NEWZEALAND">NEW ZEALAND</option>
+                                <option value="INDIA">INDIA</option>
+                                <option value="UAE">UAE</option>
+                                <option value="UK">UK</option>
+                                <option value="SINGAPORE">SINGAPORE</option>
+                                <option value="SOUTH AFRICA">SOUTH AFRICA</option>
+                                <option value="QATAR">QATAR</option>
+                                <option value="BAHRAIN">BAHRAIN</option>
+                                <option value="KUWAIT">KUWAIT</option>
+                                <option value="EUROPEAN UNION">EUROPEAN UNION</option>
+                                <option value="OMAN">OMAN</option>
+                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" id="zeroFeesSubmitBtn" class="btn btn-primary">Open Record</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Fees Record Modal -->
     <div class="modal fade" id="cancelBatchListModal" tabindex="-1" aria-labelledby="cancelBatchListModalLabel"
         aria-hidden="true">
@@ -828,6 +889,7 @@
             window.open(url, '_blank');
 
             // Reset dropdowns
+            $('#feesYear').val('');
             $('#feesMonth').val('');
             $('#feesCountry').val('');
 
@@ -838,6 +900,33 @@
             // Reset button and remove loader
             $('#feesSubmitBtn').show();
             $('#loaderImage').remove();
+        });
+
+        $('#zeroFeesSubmitBtn').on('click', function() {
+            const year = $('#zeroFeesYear').val();
+            const month = $('#zeroFeesMonth').val();
+            const country = $('#zeroFeesCountry').val();
+
+            if (!month || !country || !year) {
+                alert('Please select month, country and year.');
+                return;
+            }
+
+            const loaderImg = $('<img width="50" height="50" src="/Loading_image_1.gif" id="zeroFeesLoaderImage"/>');
+            $(this).hide().after(loaderImg);
+
+            const url = `{{ url('/zero_fee_records') }}/${year}/${month}/${country}`;
+            window.open(url, '_blank');
+
+            $('#zeroFeesYear').val('');
+            $('#zeroFeesMonth').val('');
+            $('#zeroFeesCountry').val('');
+
+            const modal = bootstrap.Modal.getInstance(document.getElementById('zeroFeesRecordModal'));
+            modal.hide();
+
+            $('#zeroFeesSubmitBtn').show();
+            $('#zeroFeesLoaderImage').remove();
         });
 
         $('#cancelBatchListBtn').on('click', function() {

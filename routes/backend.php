@@ -389,6 +389,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
 // Data Related Routes
 Route::middleware(['auth', 'preventBackHistory'])->group(function () {
     Route::get('/fees_records/{year}/{month}/{country}', [DataController::class, 'feesList'])->name('fees.list');
+    Route::get('/zero_fee_records/{year}/{month}/{country}', [DataController::class, 'zeroFeesList'])->name('zero.fees.list');
     Route::get('/cancel_batches/{fromdate}/{todate}', [DataController::class, 'cancelBatchList'])->name('cancel.batch.list');
     Route::get('/fees_collection/{year}/{month}/{date}/{country?}', [DataController::class, 'feesCollection'])->name('fees.collection');
     Route::get('/multiple_batch', [DataController::class, 'multiple_batch'])->name('multiple_batch');

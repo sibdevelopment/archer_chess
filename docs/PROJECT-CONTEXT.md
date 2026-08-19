@@ -889,6 +889,17 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Pending or non-approved leaves no longer block dashboard schedules as leave; if the coach does not start class, normal late/cancel cron logic applies.
 ```
 
+### Admin Report Tab Cleanup
+
+```text
+- Fee Records now accepts a typed year and includes student country plus fee remark columns.
+- Zero Fee Records is added as a separate report using the same fee-record layout, filtered to zero monthly fee or zero paid amount rows.
+- Fee Collection, Cancel Batch List, and Student Inactive exports include country-oriented context requested by the client.
+- Student Inactive export now includes each inactive student's latest fee start date, latest fee end date, and latest fee amount.
+- Student Cancelled Attendance and the duplicate Same Day Attendance sidebar entry are hidden from the admin report menu.
+- Manual student fee create/edit now requires a remark from both UI and backend validation.
+```
+
 Known route/test caveats from prior analysis:
 
 ```text

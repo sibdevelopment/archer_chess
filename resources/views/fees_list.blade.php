@@ -1,4 +1,5 @@
 <div class="container my-4">
+    <h2 class="text-center mb-4">{{ $reportTitle ?? 'Fees Records' }}</h2>
     <!-- 🚀 Buttons for Switching Tables -->
     <div class="text-center mb-4">
         <button class="btn btn-primary switch-btn" onclick="showTable('fees_due_inactive', this)">Fees Due & Inactive</button>
@@ -16,12 +17,14 @@
                     <tr>
                         <th>#</th>
                         <th>Student Name</th>
+                        <th>Country</th>
                         <th>Currency</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Receive Date</th>
                         <th>Monthly Amount</th>
                         <th>Total Amount</th>
+                        <th>Remark</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,20 +41,22 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $fees_due_and_inacti->student->first_name }} {{ $fees_due_and_inacti->student->last_name }} <br> {{ $fees_due_and_inacti->student->student_id }}</td>
+                            <td>{{ $fees_due_and_inacti->student->country ?? '-' }}</td>
                             <td>{{ $fees_due_and_inacti->currency }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_due_and_inacti->start_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_due_and_inacti->end_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_due_and_inacti->receive_date)->format('d M, Y') }}</td>
                             <td class="text-success"><strong>{{ number_format($fees_due_and_inacti->monthly_fees, 2) }}</strong></td>
                             <td class="text-danger"><strong>{{ number_format($fees_due_and_inacti->total_amount_paid, 2) }}</strong></td>
+                            <td>{{ $fees_due_and_inacti->remark ?: '-' }}</td>
                         </tr>
                     @endforeach
                     <!-- 🚀 Total Row -->
                     <tr class="table-footer">
-                        <td colspan="5" class="text-right"></td>
-                        <td colspan="1" class="text-right"><strong>Grand Total:</strong></td>
+                        <td colspan="7" class="text-right"><strong>Grand Total:</strong></td>
                         <td class="text-success"><strong>{{ number_format($totalMonthlyFees, 2) }}</strong></td>
                         <td class="text-danger"><strong>{{ number_format($totalAmountPaid, 2) }}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
@@ -67,12 +72,14 @@
                     <tr>
                         <th>#</th>
                         <th>Student Name</th>
+                        <th>Country</th>
                         <th>Currency</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Receive Date</th>
                         <th>Monthly Amount</th>
                         <th>Total Amount</th>
+                        <th>Remark</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,20 +97,22 @@
                             <td>{{ $current_month_fee->student->first_name }} {{ $current_month_fee->student->last_name }}
                                 <br> {{ $current_month_fee->student->student_id }}
                             </td>
+                            <td>{{ $current_month_fee->student->country ?? '-' }}</td>
                             <td>{{ $current_month_fee->currency }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee->start_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee->end_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee->receive_date)->format('d M, Y') }}</td>
                             <td class="text-success"><strong>{{ number_format($current_month_fee->monthly_fees, 2) }}</strong></td>
                             <td class="text-danger"><strong>{{ number_format($current_month_fee->total_amount_paid, 2) }}</strong></td>
+                            <td>{{ $current_month_fee->remark ?: '-' }}</td>
                         </tr>
                     @endforeach
                     <!-- 🚀 Total Row -->
                     <tr class="table-footer">
-                        <td colspan="5" class="text-right"></td>
-                        <td colspan="1" class="text-right"><strong>Grand Total:</strong></td>
+                        <td colspan="7" class="text-right"><strong>Grand Total:</strong></td>
                         <td class="text-success"><strong>{{ number_format($totalMonthlyFees, 2) }}</strong></td>
                         <td class="text-danger"><strong>{{ number_format($totalAmountPaid, 2) }}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
@@ -119,12 +128,14 @@
                     <tr>
                         <th>#</th>
                         <th>Student Name</th>
+                        <th>Country</th>
                         <th>Currency</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Receive Date</th>
                         <th>Monthly Amount</th>
                         <th>Total Amount</th>
+                        <th>Remark</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,20 +153,22 @@
                             <td>{{ $current_month_fee_due->student->first_name }} {{ $current_month_fee_due->student->last_name }}
                                 <br> {{ $current_month_fee_due->student->student_id }}
                             </td>
+                            <td>{{ $current_month_fee_due->student->country ?? '-' }}</td>
                             <td>{{ $current_month_fee_due->currency }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee_due->start_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee_due->end_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($current_month_fee_due->receive_date)->format('d M, Y') }}</td>
                             <td class="text-success"><strong>{{ number_format($current_month_fee_due->monthly_fees, 2) }}</strong></td>
                             <td class="text-danger"><strong>{{ number_format($current_month_fee_due->total_amount_paid, 2) }}</strong></td>
+                            <td>{{ $current_month_fee_due->remark ?: '-' }}</td>
                         </tr>
                     @endforeach
                     <!-- 🚀 Total Row -->
                     <tr class="table-footer">
-                        <td colspan="5" class="text-right"></td>
-                        <td colspan="1" class="text-right"><strong>Grand Total:</strong></td>
+                        <td colspan="7" class="text-right"><strong>Grand Total:</strong></td>
                         <td class="text-success"><strong>{{ number_format($totalMonthlyFees, 2) }}</strong></td>
                         <td class="text-danger"><strong>{{ number_format($totalAmountPaid, 2) }}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
@@ -174,12 +187,14 @@
                     <tr>
                         <th>#</th>
                         <th>Student Name</th>
+                        <th>Country</th>
                         <th>Currency</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Receive Date</th>
                         <th>Monthly Amount</th>
                         <th>Total Amount</th>
+                        <th>Remark</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,20 +212,22 @@
                             <td>{{ $fees_enter_by_creation_date->student->first_name }} {{ $fees_enter_by_creation_date->student->last_name }}
                                         <br> {{ $fees_enter_by_creation_date->student->student_id }}
                             </td>
+                            <td>{{ $fees_enter_by_creation_date->student->country ?? '-' }}</td>
                             <td>{{ $fees_enter_by_creation_date->currency }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_enter_by_creation_date->start_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_enter_by_creation_date->end_date)->format('d M, Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($fees_enter_by_creation_date->receive_date)->format('d M, Y') }}</td>
                             <td class="text-success"><strong>{{ number_format($fees_enter_by_creation_date->monthly_fees, 2) }}</strong></td>
                             <td class="text-danger"><strong>{{ number_format($fees_enter_by_creation_date->total_amount_paid, 2) }}</strong></td>
+                            <td>{{ $fees_enter_by_creation_date->remark ?: '-' }}</td>
                         </tr>
                     @endforeach
                     <!-- 🚀 Total Row -->
                     <tr class="table-footer">
-                        <td colspan="5" class="text-right"></td>
-                        <td colspan="1" class="text-right"><strong>Grand Total:</strong></td>
+                        <td colspan="7" class="text-right"><strong>Grand Total:</strong></td>
                         <td class="text-success"><strong>{{ number_format($totalMonthlyFees, 2) }}</strong></td>
                         <td class="text-danger"><strong>{{ number_format($totalAmountPaid, 2) }}</strong></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>

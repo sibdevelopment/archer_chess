@@ -94,6 +94,11 @@
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
                             </span>
+                        @elseif ($schedule['type'] === 'Demo')
+                            <span class="btn btn-{{ $badgeColor }}"
+                                style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
+                                {{ $schedule['status'] }}
+                            </span>
                         @else
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
@@ -187,16 +192,27 @@
                             class="btn btn-primary-theme-outline">Start</a>
 
                         {{-- 2. Demo session: allow anytime if SCHEDULED --}}
-                    @elseif ($schedule['type'] === 'Demo' && $schedule['status'] === 'SCHEDULED')
+                    @elseif ($schedule['type'] === 'Demo')
 
                             @php
                                 $startTime = $slotStartTime; // already calculated
                                 $showFrom = $startTime->copy()->subMinutes(10);
                                 $showTill = $startTime->copy()->addMinutes(30);
+                                $attendanceFrom = $slotEndTime->copy();
+                                $attendanceTill = $slotEndTime->copy()->addMinutes(15);
+                                $demoCanStartStatuses = ['SCHEDULED', 'JOINED', 'STARTED', 'ACTIVE', 'RESCHEDULED'];
                             @endphp
-                            @if ($now->between($showFrom, $showTill))
+                            @if (in_array($schedule['status'], $demoCanStartStatuses, true) && $now->between($showFrom, $showTill))
                                 <a href="{{ route('admin.dashboard.demoSession.start', ['coachId' => $coach->id, 'demoSession' => $schedule['id']]) }}" target="_blank"
                                     class="btn btn-primary-theme-outline">Start</a>
+                            @elseif ($now->between($attendanceFrom, $attendanceTill))
+                                <a href="#" data-schedule='@json($schedule)'
+                                    class="btn btn-primary-theme-outline status-btn"
+                                    data-type="{{ $schedule['type'] }}"
+                                    data-id="{{ $schedule['id'] }}"
+                                    data-btn="startBtn">
+                                    Mark Attendance
+                                </a>
                             @endif
                         {{-- 3. Attendance already marked (not cancelled, not demo) --}}
                     @elseif ($isAttendaceMarked && $schedule['status'] !== 'CANCELLED')

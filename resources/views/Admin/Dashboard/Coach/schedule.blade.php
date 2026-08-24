@@ -95,10 +95,11 @@
                                 {{ $schedule['status'] }}
                             </span>
                         @elseif ($schedule['type'] === 'Demo')
-                            <span class="btn btn-{{ $badgeColor }}"
+                            <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
+                                data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
-                            </span>
+                            </button>
                         @else
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"

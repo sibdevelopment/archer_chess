@@ -195,13 +195,7 @@
                                         placeholder="Search by User ID"
                                         style="border: var(--bs-border-width) solid #000000;">
                                 </div>
-                                {{-- <div class="col-2 d-flex justify-content-end">
-                                    <select name="coach" id="coach"
-                                        class="select2 form-select form-select-sm pure-white"
-                                        aria-label=".form-select-sm example">
-                                        <option value="">Select Coach</option>
-                                    </select>
-                                {{-- <div class="col-2 d-flex justify-content-end">
+                                <div class="col-2 d-flex justify-content-end">
                                     <select name="level_id" id="level_id"
                                         class="select2 form-select form-select-sm   pure-white"
                                         aria-label=".form-select-sm example">
@@ -210,7 +204,7 @@
                                             <option value="{{ $level->id }}">{{ $level->name }}</option>
                                         @endforeach
                                     </select>
-                                </div> --}}
+                                </div>
                                 @if ($isAdminOrSuperAdmin)
                                     <div class="col-2 d-flex justify-content-end">
                                         <button type="submit" class="form-control text-white text-center"

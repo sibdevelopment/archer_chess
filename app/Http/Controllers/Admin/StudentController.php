@@ -118,6 +118,21 @@ class StudentController extends Controller
             $query->whereIn('id', $studentIds);
         }
 
+        if ($request->level_id) {
+            $levelId = $request->level_id;
+
+            $query->whereIn('students.id', function ($subQuery) use ($levelId) {
+                $subQuery->select('sb.student_id')
+                    ->from('student_batches as sb')
+                    ->where('sb.level_id', $levelId)
+                    ->whereRaw('sb.id = (
+                        SELECT MAX(sb2.id)
+                        FROM student_batches sb2
+                        WHERE sb2.student_id = sb.student_id
+                    )');
+            });
+        }
+
         if ($request->has('weekday') && $request->weekday != '') {
             $weekday        = $request->weekday;
 

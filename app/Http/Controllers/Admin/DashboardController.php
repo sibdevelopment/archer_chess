@@ -533,7 +533,7 @@ class DashboardController extends Controller
         // $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                if ($occurrences->holidayForBatch($batch, $date)) {
+                if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
                     $combinedData[] = [
                         'id'              => $batch->id,
                         'name'            => $batch->name,
@@ -841,7 +841,7 @@ class DashboardController extends Controller
         $combinedData = [];
         foreach ($batches as $batch) {
             foreach ($batch->batchSchedules as $schedule) {
-                if ($occurrences->holidayForBatch($batch, $date)) {
+                if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
                     $combinedData[] = [
                         'id' => $batch->id,
                         'name' => $batch->name,
@@ -1694,7 +1694,7 @@ class DashboardController extends Controller
         }
 
         $occurrences = app(BatchOccurrenceService::class);
-        if (strtoupper($request->type) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $attendanceDate)) {
+        if (strtoupper($request->type) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $attendanceDate, $schedule)) {
             return response()->json(['error' => 'This class is blocked because of a regional holiday.'], 422);
         }
 
@@ -1919,7 +1919,7 @@ class DashboardController extends Controller
         }
 
         $occurrences = app(BatchOccurrenceService::class);
-        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $date)) {
+        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $date, $schedule)) {
             return response()->json(['error' => 'This class is blocked because of a regional holiday.'], 422);
         }
 

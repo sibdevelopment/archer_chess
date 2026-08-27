@@ -493,17 +493,8 @@
                             @if (!empty($holidays) && $holidays->isNotEmpty())
                                 @foreach ($holidays as $key => $holiday)
                                     @php
-                                        $from_date = convertTimeZomeWiseDate(
-                                            \Carbon\Carbon::parse($holiday->start_date)->format('j, M Y'),
-                                            '00:00 AM',
-                                            $student->id,
-                                        );
-
-                                        $to_date = convertTimeZomeWiseDate(
-                                            \Carbon\Carbon::parse($holiday->end_date)->format('j, M Y'),
-                                            '00:00 AM',
-                                            $student->id,
-                                        );
+                                        $from_date = \Carbon\Carbon::parse($holiday->start_date)->format('d, M Y');
+                                        $to_date = $holiday->end_date ? \Carbon\Carbon::parse($holiday->end_date)->format('d, M Y') : null;
 
                                     @endphp
                                     <div class="holiday-item">

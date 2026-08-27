@@ -74,10 +74,10 @@
                                     <div class="holiday-details row">
                                         <div class="holiday-name">{{ $holiday->name }}
                                             <div class="holiday-date">
-                                                ({{ toIndianDate($holiday->start_date) }}
+                                                ({{ \Carbon\Carbon::parse($holiday->start_date)->format('d, M Y') }}
                                                 @if ($holiday->end_date)
                                                     /
-                                                    {{ toIndianDate($holiday->end_date) }}
+                                                    {{ \Carbon\Carbon::parse($holiday->end_date)->format('d, M Y') }}
                                                 @endif)
                                             </div>
                                         </div>

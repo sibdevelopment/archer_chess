@@ -36,8 +36,8 @@
                                 class="form-select form-select-sm   pure-white"
                                 aria-label=".form-select-sm example">
                                 <option value="">Select Status</option>
-                                <option value="ACTIVE ">Active</option>
-                                <option value="INACTIVE ">Inactive</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
                             </select>
                         </div>
                         <div class="col-3 d-flex justify-content-end">
@@ -71,6 +71,9 @@
                                 </th>
                                 <th width="5%">
                                     <h6 class="fs-3 fw-semibold mb-0">end Date</h6>
+                                </th>
+                                <th width="5%">
+                                    <h6 class="fs-3 fw-semibold mb-0">Period</h6>
                                 </th>
                                 <th width="5%">
                                     <h6 class="fs-3 fw-semibold mb-0">Country</h6>
@@ -136,6 +139,7 @@
                 {data: 'name',name: 'holidays.name', orderable: false},
                 {data: 'start_date',name: 'holidays.start_date', orderable: false},
                 {data: 'end_date',name: 'holidays.end_date', orderable: false},
+                {data: 'period',name: 'period', orderable: false, searchable: false},
                 {data: 'country',name: 'holidays.country', orderable: false},
                 {data: 'description',name: 'holidays.description', orderable: false},
             ],

@@ -40,7 +40,7 @@ class BatchOccurrenceService
             ->first();
     }
 
-    public function holidayForBatch(Batch $batch, string $date): ?Holiday
+    public function holidayForBatch(Batch $batch, string $date, ?BatchSchedule $schedule = null): ?Holiday
     {
         $batchCountries = $this->normalizeCountries($batch->country ?? []);
 
@@ -55,11 +55,23 @@ class BatchOccurrenceService
                     ->orWhereDate('end_date', '>=', $date);
             })
             ->get()
-            ->first(function (Holiday $holiday) use ($batchCountries) {
+            ->first(function (Holiday $holiday) use ($batchCountries, $schedule) {
                 $holidayCountries = $this->normalizeCountries($holiday->country ?? []);
 
-                return ! empty($holidayCountries)
-                    && ! empty(array_intersect($batchCountries, $holidayCountries));
+                if (empty($holidayCountries) || empty(array_intersect($batchCountries, $holidayCountries))) {
+                    return false;
+                }
+
+                if (! $schedule) {
+                    return true;
+                }
+
+                return $this->timeRangesOverlap(
+                    $schedule->from_time,
+                    $schedule->to_time,
+                    $holiday->from_time ?: '00:00:00',
+                    $holiday->to_time ?: '23:59:00'
+                );
             });
     }
 

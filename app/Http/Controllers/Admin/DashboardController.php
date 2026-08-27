@@ -405,6 +405,9 @@ class DashboardController extends Controller
                         $q->whereDate('start_date', '>=', $todayDate);
                     });
                 })
+                ->orderBy('start_date', 'asc')
+                ->orderBy('end_date', 'asc')
+                ->orderBy('id', 'asc')
                 ->get();
         } else {
             $holidays = collect();

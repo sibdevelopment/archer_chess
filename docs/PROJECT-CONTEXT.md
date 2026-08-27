@@ -68,7 +68,7 @@ main = production branch
 - If approved leave has no coverup, the original coach gets no penalty; coach attendance is marked `ON LEAVE`, eligible student attendance is marked cancelled with approved-leave remark, and batch/student-batch/latest-fee end dates shift once to the next scheduled class day.
 - `cancel:delay-batch` skips occurrences covered by coverup or approved leave. Normal missed classes still follow late/cancel penalty logic, and cancellation remains exclusive over late.
 - Coach dashboard shows approved leave occurrences as `ON LEAVE` or `COVERED`, hides start links for those rows, and backend start/attendance endpoints reject normal starts when approved leave blocks that class.
-- Regional holidays are also handled as official no-class occurrences. If an active holiday date covers all countries on an active batch, and the batch has an active schedule within its start/end window that day, `cancel:delay-batch` marks the coach attendance `HOLIDAY`, clears delayed penalties, shifts eligible batch/student/latest-fee dates once, and coach dashboard shows `HOLIDAY` with no start link.
+- Regional holidays are also handled as official no-class occurrences. If an active holiday date/window overlaps a real active batch schedule and at least one batch country matches the holiday country list, `cancel:delay-batch` marks coach attendance `HOLIDAY`, clears delayed penalties, shifts eligible batch/student/latest-fee dates once, and coach dashboard shows `HOLIDAY` with no start link.
 
 Only tested changes should move from `development_1` to `main`.
 
@@ -859,13 +859,14 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 
 ```text
 - Holiday matching is based on batch countries/regions, not coach region.
-- If any one country/region in a batch matches an active holiday, that scheduled class is treated as HOLIDAY.
+- Holiday master stores an IST time window (`from_time`, `to_time`, `timezone`). Existing holidays default to full-day (`00:00`-`23:59`) so old records keep working.
+- If any one country/region in a batch matches an active holiday and the batch schedule overlaps the holiday time window, that scheduled class is treated as HOLIDAY.
 - Holiday classes should not create late/cancel coach penalties.
 - Multi-country batches no longer require every batch country to be present in the holiday row; one matching country is enough.
 - Coverup no-show cancellation also checks the original batch holiday before applying coverup penalties.
 - Holiday master create/edit country list is aligned with batch countries, including SOUTH AFRICA and SAUDI ARABIA.
 - HOLIDAY occurrences are hidden from coach/admin today schedule tables so no attendance action is shown. Calendars use amber only when the session already has recorded `HOLIDAY` attendance status; a holiday-master match alone must not recolor every session on that date.
-- Student dashboard upcoming holiday cards display the holiday master dates directly with `toIndianDate()`; they must not use student timezone conversion because date-only holidays can shift to the previous day for Gulf timezones.
+- Student dashboard upcoming holiday cards display the holiday master dates directly from the stored date; they must not use student timezone conversion because date-only holidays can shift to the previous day for Gulf timezones.
 ```
 
 ### Demo Leads Manage Display

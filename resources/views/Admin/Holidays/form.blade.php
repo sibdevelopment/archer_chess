@@ -22,6 +22,8 @@
             'OMAN' => 'OMAN',
             'SAUDI ARABIA' => 'SAUDI ARABIA',
         ];
+        $holidayFromTime = isset($holiday) && $holiday->from_time ? \Carbon\Carbon::parse($holiday->from_time)->format('H:i') : '00:00';
+        $holidayToTime = isset($holiday) && $holiday->to_time ? \Carbon\Carbon::parse($holiday->to_time)->format('H:i') : '23:59';
     @endphp
     <form method="POST"
         action="{{ Route::is('admin.holidays.create') ? route('admin.holidays.store') : route('admin.holidays.update', ['holiday' => $holiday->route_key]) }}"
@@ -62,6 +64,17 @@
                                 <label class="control-label col-form-label">End Date <sup class="tcul-star-restrict">*</sup></label>
                                 <input type="date" class="form-control" name="end_date" value="{{ isset($holiday) ? $holiday->end_date : '' }}" />
                                 <div id="end_date-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label class="control-label col-form-label">From Time (IST) <sup class="tcul-star-restrict">*</sup></label>
+                                <input type="time" class="form-control" name="from_time" min="00:00" max="23:59" value="{{ $holidayFromTime }}" />
+                                <div id="from_time-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label class="control-label col-form-label">To Time (IST) <sup class="tcul-star-restrict">*</sup></label>
+                                <input type="time" class="form-control" name="to_time" min="00:01" max="23:59" value="{{ $holidayToTime }}" />
+                                <input type="hidden" name="timezone" value="Asia/Kolkata" />
+                                <div id="to_time-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-12">
                                 <label class="control-label col-form-label">Description</label>

@@ -6,6 +6,7 @@ use DataTables;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Holiday;
+use Illuminate\Support\Carbon;
 
 class HolidayController extends Controller
 {
@@ -43,6 +44,9 @@ class HolidayController extends Controller
             ->editColumn('description', function ($holiday) {
                 return $holiday->description;
             })
+            ->addColumn('period', function ($holiday) {
+                return $this->formatTime($holiday->from_time ?: '00:00:00') . ' - ' . $this->formatTime($holiday->to_time ?: '23:59:00') . ' IST';
+            })
             ->editColumn('country', function ($batch) {
                 $countries = is_array($batch->country) ? implode(', ', $batch->country) : $batch->country;
                 return '<img src="/backend/dist/images/svgs/icon-connect.svg" width="20" height="20" class="" alt="" /> &nbsp; ' . $countries;
@@ -65,7 +69,7 @@ class HolidayController extends Controller
                 return $edit . '  ' . $delete;
             })
             ->addIndexColumn()
-            ->rawColumns(['name', 'date', 'description', 'country', 'action', 'status'])
+            ->rawColumns(['name', 'date', 'description', 'period', 'country', 'action', 'status'])
             ->setRowId('id')
             ->make(true);
     }
@@ -80,7 +84,7 @@ class HolidayController extends Controller
         $request->validate($this->rules, $this->customMessages);
 
         $holiday = new Holiday;
-        $holiday->fill($request->all());
+        $holiday->fill($this->holidayData($request));
         $holiday->save();
 
         return response()->json([
@@ -98,7 +102,7 @@ class HolidayController extends Controller
     public function update(Request $request, Holiday $holiday)
     {
         $request->validate($this->rules, $this->customMessages);
-        $holiday->fill($request->all());
+        $holiday->fill($this->holidayData($request));
         $holiday->save();
 
         return response()->json([
@@ -138,11 +142,34 @@ class HolidayController extends Controller
     }
 
     private $rules = [
+        'country' => 'required|array|min:1',
         'name' => 'required',
-        'start_date' => 'required',
+        'start_date' => 'required|date',
+        'end_date' => 'nullable|date|after_or_equal:start_date',
+        'from_time' => 'nullable|date_format:H:i',
+        'to_time' => 'nullable|date_format:H:i|after:from_time',
     ];
     private $customMessages = [
-        'name .required' => 'The Name is required to fill .',
-        'start_date.required' => 'The Date is required to select .',
+        'country.required' => 'Please select country.',
+        'name.required' => 'The Name is required to fill.',
+        'start_date.required' => 'The Date is required to select.',
+        'end_date.after_or_equal' => 'End date should be same or after start date.',
+        'to_time.after' => 'To time must be after from time.',
     ];
+
+    private function holidayData(Request $request): array
+    {
+        $data = $request->all();
+        $data['end_date'] = $request->input('end_date') ?: $request->input('start_date');
+        $data['from_time'] = $request->input('from_time') ?: '00:00';
+        $data['to_time'] = $request->input('to_time') ?: '23:59';
+        $data['timezone'] = $request->input('timezone') ?: 'Asia/Kolkata';
+
+        return $data;
+    }
+
+    private function formatTime(?string $time): string
+    {
+        return Carbon::parse($time ?: '00:00:00')->format('h:i A');
+    }
 }

@@ -20,7 +20,10 @@ class Holiday extends BaseModel
         'status',
         'created_by',
         'updated_by',
-        'country'
+        'country',
+        'from_time',
+        'to_time',
+        'timezone',
     ];
 
     protected $casts = [

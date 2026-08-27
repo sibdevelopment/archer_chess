@@ -70,7 +70,7 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
-            if ($occurrences->holidayForBatch($batch, $date)) {
+            if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
                 $occurrences->markHolidayOccurrence($batch, $schedule, $date);
                 $this->info("Marked HOLIDAY for batch {$schedule->batch_id}.");
                 continue;
@@ -205,7 +205,7 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
-            if ($occurrences->holidayForBatch($batch, $date)) {
+            if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
                 $occurrences->markHolidayOccurrence($batch, $schedule, $date);
                 $this->info("Marked HOLIDAY for coverup batch {$batch->id}.");
                 continue;

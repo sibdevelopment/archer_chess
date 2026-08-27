@@ -865,6 +865,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Coverup no-show cancellation also checks the original batch holiday before applying coverup penalties.
 - Holiday master create/edit country list is aligned with batch countries, including SOUTH AFRICA and SAUDI ARABIA.
 - HOLIDAY occurrences are hidden from coach/admin today schedule tables so no attendance action is shown. Calendars use amber only when the session already has recorded `HOLIDAY` attendance status; a holiday-master match alone must not recolor every session on that date.
+- Student dashboard upcoming holiday cards display the holiday master dates directly with `toIndianDate()`; they must not use student timezone conversion because date-only holidays can shift to the previous day for Gulf timezones.
 ```
 
 ### Demo Leads Manage Display

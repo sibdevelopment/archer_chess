@@ -70,6 +70,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::resource('roles', RoleController::class);
         Route::post('roles/data', [RoleController::class, 'data'])->name('roles.data');
         Route::post('roles/list', [RoleController::class, 'list'])->name('roles.list');
+        Route::post('roles/change-status', [RoleController::class, 'changeStatus'])->name('roles.change.status');
 
         // Permissions ------------------------------
         Route::get('roles/{role}/permission/show', [RoleController::class, 'permissionsShow'])->name('roles.permissions.show');

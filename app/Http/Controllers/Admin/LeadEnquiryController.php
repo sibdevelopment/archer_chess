@@ -341,7 +341,7 @@ class LeadEnquiryController extends Controller
                 $message = implode("\n", $lines);
 
 
-                $whatsappUrl = "https://api.whatsapp.com/send?phone=" . $enquiry->mobile . "&text=" . urlencode($message);
+                $whatsappUrl = "https://web.whatsapp.com/send?phone=" . $enquiry->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 return $fullName . ' ' . '<span class="d-flex justify-content-end">

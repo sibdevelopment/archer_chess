@@ -46,6 +46,7 @@ use App\Http\Controllers\Admin\PaymentLevelController;
 use App\Http\Controllers\Admin\BatchScheduleController;
 use App\Http\Controllers\Admin\GalleryImagesController;
 use App\Http\Controllers\Admin\NewEnrollmentController;
+use App\Http\Controllers\Admin\EmployeeLeaveRequestController;
 use App\Http\Controllers\Admin\StudentDashboardController;
 use App\Http\Controllers\Admin\CoachAvailabilityController;
 use Illuminate\Support\Facades\Log;
@@ -256,6 +257,11 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('leaverequests/list', [LeaveRequestController::class, 'list'])->name('leaverequests.list');
         Route::post('leaverequests/change-status', [LeaveRequestController::class, 'changeStatus'])->name('leaverequests.change.status');
         Route::post('leaverequests/get-affected-data', [LeaveRequestController::class, 'getAffectedData'])->name('leaverequests.get.affected.data');
+
+        // Employee Leave Requests ------------------------------
+        Route::resource('employeeleaverequests', EmployeeLeaveRequestController::class);
+        Route::post('employeeleaverequests/data', [EmployeeLeaveRequestController::class, 'data'])->name('employeeleaverequests.data');
+        Route::post('employeeleaverequests/change-status', [EmployeeLeaveRequestController::class, 'changeStatus'])->name('employeeleaverequests.change.status');
 
         // Feedbacks ------------------------------
         Route::resource('feedbacks', FeedbackController::class);

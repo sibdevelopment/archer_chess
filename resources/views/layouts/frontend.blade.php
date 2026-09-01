@@ -762,7 +762,7 @@
             </a>
         </div>
         <div class="tcul-floating_btn_whatsapp" style="right: 110px !important;">
-            <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
+            <a target="_blank" href="https://web.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon">
                     <i class="fab fa-whatsapp my-float"></i>
                     <h6 class="mt-2" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</h6>
@@ -782,7 +782,7 @@
             </a>
         </div>
         <div class="tcul-floating_btn_whatsapp_mobile" style="right: 5px !important;">
-            <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
+            <a target="_blank" href="https://web.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon_mobile">
                     <i class="fab fa-whatsapp my-float"></i>
                     <h6 class="mt-2" style="color: #fff;"></h6>

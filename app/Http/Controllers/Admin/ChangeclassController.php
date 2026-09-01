@@ -446,6 +446,7 @@ class ChangeclassController extends Controller
                 $student_fee->monthly_fees      = $request->fees;
                 $student_fee->total_amount_paid = $request->received_fees;
                 $student_fee->currency          = $request->currency;
+                $student_fee->remark            = $request->remark;
                 $student_fee->status            = 'ACTIVE';
                 $student_fee->save();
 

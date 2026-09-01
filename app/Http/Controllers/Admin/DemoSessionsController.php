@@ -71,7 +71,7 @@ class DemoSessionsController extends Controller
                 $zoomPassword = '';
                 $zoomLink = '';
 
-                $whatsappUrl = "https://api.whatsapp.com/send?phone=" . $demosessions->demolead->mobile . "&text=" . urlencode($demosessions->getMessage());
+                $whatsappUrl = "https://web.whatsapp.com/send?phone=" . $demosessions->demolead->mobile . "&text=" . urlencode($demosessions->getMessage());
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                 return $demosessions->demolead->first_name . ' ' . $demosessions->demolead->last_name . ' &nbsp; &nbsp; ' . $whatsappLink;
             })

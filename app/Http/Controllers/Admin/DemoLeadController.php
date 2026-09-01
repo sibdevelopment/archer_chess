@@ -141,7 +141,7 @@ class DemoLeadController extends Controller
                     . "Thanks & Regards\n"
                     . "Team Archer!";
 
-                $whatsappUrl = "https://api.whatsapp.com/send?phone=" . $demolead->mobile . "&text=" . urlencode($message);
+                $whatsappUrl = "https://web.whatsapp.com/send?phone=" . $demolead->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 if ($demolead->status == 'DEMO DONE') {
@@ -271,7 +271,7 @@ Dear Parents, Your kid is in {$levelId}. We will start with {$levelId}. For more
 Thanks & regards
 Archer Chess Academy";
 
-                $whatsappUrl = "https://api.whatsapp.com/send?phone=" . $demolead->mobile . "&text=" . urlencode($message);
+                $whatsappUrl = "https://web.whatsapp.com/send?phone=" . $demolead->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 if ($demolead->status != 'DEMO DONE') {

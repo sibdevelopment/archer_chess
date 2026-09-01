@@ -117,12 +117,14 @@ class RoleController extends Controller
         }
 
         if ($request->status === 'INACTIVE') {
-            $assignedUsersCount = $role->users()->count();
+            $assignedUsersCount = $role->users()
+                ->where('status', 'ACTIVE')
+                ->count();
 
             if ($assignedUsersCount > 0) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => "This role is assigned to {$assignedUsersCount} user(s). Please rotate/remove this role before deactivation.",
+                    'message' => "This role is assigned to {$assignedUsersCount} active user(s). Please rotate/remove this role before deactivation.",
                 ], 422);
             }
         }

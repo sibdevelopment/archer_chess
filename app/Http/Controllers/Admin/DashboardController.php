@@ -2520,7 +2520,7 @@ class DashboardController extends Controller
                 // if (isset($studentFee)) {
                 $message = $student->generateNewStudentMessage();
 
-                $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 return '<div class="d-flex justify-content-between">' . $student->student_id
@@ -2540,7 +2540,7 @@ class DashboardController extends Controller
 
                 if ($studentFee && ! $isCoach) {
                     $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                     return '<div class="d-flex justify-content-between">' . $fullName . '</div>';
                 }
@@ -2578,7 +2578,7 @@ class DashboardController extends Controller
                 // $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                 if ($studentFee) {
                     $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                 } else {
                     $whatsappLink = '';
@@ -2722,7 +2722,7 @@ class DashboardController extends Controller
             ->editColumn('address', fn($student) => $student->address)
             ->editColumn('student_id', function ($student) {
                 $message = $student->generateNewStudentMessage();
-                $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><i class="fab fa-whatsapp my-float"></i></a>';
 
                 return '<div class="d-flex justify-content-between">' . $student->student_id
@@ -2762,7 +2762,7 @@ class DashboardController extends Controller
                 // $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                 if ($studentFee) {
                     $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                 } else {
                     $whatsappLink = '';

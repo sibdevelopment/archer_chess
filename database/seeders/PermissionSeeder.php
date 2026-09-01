@@ -499,6 +499,25 @@ class PermissionSeeder extends Seeder
                 ],
             ],
         ],
+        'EmployeeLeaveRequest' => [
+            'controller' => 'Admin\EmployeeLeaveRequestController',
+            'permissions' => [
+                'employeeleaverequests-view' => [
+                    'index',
+                    'data',
+                    'show',
+                ],
+                'employeeleaverequests-store' => [
+                    'create',
+                    'store',
+                ],
+                'employeeleaverequests-update' => [
+                    'edit',
+                    'update',
+                    'changeStatus',
+                ],
+            ],
+        ],
         'Report' => [
             'controller' => 'Admin\ReportController',
             'permissions' => [
@@ -1103,6 +1122,11 @@ class PermissionSeeder extends Seeder
             'leaverequests-store',
             'leaverequests-update',
 
+            #EmployeeLeaveRequest
+            'employeeleaverequests-view',
+            'employeeleaverequests-store',
+            'employeeleaverequests-update',
+
             #Report
             'reports-view',
             'reports-store',
@@ -1216,6 +1240,11 @@ class PermissionSeeder extends Seeder
             'leaverequests-view',
             'leaverequests-store',
             'leaverequests-update',
+
+            #EmployeeLeaveRequest
+            'employeeleaverequests-view',
+            'employeeleaverequests-store',
+            'employeeleaverequests-update',
 
             #Report
             'reports-view',

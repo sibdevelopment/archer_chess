@@ -452,7 +452,7 @@
         </a>
     </div>
     <div class="tcul-floating_btn_whatsapp" style="right: 130px;">
-        <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
+        <a target="_blank" href="https://web.whatsapp.com/send?phone=9152734675&text=hii">
             <div class="tcul-contact_icon">
                 <img src="/frontend1/tcul-img/icons/whatsapp.svg" alt="">
                 <h6 class="fs-14 hide-mobile" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</h6>
@@ -460,7 +460,7 @@
         </a>
     </div>
     {{-- <div class="tcul-floating-icons">
-        <a target="_blank" href="https://wa.me/+919152734675" aria-label="Chat on WhatsApp">
+        <a target="_blank" href="https://web.whatsapp.com/send?phone=919152734675" aria-label="Chat on WhatsApp">
             <div class="tcul-contact-icon whatsapp-icon">
                 <i class="ph-bold ph-whatsapp-logo"></i>
             </div>
@@ -630,7 +630,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a target="_blank" href="https://wa.me/919152734675"
+                                    <a target="_blank" href="https://web.whatsapp.com/send?phone=919152734675"
                                         class="tw-text-xl text-black hover-text-main-600 tw-duration-300">
                                         <i class="ph-bold ph-whatsapp-logo"></i>
                                     </a>
@@ -875,7 +875,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a target="_blank" href="https://wa.me/919152734675"
+                                        <a target="_blank" href="https://web.whatsapp.com/send?phone=919152734675"
                                             class="tw-w-9 tw-h-9 bg-white text-black tw-rounded-lg hover-bg-main-600 hover-text-white tw-duration-300 tw-text-405 d-flex align-items-center justify-content-center">
                                             <i class="ph-fill ph-whatsapp-logo"></i>
                                         </a>

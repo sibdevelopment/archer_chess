@@ -56,6 +56,8 @@
                                                     <i class="ti ti-calendar-cog"></i> &nbsp;   Holiday
                                                 @elseif ($permissions_group->name === 'LeaveRequest')
                                                 <i class="ti ti-calendar"></i> &nbsp;  Leave Request
+                                                @elseif ($permissions_group->name === 'EmployeeLeaveRequest')
+                                                <i class="ti ti-calendar-user"></i> &nbsp;  Employee Leave
                                                 @elseif ($permissions_group->name === 'Report')
                                                 <i class="ti ti-note"></i> &nbsp; Coach Report
                                                 @else

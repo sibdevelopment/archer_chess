@@ -514,7 +514,7 @@
                     </div>
                     <div class="rotate-text-wrapper" data-aos="zoom-in" data-aos-duration="600"
                         data-aos-delay="300">
-                        <a target="_blank" href="https://wa.me/919152734675" class="position-relative pointer-events-auto tw-p-4">
+                        <a target="_blank" href="https://web.whatsapp.com/send?phone=919152734675" class="position-relative pointer-events-auto tw-p-4">
                             <img src="/frontend1/assets/images/shape/totate-text.png" alt="Rotate Text"
                                 class="animation-rotate-right">
                             <span class="position-absolute top-0 tw-start-0 top-50 translate-middle tw-start-50">

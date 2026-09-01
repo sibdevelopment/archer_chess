@@ -261,7 +261,7 @@ class StudentController extends Controller
             ->editColumn('student_id', function ($student) {
                 $studentFee = $student->studentFees()->orderBy('end_date', 'desc')->first();
                 $message      = $student->generateNewStudentMessage();
-                $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 return '<div class="d-flex justify-content-between">' . $student->student_id
@@ -329,7 +329,7 @@ class StudentController extends Controller
 
                 if ($studentFee && ! $isCoach) {
                     $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
                     return '<div class="d-flex justify-content-between">' . $fullName . '' . $level_name . '</div>';
                 }
@@ -397,7 +397,7 @@ class StudentController extends Controller
 
 
 
-                $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                 $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
 
                 // Conditionally include the WhatsApp link based on the user's role
@@ -407,7 +407,7 @@ class StudentController extends Controller
 
                 if ($studentFee) {
                     $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></a>';
                     return '<div class="d-flex justify-content-between">
                             <button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 student-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $student->id . '" data-id="' . $student->id . '"  data-status="' . $student->status . '">

@@ -17,5 +17,9 @@ class Employee extends BaseModel
     return $this->hasMany(\App\Models\CameraCheck::class);
 }
 
-}
+    public function leaveRequests()
+    {
+        return $this->hasMany(EmployeeLeaveRequest::class);
+    }
 
+}

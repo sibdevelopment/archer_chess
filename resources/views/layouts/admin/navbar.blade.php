@@ -179,7 +179,7 @@
             @endcan
 
 
-            @canany(['leaverequest-view', 'reports-view'])
+            @canany(['leaverequests-view', 'employeeleaverequests-view', 'reports-view'])
                 <li class="nav-small-cap mt-2">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Actions</span>
@@ -207,6 +207,18 @@
                             <i class="ti ti-calendar"></i>
                         </span>
                         <span class="hide-menu capitalize">Leave Requests</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('employeeleaverequests-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.employeeleaverequests.*')) active @endif"
+                        href="{{ route('admin.employeeleaverequests.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="ti ti-calendar-user"></i>
+                        </span>
+                        <span class="hide-menu capitalize">Employee Leave</span>
                     </a>
                 </li>
             @endcan

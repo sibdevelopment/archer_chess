@@ -15,7 +15,15 @@
                         <div class="col-6 d-flex justify-content-start">
                             <h5 class="card-title fw-semibold mb-0 lh-sm">Roles</h5>
                         </div>
-                        <div class="col-6 d-flex justify-content-end">
+                        <div class="col-3 d-flex justify-content-end">
+                            <select name="status" id="status" class="form-select form-select-sm pure-white"
+                                aria-label=".form-select-sm example">
+                                <option value="ACTIVE" selected>Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <div class="col-3 d-flex justify-content-end">
                             <a href="{{ route('admin.roles.create') }}" class="btn btn-info">
                                 Create The Roles 
                                 &nbsp;
@@ -67,6 +75,7 @@
                 type: 'POST',
                 data: function(d) {
                     d._token = $('meta[name=csrf-token]').attr('content');
+                    d.status = $('#status').val();
                 }
             },
             columns: [
@@ -84,6 +93,10 @@
         $( 
             ".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel"
         ).addClass("btn btn-primary mr-1");
+
+        $('#status').on('change', function() {
+            dataTable.ajax.reload(null, false);
+        });
 
         $(document).on('change', '.role-status-switch', function() {
             var $switch = $(this);
@@ -105,6 +118,7 @@
                             timeOut: 1500,
                             closeButton: true,
                         });
+                        dataTable.ajax.reload(null, false);
                     } else {
                         $switch.prop('checked', !$switch.is(':checked'));
                         toastr.error(response.message || 'There is some error!!');

@@ -81,6 +81,12 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
+            if (! $this->hasActiveStudentsForBatch($batchId, $date)) {
+                DelayedBatch::where($delayedBatchKey)->delete();
+                $this->info("Skipped batch {$schedule->batch_id} because no active student is eligible for this class.");
+                continue;
+            }
+
             $coachAttendanceExists = CoachAttendance::where('batch_id', $batchId)
                 ->whereDate('date', $date)
                 ->exists();
@@ -175,6 +181,16 @@ class CancelDelayBatch extends Command
         $this->markDelayedDemoSessions($now);
 
         $this->info('Batch auto-cancellation and extension completed.');
+    }
+
+    private function hasActiveStudentsForBatch(int $batchId, string $date): bool
+    {
+        return StudentBatch::where('batch_id', $batchId)
+            ->eligibleOn($date)
+            ->whereHas('student', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })
+            ->exists();
     }
 
     private function markDelayedCoverupClasses(Carbon $now, BatchOccurrenceService $occurrences): void

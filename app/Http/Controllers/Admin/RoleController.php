@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\Permission;
 use App\Models\Permissiongroup;
 use App\Models\User;
+use Spatie\Permission\PermissionRegistrar;
 use View;
 
 class RoleController extends Controller
@@ -26,6 +27,10 @@ class RoleController extends Controller
             ->editColumn('name', function ($role) {
                 return $role->name;
             }) 
+            ->editColumn('status', function ($role) {
+                $checked = $role->status === 'ACTIVE' ? 'checked' : '';
+                return '<div class="form-check form-switch"><input class="form-check-input role-status-switch" type="checkbox" '.$checked.' data-routekey="'.$role->route_key.'"/></div>';
+            })
             ->addColumn('permissions', function ($role) {
                 $permissions  = '<a href="'.route('admin.roles.permissions.show',['role' => $role->route_key]).'" class="btn btn-sm btn-info fs-1 ">Permissions &nbsp; <i class="ti ti-fingerprint"></i></a>';
                 return $permissions;
@@ -36,11 +41,13 @@ class RoleController extends Controller
                 return $edit.' '.$show;
             })   
            ->addIndexColumn()
-           ->rawColumns(['name','permissions','action'])->setRowId('id')->make(true);
+           ->rawColumns(['name','status','permissions','action'])->setRowId('id')->make(true);
     }
 
     public function list(){
-		$roles = Role::whereNotIn('name',['SuperAdmin','Admin'])->get();
+		$roles = Role::whereNotIn('name',['SuperAdmin','Admin'])
+            ->where('status', 'ACTIVE')
+            ->get();
         return response()->json([   
             'status' => 'success',
             'list' => $roles
@@ -91,6 +98,45 @@ class RoleController extends Controller
 
     public function destroy(Role $role){
         
+    }
+
+    public function changeStatus(Request $request)
+    {
+        $request->validate([
+            'route_key' => 'required',
+            'status' => 'required|in:ACTIVE,INACTIVE',
+        ]);
+
+        $role = Role::findByKey($request->route_key);
+
+        if (! $role || in_array($role->name, getSystemRoles(), true)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This role cannot be updated.',
+            ], 422);
+        }
+
+        if ($request->status === 'INACTIVE') {
+            $assignedUsersCount = $role->users()->count();
+
+            if ($assignedUsersCount > 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "This role is assigned to {$assignedUsersCount} user(s). Please rotate/remove this role before deactivation.",
+                ], 422);
+            }
+        }
+
+        $role->status = $request->status;
+        $role->save();
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $role->name.' has marked '.$role->status.' successfully',
+            'role' => $role,
+        ], 201);
     }
 
     public function permissionsShow(Role $role){

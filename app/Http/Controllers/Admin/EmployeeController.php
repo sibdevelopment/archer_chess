@@ -10,6 +10,7 @@ use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
@@ -98,13 +99,13 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $systemRoles = getSystemRoles();
-        $roles = Role::whereNotIn('name', $systemRoles)->get();
+        $roles = $this->assignableRoles();
         return view('Admin.Employees.form', compact('roles'));
     }
 
     public function store(Request $request)
     {
+        $this->rules['roles.*'] = $this->activeRoleRule();
         $request->validate($this->rules, $this->customMessages);
 
         $user = new User;
@@ -145,8 +146,7 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
-        $systemRoles = getSystemRoles();
-        $roles = Role::whereNotIn('name', $systemRoles)->get();
+        $roles = $this->assignableRoles($employee->user);
         $decrypt_password = $employee->decrypt_password;
         return View('Admin.Employees.form', compact('employee', 'roles', 'decrypt_password'));
     }
@@ -157,6 +157,7 @@ class EmployeeController extends Controller
         $this->rules['mobile'] = 'required|digits:10|unique:users,mobile,' . $employee->user->id;
         $this->rules['password'] = 'nullable|min:6';
         $this->rules['password_confirmation'] = 'nullable|same:password';
+        $this->rules['roles.*'] = $this->activeRoleRule();
 
         $request->validate($this->rules, $this->customMessages);
 
@@ -193,6 +194,31 @@ class EmployeeController extends Controller
     }
 
     public function destroy(Employee $employee) {}
+
+    private function assignableRoles(?User $user = null)
+    {
+        $systemRoles = getSystemRoles();
+        $assignedRoleNames = $user ? $user->roles()->pluck('name')->toArray() : [];
+
+        return Role::whereNotIn('name', $systemRoles)
+            ->where(function ($query) use ($assignedRoleNames) {
+                $query->where('status', 'ACTIVE');
+
+                if (! empty($assignedRoleNames)) {
+                    $query->orWhereIn('name', $assignedRoleNames);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function activeRoleRule(): array
+    {
+        return [
+            'required',
+            Rule::exists('roles', 'name')->where('status', 'ACTIVE'),
+        ];
+    }
 
     public function changeStatus(Request $request)
     {
@@ -235,6 +261,7 @@ class EmployeeController extends Controller
         'confirm_password.required' => 'Confirm Password is required',
         'confirm_password.same' => 'Confirm Password should be same as Password',
         'roles.required' => 'Roles is required',
+        'roles.*.exists' => 'Please select active roles only',
         'status.required' => 'Status is required',
     ];
 }

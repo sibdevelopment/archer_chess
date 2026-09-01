@@ -38,6 +38,9 @@
                                 <th>
                                     <h6 class="fs-3 fw-semibold mb-0">Name</h6>
                                 </th>
+                                <th width="8%">
+                                    <h6 class="fs-3 fw-semibold mb-0">Status</h6>
+                                </th>
                                 <th width="15%">
                                     <h6 class="fs-3 fw-semibold mb-0">Permissions</h6>
                                 </th>
@@ -70,6 +73,7 @@
                 {data: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'action',name: 'roles.id',searchable: false},
 				{data: 'name',name: 'roles.name'},
+                {data: 'status',name: 'roles.status',searchable: false},
 				{data: 'permissions',name: 'roles.id'},
             ],
             order: [],
@@ -77,9 +81,46 @@
                 { targets: [0], className: "text-center"},
             ],
         }); 
-        $(
+        $( 
             ".buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel"
         ).addClass("btn btn-primary mr-1");
+
+        $(document).on('change', '.role-status-switch', function() {
+            var $switch = $(this);
+            var status = $switch.is(':checked') ? 'ACTIVE' : 'INACTIVE';
+
+            $.ajax({
+                url: '{!! route('admin.roles.change.status') !!}',
+                type: 'POST',
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    route_key: $switch.data('routekey'),
+                    status: status
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        toastr.success(response.message, '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 1500,
+                            closeButton: true,
+                        });
+                    } else {
+                        $switch.prop('checked', !$switch.is(':checked'));
+                        toastr.error(response.message || 'There is some error!!');
+                    }
+                },
+                error: function(xhr) {
+                    $switch.prop('checked', !$switch.is(':checked'));
+                    toastr.error(xhr.responseJSON?.message || 'There is some error!!', '', {
+                        showMethod: "slideDown",
+                        hideMethod: "slideUp",
+                        timeOut: 2500,
+                        closeButton: true,
+                    });
+                }
+            });
+        });
     });
 </script>
 @endsection

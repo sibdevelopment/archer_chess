@@ -14,6 +14,63 @@
 //***********************************//
 $(".select2").select2();
 
+//***********************************//
+// Country multi-select: Select All
+//***********************************//
+(function () {
+  var countryMultiSelector =
+    'select[multiple][name="country[]"], select[multiple][name="countries[]"]';
+  var selectAllValue = "__select_all_countries__";
+  var isSyncing = false;
+
+  function countryValues($select) {
+    return $select
+      .find("option")
+      .filter(function () {
+        return this.value && this.value !== selectAllValue && !this.disabled;
+      })
+      .map(function () {
+        return this.value;
+      })
+      .get();
+  }
+
+  function applySelectAll($select) {
+    var selected = $select.val() || [];
+
+    if (selected.indexOf(selectAllValue) === -1) {
+      return;
+    }
+
+    isSyncing = true;
+    $select.val(countryValues($select)).trigger("change.select2");
+    isSyncing = false;
+  }
+
+  function initCountrySelectAll() {
+    $(countryMultiSelector).each(function () {
+      var $select = $(this);
+
+      if (!$select.find('option[value="' + selectAllValue + '"]').length) {
+        $select.prepend(
+          $("<option>", {
+            value: selectAllValue,
+            text: "Select All",
+          })
+        );
+      }
+
+      $select.off("change.countrySelectAll").on("change.countrySelectAll", function () {
+        if (!isSyncing) {
+          applySelectAll($(this));
+        }
+      });
+    });
+  }
+
+  initCountrySelectAll();
+})();
+
 // Single Select Placeholder
 $("#select2-with-placeholder").select2({
   placeholder: "Select a state",

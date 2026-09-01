@@ -216,7 +216,7 @@
                     <a class="sidebar-link @if (Route::is('admin.employeeleaverequests.*')) active @endif"
                         href="{{ route('admin.employeeleaverequests.index') }}" aria-expanded="false">
                         <span>
-                            <i class="ti ti-calendar-user"></i>
+                            <i class="ti ti-user-check"></i>
                         </span>
                         <span class="hide-menu capitalize">Employee Leave</span>
                     </a>

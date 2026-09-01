@@ -23,6 +23,10 @@ class RoleController extends Controller
         $query = Role::whereNotIn('name', $systemRoles);
         // $query = Role::where('id','!=',0);
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         return DataTables::eloquent($query)
             ->editColumn('name', function ($role) {
                 return $role->name;

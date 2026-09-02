@@ -69,10 +69,10 @@
                 },
                 columns: [
                     {data: 'DT_RowIndex',orderable: false,searchable: false},
-                    {data: 'action',name: 'meetourkids.id',searchable: false},
-                    {data: 'status',name: 'meetourkids.id',searchable: false},
-                    {data: 'title', name: 'meetourkids.title'}, 
-                    {data: 'image', name: 'meetourkids.image',
+                    {data: 'action',name: 'meet_our_kids.id',searchable: false},
+                    {data: 'status',name: 'meet_our_kids.id',searchable: false},
+                    {data: 'title', name: 'meet_our_kids.title'}, 
+                    {data: 'image', name: 'meet_our_kids.image',
                     render: function(data) {
                             var imageUrl = '{{ asset(Storage::url(':filename')) }}';
                             return '<img src="' + imageUrl.replace(':filename', data) +

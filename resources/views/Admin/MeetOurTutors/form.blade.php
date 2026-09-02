@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('title')
-    Meet Our Kids
+    Meet Our Tutors
 @endsection
 @section('content')
     <form method="POST"
@@ -12,7 +12,7 @@
             <div class="col-lg-12 d-flex align-items-stretch">
                 <div class="card w-100">
                     <div class="card-header">
-                        <h5> {{ Route::is('admin.meet-our-tutors.create') ? 'Create' : 'Edit' }} Meet Our Kid </h5>
+                        <h5> {{ Route::is('admin.meet-our-tutors.create') ? 'Create' : 'Edit' }} Meet Our Tutor </h5>
                     </div>
                     <div class="card-body border-top">
                         <div class="row">

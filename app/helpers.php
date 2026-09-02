@@ -728,10 +728,10 @@ function getTimezones()
             'Singapore Standard Time' => 'Singapore Standard Time',
         ],
         'MALAYSIA'   => [
-            'Singapore Standard Time' => 'Singapore Standard Time',
+            'Malaysia Time' => 'Malaysia Time',
         ],
         'HONG KONG'   => [
-            'Singapore Standard Time' => 'Singapore Standard Time',
+            'Hong Kong Standard Time' => 'Hong Kong Standard Time',
         ],
 
         'QATAR'   => [
@@ -791,6 +791,8 @@ function convertTimeZoneString($timeZoneString)
         'Indian Standard Time'          => 'Asia/Kolkata',
         'Gulf Standard Time'            => 'Asia/Dubai',
         'Singapore Standard Time'       => 'Asia/Singapore',
+        'Malaysia Time'                 => 'Asia/Kuala_Lumpur',
+        'Hong Kong Standard Time'       => 'Asia/Hong_Kong',
         'South Africa Standard Time'    => 'Africa/Johannesburg',
         'Arabian Standard Time'         => 'Asia/Qatar',
 
@@ -995,8 +997,8 @@ if (!function_exists('convertToStudentLocalTime')) {
             '+61'  => 'Australia/Sydney',
             '+64'  => 'Pacific/Auckland',
             '+65'  => 'Asia/Singapore',
-            '+60'  => 'Asia/Singapore',
-            '+852' => 'Asia/Singapore',
+            '+60'  => 'Asia/Kuala_Lumpur',
+            '+852' => 'Asia/Hong_Kong',
             '+974' => 'Asia/Qatar',
             '+973' => 'Asia/Bahrain',
             '+965' => 'Asia/Kuwait',

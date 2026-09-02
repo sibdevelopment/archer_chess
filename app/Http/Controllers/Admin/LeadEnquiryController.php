@@ -25,7 +25,7 @@ class LeadEnquiryController extends Controller
 
         // Allowed countries (reuse your existing logic if needed)
         $allCountries = [
-            'USA','CANADA','AUSTRALIA','NEWZEALAND','INDIA','UAE','UK','SINGAPORE','SOUTH AFRICA','QATAR','BAHRAIN','KUWAIT','EUROPEAN UNION','OMAN','SAUDI ARABIA'
+            'USA','CANADA','AUSTRALIA','NEWZEALAND','INDIA','UAE','UK','SINGAPORE','MALAYSIA','HONG KONG','SOUTH AFRICA','QATAR','BAHRAIN','KUWAIT','EUROPEAN UNION','OMAN','SAUDI ARABIA'
         ];
 
         // return a tiny blade partial rendered as string

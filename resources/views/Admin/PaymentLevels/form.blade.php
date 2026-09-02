@@ -121,6 +121,20 @@
                                 <div id="singapore_fees-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">MALAYSIA (MYR)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees"
+                                    name="malaysia_fees" id="malaysia_fees"
+                                    value="{{ old('malaysia_fees', isset($paymentlevel) ? $paymentlevel->malaysia_fees : '') }}" />
+                                <div id="malaysia_fees-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-4">
+                                <label for="fees" class="control-label col-form-label">HONG KONG (HKD)*</label>
+                                <input type="number" class="form-control" placeholder="Enter Fees"
+                                    name="hong_kong_fees" id="hong_kong_fees"
+                                    value="{{ old('hong_kong_fees', isset($paymentlevel) ? $paymentlevel->hong_kong_fees : '') }}" />
+                                <div id="hong_kong_fees-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-4">
                                 <label for="fees" class="control-label col-form-label">EUROPEAN UNION (EUR)*</label>
                                 <input type="number" class="form-control" placeholder="Enter Fees"
                                     name="european_union_fees" id="european_union_fees"

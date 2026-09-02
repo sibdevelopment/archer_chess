@@ -123,6 +123,14 @@
                                             {{ isset($batch) && in_array('SINGAPORE', $batch->country ?? []) ? 'selected' : '' }}>
                                             SINGAPORE
                                         </option>
+                                        <option value="MALAYSIA"
+                                            {{ isset($batch) && in_array('MALAYSIA', $batch->country ?? []) ? 'selected' : '' }}>
+                                            MALAYSIA
+                                        </option>
+                                        <option value="HONG KONG"
+                                            {{ isset($batch) && in_array('HONG KONG', $batch->country ?? []) ? 'selected' : '' }}>
+                                            HONG KONG
+                                        </option>
                                         <option value="SOUTH AFRICA"
                                             {{ isset($batch) && in_array('SOUTH AFRICA', $batch->country ?? []) ? 'selected' : '' }}>
                                             SOUTH AFRICA

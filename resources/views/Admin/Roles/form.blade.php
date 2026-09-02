@@ -30,6 +30,8 @@
                                 <option value="UAE" {{ (isset($role) && in_array('UAE', $role->countries ?? [])) ? 'selected' : '' }}>UAE</option>
                                 <option value="UK" {{ (isset($role) && in_array('UK', $role->countries ?? [])) ? 'selected' : '' }}>UK</option>
                                 <option value="SINGAPORE" {{ (isset($role) && in_array('SINGAPORE', $role->countries ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
+                                <option value="MALAYSIA" {{ (isset($role) && in_array('MALAYSIA', $role->countries ?? [])) ? 'selected' : '' }}>MALAYSIA</option>
+                                <option value="HONG KONG" {{ (isset($role) && in_array('HONG KONG', $role->countries ?? [])) ? 'selected' : '' }}>HONG KONG</option>
                                 <option value="SOUTH AFRICA" {{ (isset($role) && in_array('SOUTH AFRICA', $role->countries ?? [])) ? 'selected' : '' }}>SOUTH AFRICA</option>
                                 <option value="QATAR" {{ (isset($role) && in_array('QATAR', $role->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
                                 <option value="BAHRAIN" {{ (isset($role) && in_array('BAHRAIN', $role->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>

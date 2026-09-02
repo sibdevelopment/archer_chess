@@ -65,6 +65,12 @@
                                         <option value="SINGAPORE"
                                             {{ in_array('SINGAPORE', $selectedCountries) ? 'selected' : '' }}>SINGAPORE
                                         </option>
+                                        <option value="MALAYSIA"
+                                            {{ in_array('MALAYSIA', $selectedCountries) ? 'selected' : '' }}>MALAYSIA
+                                        </option>
+                                        <option value="HONG KONG"
+                                            {{ in_array('HONG KONG', $selectedCountries) ? 'selected' : '' }}>HONG KONG
+                                        </option>
                                         <option value="SOUTH AFRICA"
                                             {{ in_array('SOUTH AFRICA', $selectedCountries) ? 'selected' : '' }}>SOUTH
                                             AFRICA

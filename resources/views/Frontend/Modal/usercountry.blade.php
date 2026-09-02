@@ -46,6 +46,8 @@
                             <option value="INDIA" @if ($country == 'INDIA') selected @endif>INDIA</option>
                             <option value="NEWZEALAND" @if ($country == 'NEWZEALAND') selected @endif>NEW ZEALAND</option>
                             <option value="SINGAPORE" @if ($country == 'SINGAPORE') selected @endif>SINGAPORE</option>
+                            <option value="MALAYSIA" @if ($country == 'MALAYSIA') selected @endif>MALAYSIA</option>
+                            <option value="HONG KONG" @if ($country == 'HONG KONG') selected @endif>HONG KONG</option>
                             <option value="UAE" @if ($country == 'UAE') selected @endif>UAE</option>
                             <option value="UK" @if ($country == 'UK') selected @endif>UK</option>   
                             <option value="USA" @if ($country == 'USA') selected @endif>USA</option>

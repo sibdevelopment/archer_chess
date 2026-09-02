@@ -168,6 +168,8 @@
                                     <option value="UAE">UAE</option>
                                     <option value="UK">UK</option>
                                     <option value="Singapore">Singapore</option>
+                                    <option value="Malaysia">Malaysia</option>
+                                    <option value="Hong Kong">Hong Kong</option>
                                     <option value="South Africa">South Africa</option>
                                     <option value="Qatar">Qatar</option>
                                     <option value="Bahrain">Bahrain</option>

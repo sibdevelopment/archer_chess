@@ -30,6 +30,8 @@
                         <option value="UAE">UAE</option>
                         <option value="UK">UK</option>
                         <option value="SINGAPORE">SINGAPORE</option>
+                                        <option value="MALAYSIA">MALAYSIA</option>
+                                        <option value="HONG KONG">HONG KONG</option>
                         <option value="SOUTH AFRICA">SOUTH AFRICA</option>
                         <option value="EUROPEAN UNION">EUROPEAN UNION</option>
                         <option value="QATAR">QATAR</option>
@@ -162,6 +164,8 @@
                                     <option value="UAE">UAE</option>
                                     <option value="UK">UK</option>
                                     <option value="SINGAPORE">SINGAPORE</option>
+                                        <option value="MALAYSIA">MALAYSIA</option>
+                                        <option value="HONG KONG">HONG KONG</option>
                                     <option value="SOUTH AFRICA">SOUTH AFRICA</option>
                                 </select>
                             </div>
@@ -199,6 +203,8 @@
                                     <option value="UAE">UAE</option>
                                     <option value="UK">UK</option>
                                     <option value="SINGAPORE">SINGAPORE</option>
+                                        <option value="MALAYSIA">MALAYSIA</option>
+                                        <option value="HONG KONG">HONG KONG</option>
                                     <option value="SOUTH AFRICA">SOUTH AFRICA</option>
                                 </select>
                             </div>

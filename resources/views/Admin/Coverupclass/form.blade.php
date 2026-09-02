@@ -28,6 +28,8 @@
                                     <option value="UAE" {{ (isset($holiday) && in_array('UAE', $holiday->country ?? [])) ? 'selected' : '' }}>UAE</option>
                                     <option value="UK" {{ (isset($holiday) && in_array('UK', $holiday->country ?? [])) ? 'selected' : '' }}>UK</option>
                                     <option value="SINGAPORE" {{ (isset($holiday) && in_array('SINGAPORE', $holiday->country ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
+                                    <option value="MALAYSIA" {{ (isset($holiday) && in_array('MALAYSIA', $holiday->country ?? [])) ? 'selected' : '' }}>MALAYSIA</option>
+                                    <option value="HONG KONG" {{ (isset($holiday) && in_array('HONG KONG', $holiday->country ?? [])) ? 'selected' : '' }}>HONG KONG</option>
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>

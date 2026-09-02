@@ -322,6 +322,10 @@
                                                             @elseif($country_slug === 'uae')
                                                                 <option value="UAE">UAE</option>
                                                                 <option value="OMAN">OMAN</option>
+                                                            @elseif($country_slug === 'singapore')
+                                                                <option value="SINGAPORE">Singapore</option>
+                                                                <option value="MALAYSIA">Malaysia</option>
+                                                                <option value="HONG KONG">Hong Kong</option>
                                                             @else
                                                                 <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
                                                             @endif
@@ -1568,6 +1572,10 @@
                                                 @elseif($country_slug === 'uae')
                                                     <option value="UAE">UAE</option>
                                                     <option value="OMAN">OMAN</option>
+                                                @elseif($country_slug === 'singapore')
+                                                    <option value="SINGAPORE">Singapore</option>
+                                                    <option value="MALAYSIA">Malaysia</option>
+                                                    <option value="HONG KONG">Hong Kong</option>
                                                 @else
                                                     <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
                                                 @endif
@@ -1851,6 +1859,8 @@
                 'UAE': 'ae',
                 'UK': 'gb',
                 'SINGAPORE': 'sg',
+                'MALAYSIA': 'my',
+                'HONG KONG': 'hk',
                 'SOUTH AFRICA': 'za',
                 'QATAR': 'qa',
                 'BAHRAIN': 'bh',

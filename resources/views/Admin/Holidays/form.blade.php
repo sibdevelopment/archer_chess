@@ -14,6 +14,8 @@
             'UAE' => 'UAE',
             'UK' => 'UK',
             'SINGAPORE' => 'SINGAPORE',
+            'MALAYSIA' => 'MALAYSIA',
+            'HONG KONG' => 'HONG KONG',
             'SOUTH AFRICA' => 'SOUTH AFRICA',
             'QATAR' => 'QATAR',
             'BAHRAIN' => 'BAHRAIN',

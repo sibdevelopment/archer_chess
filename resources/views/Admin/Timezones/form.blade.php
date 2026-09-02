@@ -74,6 +74,12 @@
                                     <option value="SINGAPORE"
                                         {{ isset($timezone) && $timezone->country == 'SINGAPORE' ? 'selected' : '' }}>
                                         SINGAPORE</option>
+                                    <option value="MALAYSIA"
+                                        {{ isset($timezone) && $timezone->country == 'MALAYSIA' ? 'selected' : '' }}>
+                                        MALAYSIA</option>
+                                    <option value="HONG KONG"
+                                        {{ isset($timezone) && $timezone->country == 'HONG KONG' ? 'selected' : '' }}>
+                                        HONG KONG</option>
                                         <option value="QATAR" {{ (isset($timezone) && in_array('QATAR', $timezone->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
                                         <option value="BAHRAIN" {{ (isset($timezone) && in_array('BAHRAIN', $timezone->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
                                         <option value="KUWAIT" {{ (isset($timezone) && in_array('KUWAIT', $timezone->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>    

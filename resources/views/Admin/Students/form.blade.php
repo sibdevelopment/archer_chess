@@ -123,6 +123,12 @@
                                         <option value="SINGAPORE"
                                             {{ isset($student) && $student->country == 'SINGAPORE' ? 'selected' : '' }}>
                                             SINGAPORE</option>
+                                        <option value="MALAYSIA"
+                                            {{ isset($student) && $student->country == 'MALAYSIA' ? 'selected' : '' }}>
+                                            MALAYSIA</option>
+                                        <option value="HONG KONG"
+                                            {{ isset($student) && $student->country == 'HONG KONG' ? 'selected' : '' }}>
+                                            HONG KONG</option>
                                         <option value="SOUTH AFRICA"
                                             {{ isset($student) && $student->country == 'SOUTH AFRICA' ? 'selected' : '' }}>
                                             SOUTH AFRICA</option>

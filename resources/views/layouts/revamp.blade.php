@@ -1232,6 +1232,8 @@
                                     <option value="UAE">UAE</option>
                                     <option value="UK">UK</option>
                                     <option value="SINGAPORE">Singapore</option>
+                                    <option value="MALAYSIA">Malaysia</option>
+                                    <option value="HONG KONG">Hong Kong</option>
                                     <option value="SOUTH AFRICA">South Africa</option>
                                     <option value="QATAR">Qatar</option>
                                     <option value="EUROPEAN UNION">European Union</option>
@@ -1809,6 +1811,8 @@
                 'UAE': ['Gulf Standard Time'],
                 'UK': ['British Summer Time', 'Greenwich Mean Time'],
                 'SINGAPORE': ['Singapore Standard Time'],
+                'MALAYSIA': ['Singapore Standard Time'],
+                'HONG KONG': ['Singapore Standard Time'],
                 'SOUTH AFRICA': ['South Africa Standard Time'],
                 'QATAR': ['Arabian Standard Time'],
                 'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
@@ -1827,6 +1831,8 @@
                 'UAE': '+971',
                 'UK': '+44',
                 'SINGAPORE': '+65',
+                'MALAYSIA': '+60',
+                'HONG KONG': '+852',
                 'SOUTH AFRICA': '+27',
                 'QATAR': '+974',
                 'EUROPEAN UNION': '+358',

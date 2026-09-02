@@ -57,6 +57,8 @@
                                         <th width="5%">UK</th>
                                         <th width="5%">QAT</th>
                                         <th width="5%">SGP</th>
+                                        <th width="5%">MY</th>
+                                        <th width="5%">HK</th>
                                         <th width="5%">EU</th>
                                         <th width="5%">OMN</th>
                                         <th width="5%">KWT</th>
@@ -160,6 +162,16 @@
                     {
                         data: 'singapore_fees',
                         name: 'singapore_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'malaysia_fees',
+                        name: 'malaysia_fees',
+                        orderable: false
+                    },
+                    {
+                        data: 'hong_kong_fees',
+                        name: 'hong_kong_fees',
                         orderable: false
                     },
                     {

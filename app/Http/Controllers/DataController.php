@@ -452,6 +452,9 @@ class DataController extends Controller
             'usa'             => 'USA',
             'canada'          => 'Canada',
             'singapore'       => 'Singapore',
+            'malaysia'        => 'Malaysia',
+            'hong-kong'       => 'Hong Kong',
+            'honkong'         => 'Hong Kong',
             'united-kingdom'  => 'United Kingdom',
             'uae'             => 'UAE',
             'australia'       => 'Australia',
@@ -477,7 +480,11 @@ class DataController extends Controller
             ->select('timezone')
             ->distinct()
             ->orderBy('timezone')
-            ->get();
+            ->pluck('timezone');
+
+        if ($timezones->isEmpty() && in_array($countrySlug, ['malaysia', 'hong-kong', 'honkong'], true)) {
+            $timezones = collect(['Singapore Standard Time']);
+        }
 
         return view('Frontend.country', [
             'country'      => $countryDisplay,

@@ -1535,6 +1535,8 @@
                                         <option value="UAE">UAE</option>
                                         <option value="UK">UK</option>
                                         <option value="SINGAPORE">Singapore</option>
+                                        <option value="MALAYSIA">Malaysia</option>
+                                        <option value="HONG KONG">Hong Kong</option>
                                         <option value="SOUTH AFRICA">South Africa</option>
                                         <option value="QATAR">Qatar</option>
                                         <option value="EUROPEAN UNION">European Union</option>

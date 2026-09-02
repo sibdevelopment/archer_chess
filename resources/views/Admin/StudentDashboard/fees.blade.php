@@ -130,6 +130,8 @@
                 'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
                 'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
                 'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
+                'MALAYSIA' => ['column' => 'malaysia_fees', 'currency' => 'MYR'],
+                'HONG KONG' => ['column' => 'hong_kong_fees', 'currency' => 'HKD'],
                 'SOUTH AFRICA' => ['column' => 'south_africa_fees', 'currency' => 'ZAR'],
                 'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
                 'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],

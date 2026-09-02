@@ -98,6 +98,8 @@
                         <option>UAE</option>
                         <option>UK</option>
                         <option>SINGAPORE</option>
+                                                <option value="MALAYSIA">MALAYSIA</option>
+                                                <option value="HONG KONG">HONG KONG</option>
                         <option>SOUTH AFRICA</option>
                         <option>QATAR</option>
                         <option>BAHRAIN</option>
@@ -341,6 +343,8 @@
             'INDIA': ['Indian Standard Time'],
             'UAE': ['Gulf Standard Time'],
             'SINGAPORE': ['Singapore Standard Time'],
+            'MALAYSIA': ['Singapore Standard Time'],
+            'HONG KONG': ['Singapore Standard Time'],
             'SOUTH AFRICA': ['South Africa Standard Time'],
             'QATAR': ['Arabian Standard Time'],
             'BAHRAIN': ['Arabian Standard Time'],
@@ -353,7 +357,7 @@
             $timezone.empty();
 
             if (timezones[country]) {
-                if (['INDIA', 'UAE', 'SINGAPORE'].includes(country) && timezones[country].length === 1) {
+                if (['INDIA', 'UAE', 'SINGAPORE', 'MALAYSIA', 'HONG KONG'].includes(country) && timezones[country].length === 1) {
                     $timezone.append(
                         `<option value="${timezones[country][0]}" selected>${timezones[country][0]}</option>`
                     );

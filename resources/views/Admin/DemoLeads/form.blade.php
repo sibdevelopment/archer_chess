@@ -81,6 +81,8 @@
                                     <option value="UAE" {{ (isset($demolead) && strtoupper($demolead->country) == 'UAE') ? 'selected' : '' }}>UAE</option>
                                     <option value="UK" {{ (isset($demolead) && strtoupper($demolead->country) == 'UK') ? 'selected' : '' }}>UK</option>
                                     <option value="SINGAPORE" {{ (isset($demolead) && strtoupper($demolead->country) == 'SINGAPORE') ? 'selected' : '' }}>SINGAPORE</option>
+                                    <option value="MALAYSIA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'MALAYSIA') ? 'selected' : '' }}>MALAYSIA</option>
+                                    <option value="HONG KONG" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'HONG KONG') ? 'selected' : '' }}>HONG KONG</option>
                                     <option value="SOUTH AFRICA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'SOUTH AFRICA') ? 'selected' : '' }}>SOUTH AFRICA</option>
                                     <option value="QATAR" {{ (isset($demolead) && strtoupper($demolead->country) == 'QATAR') ? 'selected' : '' }}>QATAR</option>
                                     <option value="BAHRAIN" {{ (isset($demolead) && strtoupper($demolead->country) == 'BAHRAIN') ? 'selected' : '' }}>BAHRAIN</option>

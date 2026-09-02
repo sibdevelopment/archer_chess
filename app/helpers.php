@@ -581,6 +581,11 @@ function normalizeCountryValue($country): string
         'UK' => 'UK',
         'UNITEDKINGDOM' => 'UK',
         'SINGAPORE' => 'SINGAPORE',
+        'MALAYSIA' => 'MALAYSIA',
+        'MALASIA' => 'MALAYSIA',
+        'HONGKONG' => 'HONG KONG',
+        'HONGKONGSAR' => 'HONG KONG',
+        'HONGKONGSARCHINA' => 'HONG KONG',
         'SOUTHAFRICA' => 'SOUTH AFRICA',
         'QATAR' => 'QATAR',
         'BAHRAIN' => 'BAHRAIN',
@@ -626,6 +631,8 @@ function countryComparisonValues($country): array
         'SOUTH AFRICA' => ['SOUTHAFRICA', 'South Africa'],
         'SAUDI ARABIA' => ['SAUDIARABIA', 'Saudi Arabia', 'KSA'],
         'EUROPEAN UNION' => ['EUROPEANUNION', 'European Union'],
+        'HONG KONG' => ['HONGKONG', 'Hong Kong'],
+        'MALAYSIA' => ['MALASIA', 'Malaysia'],
     ];
 
     return collect(array_merge($values, $aliases[$canonical] ?? []))
@@ -653,6 +660,8 @@ function availableCurrencyCodes(): array
         'AED',
         'GBP',
         'SGD',
+        'MYR',
+        'HKD',
         'ZAR',
         'QAR',
         'EUR',
@@ -716,6 +725,12 @@ function getTimezones()
             'Gulf Standard Time' => 'Gulf Standard Time',
         ],
         'SINGAPORE'   => [
+            'Singapore Standard Time' => 'Singapore Standard Time',
+        ],
+        'MALAYSIA'   => [
+            'Singapore Standard Time' => 'Singapore Standard Time',
+        ],
+        'HONG KONG'   => [
             'Singapore Standard Time' => 'Singapore Standard Time',
         ],
 
@@ -960,6 +975,8 @@ if (!function_exists('convertToStudentLocalTime')) {
             'INDIA'       => '+91',
             'NEWZEALAND'  => '+64',
             'SINGAPORE'   => '+65',
+            'MALAYSIA'    => '+60',
+            'HONG KONG'   => '+852',
             'UAE'         => '+971',
             'UK'          => '+44',
             'USA'         => '+1',
@@ -978,6 +995,8 @@ if (!function_exists('convertToStudentLocalTime')) {
             '+61'  => 'Australia/Sydney',
             '+64'  => 'Pacific/Auckland',
             '+65'  => 'Asia/Singapore',
+            '+60'  => 'Asia/Singapore',
+            '+852' => 'Asia/Singapore',
             '+974' => 'Asia/Qatar',
             '+973' => 'Asia/Bahrain',
             '+965' => 'Asia/Kuwait',
@@ -1032,6 +1051,7 @@ if (!function_exists('convertToKidsTime')) {
             'SOUTHAFRICA' => 'Africa/Johannesburg',
             'MALAYSIA'    => 'Asia/Kuala_Lumpur',
             'PHILIPPINES' => 'Asia/Manila',
+            'HONG KONG'   => 'Asia/Hong_Kong',
             'HONGKONG'    => 'Asia/Hong_Kong',
             'JAPAN'       => 'Asia/Tokyo',
             'CHINA'       => 'Asia/Shanghai',

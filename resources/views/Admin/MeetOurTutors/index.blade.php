@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('title')
-    Meet Our Kids
+    Meet Our Tutors
 @endsection
 @section('content')
 <section>
@@ -10,7 +10,7 @@
                     <div class="card-header px-4 py-3 border-bottom">
                         <div class="row">
                             <div class="col-7 d-flex justify-content-start">
-                                <h5 class="card-title fw-semibold mb-0 lh-sm">Meet Our Kids</h5>
+                                <h5 class="card-title fw-semibold mb-0 lh-sm">Meet Our Tutors</h5>
                             </div>
                             <div class="col-5 d-flex justify-content-end">
                                 <a href="{{ route('admin.meet-our-tutors.create') }}" class="btn btn-info">
@@ -75,12 +75,12 @@
                 },
                 columns: [
                     {data: 'DT_RowIndex',orderable: false,searchable: false},
-                    {data: 'action',name: 'meetourtutors.id',searchable: false, orderable: false,},
-                    {data: 'status',name: 'meetourtutors.id',searchable: false, orderable: false,},
-                    {data: 'name', name: 'meetourtutors.name', orderable: false, searchable: true}, 
-                    {data: 'designation', name: 'meetourtutors.designation', orderable: false, searchable: true},
-                    {data: 'rating', name: 'meetourtutors.rating', orderable: false, searchable: true},
-                    {data: 'image', name: 'meetourtutors.image',
+                    {data: 'action',name: 'meet_our_tutors.id',searchable: false, orderable: false,},
+                    {data: 'status',name: 'meet_our_tutors.id',searchable: false, orderable: false,},
+                    {data: 'name', name: 'meet_our_tutors.name', orderable: false, searchable: true}, 
+                    {data: 'designation', name: 'meet_our_tutors.designation', orderable: false, searchable: true},
+                    {data: 'rating', name: 'meet_our_tutors.rating', orderable: false, searchable: true},
+                    {data: 'image', name: 'meet_our_tutors.image',
                     render: function(data) {
                             var imageUrl = '{{ asset(Storage::url(':filename')) }}';
                             return '<img src="' + imageUrl.replace(':filename', data) +

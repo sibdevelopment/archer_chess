@@ -1831,7 +1831,7 @@
                    $('#confirmbooking-form #age').val($('.step1 #age').val());
                    $('#confirmbooking-form #email').val($('.step1 #email').val());
                    $('#confirmbooking-form #phone').val($('.step1 #mobile').val());
-                   $('#confirmbooking-form #country').val($('.step1 #country').val());
+                   $('#confirmbooking-form #country').val($('.step1 #country').val()).trigger('change');
                    $('#confirmbooking-form #city').val($('.step1 #city').val());
 
                    // Scroll to Form 2
@@ -1867,6 +1867,41 @@
                 'KUWAIT': 'kw',
                 'SAUDI ARABIA': 'sa'
             };
+
+            const countryPageTimezones = {
+                'SINGAPORE': ['Singapore Standard Time'],
+                'MALAYSIA': ['Malaysia Time'],
+                'HONG KONG': ['Hong Kong Standard Time']
+            };
+
+            function syncCountryPageTimezone($form) {
+                const country = $form.find('select[name="country"]').val();
+                const timezones = countryPageTimezones[country];
+
+                if (!timezones) {
+                    return;
+                }
+
+                $form.find('select[name="timezone"], select.timezone').each(function() {
+                    const $timezone = $(this);
+                    $timezone.empty();
+                    timezones.forEach(function(timezone) {
+                        $timezone.append($('<option>', {
+                            value: timezone,
+                            text: timezone
+                        }));
+                    });
+                    $timezone.val(timezones[0]);
+                });
+            }
+
+            $('form').each(function() {
+                syncCountryPageTimezone($(this));
+            });
+
+            $(document).on('change', 'select[name="country"]', function() {
+                syncCountryPageTimezone($(this).closest('form'));
+            });
 
             // init intl-tel-input on popup field
             const popupInput = document.querySelector('#mobilePopup');

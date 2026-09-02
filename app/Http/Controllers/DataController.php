@@ -482,8 +482,12 @@ class DataController extends Controller
             ->orderBy('timezone')
             ->pluck('timezone');
 
-        if ($timezones->isEmpty() && in_array($countrySlug, ['malaysia', 'hong-kong', 'honkong'], true)) {
-            $timezones = collect(['Singapore Standard Time']);
+        if ($timezones->isEmpty() && $countrySlug === 'malaysia') {
+            $timezones = collect(['Malaysia Time']);
+        }
+
+        if ($timezones->isEmpty() && in_array($countrySlug, ['hong-kong', 'honkong'], true)) {
+            $timezones = collect(['Hong Kong Standard Time']);
         }
 
         return view('Frontend.country', [

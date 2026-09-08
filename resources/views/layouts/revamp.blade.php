@@ -1190,6 +1190,8 @@
                 <div class="modal-body">
                     <form class="revamp-trial-form" method="POST" action="{{ route('confirm.trial.class') }}">
                         @csrf
+                        <input type="hidden" name="utm_source" value="">
+                        <input type="hidden" name="utm_medium" value="">
                         <input type="hidden" name="country_code" class="revamp-country-code" value="+91">
                         <input type="hidden" name="duration" value="25_minutes">
                         <div class="row g-3">
@@ -1850,6 +1852,19 @@
             $('.revamp-trial-form').each(function () {
                 syncCountryFields($(this));
             });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const utmSource = urlParams.get('utm_source') || sessionStorage.getItem('utm_source');
+            const utmMedium = urlParams.get('utm_medium') || sessionStorage.getItem('utm_medium');
+
+            if (utmSource) {
+                sessionStorage.setItem('utm_source', utmSource);
+                $('input[name="utm_source"]').val(utmSource);
+            }
+            if (utmMedium) {
+                sessionStorage.setItem('utm_medium', utmMedium);
+                $('input[name="utm_medium"]').val(utmMedium);
+            }
 
             $(document).on('change', '.revamp-country', function () {
                 syncCountryFields($(this).closest('form'));

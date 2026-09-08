@@ -275,6 +275,8 @@
                                <div class="formBody">
                                    <form method="POST" enctype="multipart/form-data" autocomplete="off" id="confirmbooking-form-header">
                                         @csrf
+                                       <input type="hidden" name="utm_source" value="">
+                                       <input type="hidden" name="utm_medium" value="">
                                        <div class="step1"> 
                                            <div class="row">
                                                 <div class="col-lg-6 pe-lg-2">
@@ -1526,6 +1528,8 @@
                            <form class="p-3" method="POST" enctype="multipart/form-data" autocomplete="off"
                                id="confirmbooking-form">
                                @csrf
+                               <input type="hidden" name="utm_source" value="">
+                               <input type="hidden" name="utm_medium" value="">
                                <div class="row">
                                    <div class="col-lg-6 pe-lg-2">
                                        <div class="itemForm my-0">
@@ -1916,6 +1920,19 @@
             $('#mobilePopup').on('input', function() {
                 this.value = this.value.replace(/[^\d\s()+-]/g, '');
             })
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const utmSource = urlParams.get('utm_source') || sessionStorage.getItem('utm_source');
+            const utmMedium = urlParams.get('utm_medium') || sessionStorage.getItem('utm_medium');
+
+            if (utmSource) {
+                sessionStorage.setItem('utm_source', utmSource);
+                $('input[name="utm_source"]').val(utmSource);
+            }
+            if (utmMedium) {
+                sessionStorage.setItem('utm_medium', utmMedium);
+                $('input[name="utm_medium"]').val(utmMedium);
+            }
 
             $('#confirmbooking-form-header').submit(function(e) {
                e.preventDefault();

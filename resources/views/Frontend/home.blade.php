@@ -1601,6 +1601,8 @@
                             <form method="POST" enctype="multipart/form-data" autocomplete="off"
                                 id="confirmbooking-form">
                                 @csrf
+                                <input type="hidden" id="utm_source" name="utm_source" value="">
+                                <input type="hidden" id="utm_medium" name="utm_medium" value="">
                                 <div class="row">
                                     <!-- Country -->
                                     <div class="col-md-6">
@@ -2447,15 +2449,17 @@
         $(document).ready(function() {
             // Extract utm_source and utm_medium from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const utmSource = urlParams.get('utm_source');
-            const utmMedium = urlParams.get('utm_medium');
+            const utmSource = urlParams.get('utm_source') || sessionStorage.getItem('utm_source');
+            const utmMedium = urlParams.get('utm_medium') || sessionStorage.getItem('utm_medium');
 
 
             if (utmSource) {
-                $('#utm_source').val(utmSource);
+                sessionStorage.setItem('utm_source', utmSource);
+                $('input[name="utm_source"]').val(utmSource);
             }
             if (utmMedium) {
-                $('#utm_medium').val(utmMedium);
+                sessionStorage.setItem('utm_medium', utmMedium);
+                $('input[name="utm_medium"]').val(utmMedium);
             }
 
             // Submit form

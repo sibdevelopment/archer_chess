@@ -38,6 +38,11 @@
                                 <input type="date" class="form-control" name="from_date" id="from_date" value="{{ isset($leaverequest) ? $leaverequest->from_date : '' }}" />
                                 <div id="from_date-error" style="color:red"></div>
                             </div>
+                            <div class="col-sm-12 col-md-3">
+                                <label class="control-label col-form-label">To Date <sup class="tcul-star-restrict">*</sup></label>
+                                <input type="date" class="form-control" name="to_date" id="to_date" value="{{ isset($leaverequest) ? $leaverequest->to_date : '' }}" />
+                                <div id="to_date-error" style="color:red"></div>
+                            </div>
                             {{-- <div class="col-sm-12 col-md-3" id="from_time_container" style=""></div>
                             <div class="col-sm-12 col-md-3" id="from_time_container" style=""></div>
                             <div class="col-sm-12 col-md-3" id="from_time_container" style=""></div> --}}
@@ -52,10 +57,6 @@
                                 <div id="to_time-error" style="color:red"></div>
                             </div>
  --}}
-
-                            <div class="col-sm-12 col-md-3" id="from_time_container"></div>
-                            <div class="col-sm-12 col-md-3" id="from_time_container"></div>
-                            <div class="col-sm-12 col-md-3" id="from_time_container"></div>
                             <div class="col-sm-12 col-md-3" id="from_time_container">
                                 <label class="control-label col-form-label">From Time <sup class="tcul-star-restrict">*</sup></label>
                                 <input type="time" class="form-control" name="from_time" id="from_time"
@@ -102,27 +103,12 @@
         const fromTimeContainer = document.getElementById('from_time_container');
         const toTimeContainer = document.getElementById('to_time_container');
 
-        function toggleTimeFields() {
-            if (!fromDateInput || !toDateInput) {
-                return;
-            }
-
-            if (fromDateInput.value === toDateInput.value && fromDateInput.value !== '') {
-                fromTimeContainer.style.display = 'block';
-                toTimeContainer.style.display = 'block';
-            } else {
-                fromTimeContainer.style.display = 'none';
-                toTimeContainer.style.display = 'none';
-            }
+        if (fromTimeContainer) {
+            fromTimeContainer.style.display = 'block';
         }
-
-        if (fromDateInput && toDateInput) {
-            fromDateInput.addEventListener('change', toggleTimeFields);
-            toDateInput.addEventListener('change', toggleTimeFields);
+        if (toTimeContainer) {
+            toTimeContainer.style.display = 'block';
         }
-
-        // Initial check in case the dates are already set
-        toggleTimeFields();
     });
 
     function resetLeaveSubmitLoader(form) {
@@ -135,13 +121,21 @@
         $('div[id$="-error"]').empty();
         var fromTime = $('#from_time').val();
         var toTime = $('#to_time').val();
-        if (toTime === '00:00') {
+        var fromDate = $('#from_date').val();
+        var toDate = $('#to_date').val();
+        if (fromDate && toDate && toDate < fromDate) {
+            e.stopImmediatePropagation();
+            $('#to_date-error').html('Leave end date must be same or after start date.');
+            resetLeaveSubmitLoader(this);
+            return;
+        }
+        if (fromDate && toDate && fromDate === toDate && toTime === '00:00') {
             e.stopImmediatePropagation();
             $('#to_time-error').html('Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM for the same day.');
             resetLeaveSubmitLoader(this);
             return;
         }
-        if (fromTime && toTime && toTime <= fromTime) {
+        if (fromDate && toDate && fromDate === toDate && fromTime && toTime && toTime <= fromTime) {
             e.stopImmediatePropagation();
             $('#to_time-error').html('Leave end time must be later than start time for the same day.');
             resetLeaveSubmitLoader(this);

@@ -608,7 +608,7 @@ class MasterclassController extends Controller
             $request->date,
             $fromTime,
             $toTime,
-            (array) $request->country,
+            [],
             'masterclass',
             $ignoreMasterclassId
         );

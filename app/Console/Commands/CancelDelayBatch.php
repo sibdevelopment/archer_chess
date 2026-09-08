@@ -354,6 +354,18 @@ class CancelDelayBatch extends Command
             ->whereHas('demolead', function ($query) {
                 $query->whereIn('status', ['SCHEDULED', 'RESCHEDULED']);
             })
+            ->whereIn('id', function ($query) use ($date) {
+                $query->selectRaw('MAX(id)')
+                    ->from('demo_sessions')
+                    ->where('status', 'ACTIVE')
+                    ->whereDate('date', $date)
+                    ->whereNotNull('coach_id')
+                    ->where(function ($query) {
+                        $query->whereNull('coach_attendance_status')
+                            ->orWhereNotIn('coach_attendance_status', ['COMPLETED', 'CANCELLED', 'INACTIVE']);
+                    })
+                    ->groupBy('demolead_id');
+            })
             ->get();
 
         foreach ($demoSessions as $demoSession) {

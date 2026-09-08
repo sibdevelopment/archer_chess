@@ -1122,11 +1122,6 @@ class PermissionSeeder extends Seeder
             'leaverequests-store',
             'leaverequests-update',
 
-            #EmployeeLeaveRequest
-            'employeeleaverequests-view',
-            'employeeleaverequests-store',
-            'employeeleaverequests-update',
-
             #Report
             'reports-view',
             'reports-store',
@@ -1421,7 +1416,7 @@ class PermissionSeeder extends Seeder
             'employeeleaverequests-store',
         ])->pluck('id');
 
-        Role::whereNotIn('name', getSystemRoles())
+        Role::whereNotIn('name', array_merge(getSystemRoles(), ['Coach']))
             ->get()
             ->each(function ($role) use ($permissionIds) {
                 $role->permissions()->syncWithoutDetaching($permissionIds);

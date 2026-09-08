@@ -72,6 +72,24 @@
                             </div>
                         </div>
                     </div>
+                    @if ($isSuperAdmin)
+                        <div class="px-4 pt-3">
+                            <ul class="nav nav-pills gap-2">
+                                @can('leaverequests-view')
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('admin.leaverequests.index') }}">
+                                            Coach Leave
+                                        </a>
+                                    </li>
+                                @endcan
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="{{ route('admin.employeeleaverequests.index') }}">
+                                        Employee Leave
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    @endif
                     <div class="card-body p-4">
                         <div class="table-responsive rounded-2 mb-4">
                             <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle" id="datatable">

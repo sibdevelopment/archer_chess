@@ -17,6 +17,8 @@ class EmployeeLeaveRequestController extends Controller
 {
     public function index()
     {
+        $this->denyCoachAccess();
+
         $employees = Employee::with('user.roles')
             ->whereHas('user', fn ($query) => $query->where('status', 'ACTIVE'))
             ->get();
@@ -31,6 +33,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function data(Request $request)
     {
+        $this->denyCoachAccess();
+
         $user = Auth::user();
         $query = EmployeeLeaveRequest::with(['employee.user.roles', 'approver'])
             ->select('employee_leave_requests.*')
@@ -134,6 +138,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function create()
     {
+        $this->denyCoachAccess();
+
         $employee = Employee::where('user_id', Auth::id())->with('user')->first();
         if (! $employee) {
             return redirect()->back()->withErrors('Employee data not found.');
@@ -144,6 +150,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function store(Request $request)
     {
+        $this->denyCoachAccess();
+
         $employee = Employee::where('user_id', Auth::id())->firstOrFail();
         $validated = $this->validatedLeaveData($request);
         $validated['employee_id'] = $employee->id;
@@ -160,6 +168,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function edit(EmployeeLeaveRequest $employeeleaverequest)
     {
+        $this->denyCoachAccess();
+
         if (! $this->canManage($employeeleaverequest)) {
             abort(403);
         }
@@ -178,6 +188,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function show(EmployeeLeaveRequest $employeeleaverequest)
     {
+        $this->denyCoachAccess();
+
         if (! $this->canManage($employeeleaverequest)) {
             abort(403);
         }
@@ -187,6 +199,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function update(Request $request, EmployeeLeaveRequest $employeeleaverequest)
     {
+        $this->denyCoachAccess();
+
         if (! $this->canManage($employeeleaverequest)) {
             abort(403);
         }
@@ -209,6 +223,8 @@ class EmployeeLeaveRequestController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $this->denyCoachAccess();
+
         $request->validate([
             'employee_leave_request_id' => ['required', 'exists:employee_leave_requests,id'],
             'status' => ['required', Rule::in(['APPROVED', 'REJECTED'])],
@@ -246,14 +262,27 @@ class EmployeeLeaveRequestController extends Controller
             'from_date' => ['required', 'date'],
             'to_date' => ['required', 'date', 'after_or_equal:from_date'],
             'from_time' => ['nullable', 'required_with:to_time', 'date_format:H:i'],
-            'to_time' => ['nullable', 'required_with:from_time', 'date_format:H:i', 'after:from_time'],
+            'to_time' => ['nullable', 'required_with:from_time', 'date_format:H:i'],
             'leave_type' => ['required', Rule::in(['FULL DAY', 'HALF DAY', 'SHORT LEAVE', 'SICK LEAVE', 'EMERGENCY', 'OTHER'])],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
 
-        if (($validated['to_time'] ?? null) === '00:00') {
+        $isSameDayLeave = $validated['from_date'] === $validated['to_date'];
+
+        if ($isSameDayLeave && ($validated['to_time'] ?? null) === '00:00') {
             throw ValidationException::withMessages([
                 'to_time' => ['Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM for the same day.'],
+            ]);
+        }
+
+        if (
+            $isSameDayLeave &&
+            !empty($validated['from_time']) &&
+            !empty($validated['to_time']) &&
+            $validated['to_time'] <= $validated['from_time']
+        ) {
+            throw ValidationException::withMessages([
+                'to_time' => ['Leave end time must be later than start time for the same day.'],
             ]);
         }
 
@@ -268,5 +297,12 @@ class EmployeeLeaveRequestController extends Controller
         }
 
         return (int) $leave->employee?->user_id === (int) $user->id;
+    }
+
+    private function denyCoachAccess(): void
+    {
+        if (Auth::user()?->hasRole('Coach')) {
+            abort(403);
+        }
     }
 }

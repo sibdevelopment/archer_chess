@@ -12,6 +12,7 @@ use App\Models\CoachAvailability;
 use App\Models\Coverupclass;
 use App\Models\DemoLead;
 use App\Models\DemoSession;
+use App\Models\DelayedBatch;
 use App\Models\LeaveRequest;
 use App\Models\Level;
 use App\Models\Role;
@@ -565,6 +566,22 @@ class DemoSessionsController extends Controller
             ], 422);
         }
 
+        $oldPendingDemoSessionIds = DemoSession::where('demolead_id', $demolead->id)
+            ->where('status', 'ACTIVE')
+            ->where(function ($query) {
+                $query->whereNull('coach_attendance_status')
+                    ->orWhereNotIn('coach_attendance_status', ['COMPLETED', 'CANCELLED', 'INACTIVE']);
+            })
+            ->pluck('id');
+
+        if ($oldPendingDemoSessionIds->isNotEmpty()) {
+            DemoSession::whereIn('id', $oldPendingDemoSessionIds)->update(['status' => 'INACTIVE']);
+
+            DelayedBatch::where('occurrence_type', 'DEMO')
+                ->whereIn('demo_session_id', $oldPendingDemoSessionIds)
+                ->delete();
+        }
+
         $demosessions = new DemoSession;
         $demosessions->demolead_id = $demolead->id;
         $demosessions->fill($request->all());
@@ -652,6 +669,10 @@ class DemoSessionsController extends Controller
         $slotForValidation = $request->input('slot') ?: $request->input('saved_slot_normal', $demosessions->slot);
         $dateForValidation = $request->input('date', $demosessions->date);
         $slot = $availability->parseSlot($slotForValidation);
+        $originalCoachId = $demosessions->coach_id;
+        $originalDate = $demosessions->date;
+        $originalTime = $demosessions->time;
+        $originalSlot = $demosessions->slot;
 
         if (!$slot) {
             return response()->json([
@@ -690,6 +711,17 @@ class DemoSessionsController extends Controller
         }
         $demosessions->fill($fieldsToUpdate);
         $demosessions->save();
+
+        if (
+            (int) $originalCoachId !== (int) $demosessions->coach_id ||
+            (string) $originalDate !== (string) $demosessions->date ||
+            (string) $originalTime !== (string) $demosessions->time ||
+            (string) $originalSlot !== (string) $demosessions->slot
+        ) {
+            DelayedBatch::where('occurrence_type', 'DEMO')
+                ->where('demo_session_id', $demosessions->id)
+                ->delete();
+        }
 
         $date = $request->input('date');
         $time = $request->input('time');

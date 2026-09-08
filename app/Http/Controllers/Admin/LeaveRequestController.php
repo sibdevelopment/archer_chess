@@ -908,6 +908,7 @@ class LeaveRequestController extends Controller
     private $rules = [
         'coach_id'  => 'Required',
         'from_date' => 'Required',
+        'to_date'   => 'Required|date|after_or_equal:from_date',
         'from_time' => 'Required',
         'to_time'   => 'Required',
         'reason'    => '',
@@ -918,6 +919,8 @@ class LeaveRequestController extends Controller
     private $customMessages = [
         'coach_id.Required'  => 'Required',
         'from_date.Required' => 'Required',
+        'to_date.Required'   => 'Required',
+        'to_date.after_or_equal' => 'Leave end date must be same or after start date.',
         'from_time.Required' => 'Required',
         'to_time.Required'   => 'Required',
     ];

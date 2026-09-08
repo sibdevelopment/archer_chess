@@ -90,12 +90,19 @@
 
             var fromTime = $('#from_time').val();
             var toTime = $('#to_time').val();
-            if (toTime === '00:00') {
+            var fromDate = $('#from_date').val();
+            var toDate = $('#to_date').val();
+            if (fromDate && toDate && toDate < fromDate) {
+                $('#to_date-error').html('Leave end date must be same or after start date.');
+                resetEmployeeLeaveSubmitLoader(this);
+                return;
+            }
+            if (fromDate && toDate && fromDate === toDate && toTime === '00:00') {
                 $('#to_time-error').html('Please use 11:59 PM as the day-ending leave time. Do not use 12:00 AM.');
                 resetEmployeeLeaveSubmitLoader(this);
                 return;
             }
-            if (fromTime && toTime && toTime <= fromTime) {
+            if (fromDate && toDate && fromDate === toDate && fromTime && toTime && toTime <= fromTime) {
                 $('#to_time-error').html('Leave end time must be later than start time.');
                 resetEmployeeLeaveSubmitLoader(this);
                 return;

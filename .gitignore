@@ -20,3 +20,4 @@ error_log
 *php_error_log*
 *.log
 output/
+outputs/

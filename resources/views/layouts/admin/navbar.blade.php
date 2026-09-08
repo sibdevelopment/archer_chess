@@ -201,7 +201,7 @@
 
             @can('leaverequests-view')
                 <li class="sidebar-item">
-                    <a class="sidebar-link @if (Route::is('admin.leaverequests.*')) active @endif"
+                    <a class="sidebar-link @if (Route::is('admin.leaverequests.*') || (auth()->user()->hasRole('SuperAdmin') && Route::is('admin.employeeleaverequests.*'))) active @endif"
                         href="{{ route('admin.leaverequests.index') }}" aria-expanded="false">
                         <span>
                             <i class="ti ti-calendar"></i>
@@ -211,17 +211,19 @@
                 </li>
             @endcan
 
-            @can('employeeleaverequests-view')
-                <li class="sidebar-item">
-                    <a class="sidebar-link @if (Route::is('admin.employeeleaverequests.*')) active @endif"
-                        href="{{ route('admin.employeeleaverequests.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="ti ti-user-check"></i>
-                        </span>
-                        <span class="hide-menu capitalize">Employee Leave</span>
-                    </a>
-                </li>
-            @endcan
+            @if (!auth()->user()->hasAnyRole(['SuperAdmin', 'Coach']))
+                @can('employeeleaverequests-view')
+                    <li class="sidebar-item">
+                        <a class="sidebar-link @if (Route::is('admin.employeeleaverequests.*')) active @endif"
+                            href="{{ route('admin.employeeleaverequests.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="ti ti-user-check"></i>
+                            </span>
+                            <span class="hide-menu capitalize">Employee Leave</span>
+                        </a>
+                    </li>
+                @endcan
+            @endif
 
             @can('feedback-view')
                 <li class="sidebar-item">

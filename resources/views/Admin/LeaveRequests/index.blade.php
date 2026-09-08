@@ -88,13 +88,11 @@
                                         Coach Leave
                                     </a>
                                 </li>
-                                @can('employeeleaverequests-view')
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="{{ route('admin.employeeleaverequests.index') }}">
-                                            Employee Leave
-                                        </a>
-                                    </li>
-                                @endcan
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('admin.employeeleaverequests.index') }}">
+                                        Employee Leave
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     @endif

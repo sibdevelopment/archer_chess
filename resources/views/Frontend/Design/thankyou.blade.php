@@ -5,14 +5,6 @@
     <meta name="description" content="Thank you for booking a trial class with Archer Chess Academy." />
 @endpush
 
-@section('head')
-    <script>
-        if (typeof fbq === 'function') {
-            fbq('track', 'CompleteRegistration');
-        }
-    </script>
-@endsection
-
 @section('content')
     <section class="breadcrumb pt-60 pb-20 bg-main-two-200 position-relative">
         <img src="/frontend1/assets/images/shape/banner-shape2.png" alt="shape"

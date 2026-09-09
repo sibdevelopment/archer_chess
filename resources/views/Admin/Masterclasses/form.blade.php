@@ -4,6 +4,11 @@
 @endsection
 
 @section('content')
+    <style>
+        .masterclass-gated-field.is-locked {
+            opacity: 0.55;
+        }
+    </style>
     @php
         $user = auth()->user();
         $role = $user->getRoleNames()->toArray();
@@ -34,6 +39,18 @@
                     <div class="card-body border-top">
                         <div class="row">
                             <div class="col-sm-12 col-md-6">
+                                <label class="control-label col-form-label">Masterclass Date</label>
+                                <input type="date" class="form-control" placeholder="Masterclass Date" name="date"
+                                    value="{{ Route::is('admin.masterclasses.create') ? '' : $masterclass->date }}" />
+                                <div id="date-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6">
+                                <label class="control-label col-form-label">Time</label>
+                                <input type="time" class="form-control" placeholder="Masterclass Time" name="time"
+                                    value="{{ Route::is('admin.masterclasses.create') ? '' : $masterclass->time }}" />
+                                <div id="time-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Country <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control select2" name="country[]" id="country-select" multiple>
@@ -92,21 +109,21 @@
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Batches <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control" name="batch_ids[]" multiple id="batch-select">
                                 </select>
                                 <div id="batch_ids-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Students <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control" name="student_ids[]" multiple id="student-select">
                                 </select>
                                 <div id="student_ids-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Levels <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control" name="level_ids[]" multiple id="level-select">
@@ -118,7 +135,7 @@
                                 </select>
                                 <div id="level_ids-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Coach <sup
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control select2" name="coach_id">
@@ -131,28 +148,16 @@
                                 </select>
                                 <div id="coach_id-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
+                            <div class="col-sm-12 col-md-6 masterclass-gated-field">
                                 <label class="control-label col-form-label">Masterclass Name</label>
                                 <input type="text" class="form-control" placeholder="Masterclass Name" name="name"
                                     value="{{ Route::is('admin.masterclasses.create') ? '' : $masterclass->name }}" />
                                 <div id="name-error" style="color:red"></div>
                             </div>
-                            <div class="col-sm-12 col-md-6">
-                                <label class="control-label col-form-label">Masterclass Date</label>
-                                <input type="date" class="form-control" placeholder="Masterclass Date" name="date"
-                                    value="{{ Route::is('admin.masterclasses.create') ? '' : $masterclass->date }}" />
-                                <div id="date-error" style="color:red"></div>
-                            </div>
-                            <div class="col-sm-12 col-md-6">
-                                <label class="control-label col-form-label">Time</label>
-                                <input type="time" class="form-control" placeholder="Masterclass Time" name="time"
-                                    value="{{ Route::is('admin.masterclasses.create') ? '' : $masterclass->time }}" />
-                                <div id="time-error" style="color:red"></div>
-                            </div>
                         </div>
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary masterclass-gated-submit">
                             Save
                             &nbsp;
                             <i class="ti ti-device-floppy"></i>
@@ -181,7 +186,19 @@
                 allowClear: true
             });
 
+            function updateMasterclassGate() {
+                const isReady = Boolean($('input[name="date"]').val() && $('input[name="time"]').val());
+                const gatedFields = $('.masterclass-gated-field');
+                const gatedInputs = gatedFields.find('input, select, textarea, button');
 
+                gatedFields.toggleClass('is-locked', !isReady);
+                gatedInputs.prop('disabled', !isReady);
+                $('.masterclass-gated-submit').prop('disabled', !isReady);
+                gatedFields.find('select.select2, #batch-select, #student-select, #level-select').trigger('change.select2');
+            }
+
+            $('input[name="date"], input[name="time"]').on('change input', updateMasterclassGate);
+            updateMasterclassGate();
 
             @if (isset($masterclass))
                 getBatches();

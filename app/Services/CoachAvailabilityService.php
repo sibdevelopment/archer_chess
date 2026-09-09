@@ -131,7 +131,8 @@ class CoachAvailabilityService
         ?string $ignoreType = null,
         ?int $ignoreId = null,
         bool $useMidJoinerWindowForBatchConflict = true,
-        array $extraIgnoredBatchIds = []
+        array $extraIgnoredBatchIds = [],
+        bool $skipBaseAvailability = false
     ): array {
         $date = Carbon::parse($date)->toDateString();
         $weekday = Carbon::parse($date)->format('l');
@@ -147,7 +148,7 @@ class CoachAvailabilityService
             return $this->blocked('Selected coach is not available for the selected country.');
         }
 
-        if (!$this->coachHasBaseAvailability($coachId, $weekday, $fromTime, $toTime)) {
+        if (!$skipBaseAvailability && !$this->coachHasBaseAvailability($coachId, $weekday, $fromTime, $toTime)) {
             return $this->blocked("Selected coach is not available on {$weekday} {$fromTime} - {$toTime}.");
         }
 

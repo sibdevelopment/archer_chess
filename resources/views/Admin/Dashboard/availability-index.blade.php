@@ -3,6 +3,37 @@
    Coach Availability
 @endsection
 @section('content')
+    @php
+        $availabilityCountries = $coaches
+            ->flatMap(function ($coach) {
+                return is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true);
+            })
+            ->filter()
+            ->map(function ($country) {
+                return trim($country);
+            })
+            ->unique()
+            ->sort()
+            ->values();
+
+        $availabilityCoachOptions = $coaches
+            ->map(function ($coach) {
+                $countries = is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true);
+
+                return [
+                    'id' => $coach->id,
+                    'name' => trim(optional($coach->user)->first_name . ' ' . optional($coach->user)->last_name),
+                    'countries' => collect($countries)
+                        ->filter()
+                        ->map(function ($country) {
+                            return trim($country);
+                        })
+                        ->values()
+                        ->toArray(),
+                ];
+            })
+            ->values();
+    @endphp
     <style>
     .permission-container {
         display: flex;
@@ -102,10 +133,15 @@
                                 <h5 class="card-title fw-semibold mb-0 lh-sm">Coach Availability</h5>
                             </div> 
                             <div class="col-3">
-                                <select name="coach" id="coach" class="select2 form-select form-select-sm pure-white" aria-label=".form-select-sm example">
-                                    @foreach ($coaches as $coach)
-                                        <option value="{{ $coach->id }}">{{ $coach->user->first_name }} {{ $coach->user->last_name }}</option>
+                                <select id="country-filter" class="select2 form-select form-select-sm pure-white" aria-label="Select country">
+                                    <option value="">All Countries</option>
+                                    @foreach ($availabilityCountries as $country)
+                                        <option value="{{ $country }}">{{ $country }}</option>
                                     @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <select name="coach" id="coach" class="select2 form-select form-select-sm pure-white" aria-label=".form-select-sm example">
                                 </select>
                             </div>
 
@@ -124,6 +160,32 @@
 
     <script>
         $(document).ready(function() {
+            const coaches = @json($availabilityCoachOptions);
+
+            function renderCoachOptions() {
+                const selectedCountry = $('#country-filter').val();
+                const currentCoach = $('#coach').val();
+                let html = '';
+                let hasCurrentCoach = false;
+
+                coaches.forEach(function(coach) {
+                    if (!selectedCountry || coach.countries.includes(selectedCountry)) {
+                        const selected = String(coach.id) === String(currentCoach) ? 'selected' : '';
+                        if (selected) {
+                            hasCurrentCoach = true;
+                        }
+                        html += '<option value="' + coach.id + '" ' + selected + '>' + coach.name + '</option>';
+                    }
+                });
+
+                $('#coach').html(html);
+
+                if (!hasCurrentCoach) {
+                    $('#coach').val($('#coach option:first').val());
+                }
+
+                $('#coach').trigger('change.select2');
+            }
 
             // Function to fetch availability
             function fetchAvailability() {
@@ -155,10 +217,15 @@
             }
 
             // Trigger AJAX when coach or date changes
+            $('#country-filter').on('change', function() {
+                renderCoachOptions();
+                fetchAvailability();
+            });
             $('#coach').on('change', fetchAvailability);
             $('#date').on('change', fetchAvailability);
 
             // Load availability initially on page load
+            renderCoachOptions();
             fetchAvailability();
         });
 

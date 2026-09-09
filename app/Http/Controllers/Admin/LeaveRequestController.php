@@ -8,7 +8,6 @@ use DateInterval;
 use App\Models\Batch;
 use App\Models\Coach;
 use App\Models\StudentFee;
-use App\Models\DemoSession;
 use App\Models\Coverupclass;
 use App\Models\LeaveRequest;
 use App\Models\StudentBatch;
@@ -246,26 +245,19 @@ class LeaveRequestController extends Controller
                     ], 422);
                 }
 
-                $occurrenceKey = $this->leaveOccurrenceKey($batch->id, $schedule->id, $leaverequest->from_date);
+                $occurrenceDate = $data['date'] ?? $leaverequest->from_date;
+                $occurrenceKey = $this->leaveOccurrenceKey($batch->id, $schedule->id, $occurrenceDate);
                 $handledOccurrences[] = $occurrenceKey;
 
-                if ($occurrences->leaveOccurrenceHasPassed($leaverequest->from_date, $schedule->to_time)) {
-                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $leaverequest->from_date);
+                if ($occurrences->leaveOccurrenceHasPassed($occurrenceDate, $schedule->to_time)) {
+                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $occurrenceDate);
                     continue;
                 }
 
                 if ($data['coach_id']) {
-                    $coach = Coach::find($data['coach_id']);
-                    if ($coach && $this->checkCoachLeave($coach, $leaverequest->from_date, $schedule->from_time, $schedule->to_time)) {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'Selected coach is on approved leave for the coverup date.',
-                        ], 422);
-                    }
-
                     $coachValidation = $availability->validateCoachForSingleEvent(
                         (int) $data['coach_id'],
-                        $leaverequest->from_date,
+                        $occurrenceDate,
                         $schedule->from_time,
                         $schedule->to_time,
                         $batch->country ?? [],
@@ -282,12 +274,12 @@ class LeaveRequestController extends Controller
                     $coverupclass = Coverupclass::firstOrNew([
                         'batch_id' => $data['batch_id'],
                         'batchschedule_id' => $data['schedule_id'],
-                        'date' => $leaverequest->from_date,
+                        'date' => $occurrenceDate,
                     ]);
                     $coverupclass->old_coach_id = $batch_coach_id;
                     $coverupclass->new_coach_id = $data['coach_id'];
                     $coverupclass->save();
-                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $leaverequest->from_date);
+                    $occurrences->clearDelayedPenalty($batch->id, $schedule->id, $occurrenceDate);
 
 
                     $coach = Coach::find($coverupclass->new_coach_id);
@@ -317,7 +309,7 @@ class LeaveRequestController extends Controller
                     }
 
                 } else {
-                    $occurrences->markApprovedLeaveOccurrence($batch, $schedule, $leaverequest->from_date);
+                    $occurrences->markApprovedLeaveOccurrence($batch, $schedule, $occurrenceDate);
                 }
             }
         }
@@ -577,12 +569,7 @@ class LeaveRequestController extends Controller
 
             foreach ($batches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    if (! $occurrences->timeRangesOverlap(
-                        $schedule->from_time,
-                        $schedule->to_time,
-                        $leaverequest->from_time,
-                        $leaverequest->to_time
-                    )) {
+                    if (! $occurrences->leaveOverlapsSchedule($leaverequest, $dateString, $schedule->from_time, $schedule->to_time)) {
                         continue;
                     }
 
@@ -590,7 +577,7 @@ class LeaveRequestController extends Controller
                         continue;
                     }
 
-                    $scheduleKey = strtolower($schedule->weekday);
+                    $scheduleKey = $dateString . ':' . $schedule->id;
 
                     if (! isset($combinedAffectedBatches[$batch->id])) {
                         $combinedAffectedBatches[$batch->id] = [
@@ -605,7 +592,8 @@ class LeaveRequestController extends Controller
                     if (! isset($combinedAffectedBatches[$batch->id]['schedules'][$scheduleKey])) {
                         $combinedAffectedBatches[$batch->id]['schedules'][$scheduleKey] = [
                             'id'             => $schedule->id,
-                            'weekday'        => $scheduleKey,
+                            'date'           => $dateString,
+                            'weekday'        => strtolower($schedule->weekday),
                             'from_time'      => $schedule->from_time,
                             'to_time'        => $schedule->to_time,
                             'missedSessions' => 0,
@@ -641,10 +629,6 @@ class LeaveRequestController extends Controller
 
         $availableCoachIds = [];
         foreach (Coach::where('status', 'ACTIVE')->get() as $coach) {
-            if ($this->checkCoachLeave($coach, $date, $from_time, $to_time)) {
-                continue;
-            }
-
             $validation = $availability->validateCoachForSingleEvent(
                 $coach->id,
                 $date,
@@ -661,67 +645,6 @@ class LeaveRequestController extends Controller
 
         $coaches = Coach::whereIn('id', $availableCoachIds)->with('user')->get();
         return $coaches;
-    }
-
-    private function checkDemoAssign($coach, $date, $weekday, $from_time, $to_time)
-    {
-        $demo_sessions = DemoSession::where('coach_id', $coach->id)
-            ->whereDate('date', '=', $date)
-            ->where('time', '>=', $from_time)
-            ->where('time', '<=', $to_time)
-            ->where('status', 'ACTIVE')
-            ->get();
-
-        if ($demo_sessions->count() > 0) {
-            return 1;
-        }
-        return 0;
-    }
-
-    private function checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time)
-    {
-        // dd($from_time, $to_time, $weekday, $date, $coach->id);
-        // "04:30:00" // app/Http/Controllers/Admin/LeaveRequestController.php:698
-        // "05:30:00" // app/Http/Controllers/Admin/LeaveRequestController.php:698
-        // "Friday" // app/Http/Controllers/Admin/LeaveRequestController.php:698
-        // "2025-04-25" // app/Http/Controllers/Admin/LeaveRequestController.php:698
-        // 55 // app/Http/Controllers/Admin/LeaveRequestController.php:698
-
-        $isBatchScheduleExist = BatchSchedule::whereHas('batch', function ($query) use ($coach) {
-            $query->where('coach_id', $coach->id)->where('status', '!=', 'INACTIVE');
-        })
-            ->where('weekday', $weekday)
-            ->where(function ($query) use ($from_time, $to_time) {
-                $query->where(function ($q) use ($from_time, $to_time) {
-                    $q->where('from_time', '<', $to_time)
-                        ->where('to_time', '>', $from_time);
-                });
-            })
-            ->get();
-
-        // dd($isBatchScheduleExist);
-
-        if ($isBatchScheduleExist->count() > 0) {
-            return 1;
-        }
-        return 0;
-    }
-
-    private function checkCoachLeave($coach, $date, ?string $fromTime = null, ?string $toTime = null)
-    {
-        $leaves = LeaveRequest::where('coach_id', $coach->id)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->get();
-
-        if (! $fromTime || ! $toTime) {
-            return $leaves->isNotEmpty() ? 1 : 0;
-        }
-
-        $occurrences = app(BatchOccurrenceService::class);
-        return $leaves->contains(function ($leave) use ($occurrences, $fromTime, $toTime) {
-            return $occurrences->timeRangesOverlap($fromTime, $toTime, $leave->from_time, $leave->to_time);
-        }) ? 1 : 0;
     }
 
     private function compensateApprovedLeaveWithoutCoverup(LeaveRequest $leaverequest, BatchOccurrenceService $occurrences, array $handledOccurrences = []): void
@@ -748,12 +671,7 @@ class LeaveRequestController extends Controller
 
             foreach ($batches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    if (! $occurrences->timeRangesOverlap(
-                        $schedule->from_time,
-                        $schedule->to_time,
-                        $leaverequest->from_time,
-                        $leaverequest->to_time
-                    )) {
+                    if (! $occurrences->leaveOverlapsSchedule($leaverequest, $dateString, $schedule->from_time, $schedule->to_time)) {
                         continue;
                     }
 

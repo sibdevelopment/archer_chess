@@ -151,6 +151,10 @@ class CoachAvailabilityService
             return $this->blocked("Selected coach is not available on {$weekday} {$fromTime} - {$toTime}.");
         }
 
+        if (app(BatchOccurrenceService::class)->approvedLeaveForSchedule($coachId, $date, $fromTime, $toTime)) {
+            return $this->blocked("Selected coach is on approved leave on {$date} {$fromTime} - {$toTime}.");
+        }
+
         $batchConflict = $this->realBatchConflictByWeekday(
             $coachId,
             $weekday,

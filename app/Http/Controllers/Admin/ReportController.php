@@ -21,6 +21,7 @@ use App\Models\CoachAttendance;
 use App\Models\DelayedBatch;
 use App\Models\CoachAvailability;
 use App\Models\StudentAttendance;
+use App\Services\BatchOccurrenceService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
@@ -112,7 +113,9 @@ class ReportController extends Controller
 
         $approvedLeavesCount = LeaveRequest::where('coach_id', $coachId)
             ->where('status', 'APPROVED')
-            ->whereBetween('from_date', [$startDate, $endDate])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $this->whereLeaveOverlapsRange($query, $startDate, $endDate);
+            })
             ->count();
         $completedBatchesCount = CoachAttendance::where('coach_id', $coachId)
             ->where('type', 'Batch')
@@ -779,13 +782,17 @@ class ReportController extends Controller
         // Fetch the count of approved leaves from LeaveRequest
         $approvedLeavesCount = LeaveRequest::where('coach_id', $coachId)
             ->where('status', 'APPROVED')
-            ->whereBetween('from_date', [$startDate, $endDate])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $this->whereLeaveOverlapsRange($query, $startDate, $endDate);
+            })
             ->count();
 
         // Fetch the leave request data
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)
             ->where('status', 'APPROVED')
-            ->whereBetween('from_date', [$startDate, $endDate])
+            ->where(function ($query) use ($startDate, $endDate) {
+                $this->whereLeaveOverlapsRange($query, $startDate, $endDate);
+            })
             ->with('coach')
             ->orderByDesc('id')
             ->get();
@@ -1025,12 +1032,18 @@ class ReportController extends Controller
         $leaveDates = [];
         foreach ($leaveRequests as $leaveRequest) {
             $startDate = Carbon::parse($leaveRequest->from_date);
-            $endDate   = Carbon::parse($leaveRequest->to_date);
+            $endDate   = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
             while ($startDate <= $endDate) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $startDate->format('Y-m-d'));
+                if (! $leaveWindow) {
+                    $startDate->addDay();
+                    continue;
+                }
+
                 $leaveDates[] = [
                     'date'      => $startDate->format('Y-m-d'),
-                    'from_time' => $leaveRequest->from_time,
-                    'to_time'   => $leaveRequest->to_time,
+                    'from_time' => $leaveWindow['from_time'],
+                    'to_time'   => $leaveWindow['to_time'],
                 ];
                 $startDate->addDay();
             }
@@ -1102,13 +1115,12 @@ class ReportController extends Controller
                 foreach ($leaveDates as $leaveDate) {
                     if ($leaveDate['date'] == $date) {
                         if ($leaveDate['from_time'] && $leaveDate['to_time']) {
-                            $leaveFromTime = Carbon::createFromFormat('H:i:s', $leaveDate['from_time']);
-                            $leaveToTime   = Carbon::createFromFormat('H:i:s', $leaveDate['to_time']);
-                            $batchFromTime = Carbon::createFromFormat('H:i:s', $schedule->from_time);
-                            $batchToTime   = Carbon::createFromFormat('H:i:s', $schedule->to_time);
-
-                            // Check if the batch is within the leave period
-                            if ($batchFromTime->between($leaveFromTime, $leaveToTime, false) || $batchToTime->between($leaveFromTime, $leaveToTime, false)) {
+                            if (app(BatchOccurrenceService::class)->timeRangesOverlap(
+                                $schedule->from_time,
+                                $schedule->to_time,
+                                $leaveDate['from_time'],
+                                $leaveDate['to_time']
+                            )) {
                                 $isLeaveDate = true;
                                 break;
                             }
@@ -1471,12 +1483,18 @@ class ReportController extends Controller
         $leaveDates = [];
         foreach ($leaveRequests as $leaveRequest) {
             $startDate = Carbon::parse($leaveRequest->from_date);
-            $endDate   = Carbon::parse($leaveRequest->to_date);
+            $endDate   = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
             while ($startDate <= $endDate) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $startDate->format('Y-m-d'));
+                if (! $leaveWindow) {
+                    $startDate->addDay();
+                    continue;
+                }
+
                 $leaveDates[] = [
                     'date'      => $startDate->format('Y-m-d'),
-                    'from_time' => $leaveRequest->from_time,
-                    'to_time'   => $leaveRequest->to_time,
+                    'from_time' => $leaveWindow['from_time'],
+                    'to_time'   => $leaveWindow['to_time'],
                 ];
                 $startDate->addDay();
             }
@@ -1515,13 +1533,12 @@ class ReportController extends Controller
                     foreach ($leaveDates as $leaveDate) {
                         if ($leaveDate['date'] == $date->format('Y-m-d')) {
                             if ($leaveDate['from_time'] && $leaveDate['to_time']) {
-                                $leaveFromTime = Carbon::createFromFormat('H:i:s', $leaveDate['from_time']);
-                                $leaveToTime   = Carbon::createFromFormat('H:i:s', $leaveDate['to_time']);
-                                $batchFromTime = Carbon::createFromFormat('H:i:s', $schedule->from_time);
-                                $batchToTime   = Carbon::createFromFormat('H:i:s', $schedule->to_time);
-
-                                // Check if the batch is within the leave period
-                                if ($batchFromTime->between($leaveFromTime, $leaveToTime, false) || $batchToTime->between($leaveFromTime, $leaveToTime, false)) {
+                                if (app(BatchOccurrenceService::class)->timeRangesOverlap(
+                                    $schedule->from_time,
+                                    $schedule->to_time,
+                                    $leaveDate['from_time'],
+                                    $leaveDate['to_time']
+                                )) {
                                     $isLeaveDate = true;
                                     break;
                                 }
@@ -1580,28 +1597,41 @@ class ReportController extends Controller
     {
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)
             ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('from_date', [$startDate, $endDate])
-                    ->orWhereBetween('to_date', [$startDate, $endDate])
-                    ->orWhere(function ($query) use ($startDate, $endDate) {
-                        $query->where('from_date', '<=', $startDate)
-                            ->where('to_date', '>=', $endDate);
-                    });
+                $this->whereLeaveOverlapsRange($query, $startDate, $endDate);
             })
             ->where('status', 'APPROVED')
             ->get();
 
         $calendarData = [];
         foreach ($leaveRequests as $leaveRequest) {
-            $calendarData[] = [
-                'title'     => '' . Carbon::parse($leaveRequest->from_time)->format('g:i A') . ' - ' . Carbon::parse($leaveRequest->to_time)->format('g:i A') . '',
-                'start'     => $leaveRequest->from_date,
-                'end'       => Carbon::parse($leaveRequest->to_date)->addDay()->format('Y-m-d'),
-                'color'     => 'yellow',
-                'textColor' => 'black',
-            ];
+            $leaveStartDate = Carbon::parse($leaveRequest->from_date);
+            $leaveEndDate = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
+
+            for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $date->toDateString());
+                if (! $leaveWindow) {
+                    continue;
+                }
+
+                $calendarData[] = [
+                    'title'     => Carbon::parse($leaveWindow['from_time'])->format('g:i A') . ' - ' . Carbon::parse($leaveWindow['to_time'])->format('g:i A'),
+                    'start'     => $date->toDateString(),
+                    'color'     => 'yellow',
+                    'textColor' => 'black',
+                ];
+            }
         }
 
         return $calendarData;
+    }
+
+    private function whereLeaveOverlapsRange($query, $startDate, $endDate): void
+    {
+        $query->whereDate('from_date', '<=', $endDate)
+            ->where(function ($query) use ($startDate) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $startDate);
+            });
     }
 
     private function getDemoSessionsCalendarData($coachId, $role, $todayDate, $startDate, $endDate)
@@ -1619,12 +1649,18 @@ class ReportController extends Controller
         $leaveDates = [];
         foreach ($leaveRequests as $leaveRequest) {
             $startDate = Carbon::parse($leaveRequest->from_date);
-            $endDate   = Carbon::parse($leaveRequest->to_date);
+            $endDate   = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
             while ($startDate <= $endDate) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $startDate->format('Y-m-d'));
+                if (! $leaveWindow) {
+                    $startDate->addDay();
+                    continue;
+                }
+
                 $leaveDates[] = [
                     'date'      => $startDate->format('Y-m-d'),
-                    'from_time' => $leaveRequest->from_time,
-                    'to_time'   => $leaveRequest->to_time,
+                    'from_time' => $leaveWindow['from_time'],
+                    'to_time'   => $leaveWindow['to_time'],
                 ];
                 $startDate->addDay();
             }
@@ -1636,14 +1672,14 @@ class ReportController extends Controller
             foreach ($leaveDates as $leaveDate) {
                 if ($leaveDate['date'] == $session->date) {
                     if ($leaveDate['from_time'] && $leaveDate['to_time']) {
-                        $leaveFromTime             = Carbon::createFromFormat('H:i:s', $leaveDate['from_time']);
-                        $leaveToTime               = Carbon::createFromFormat('H:i:s', $leaveDate['to_time']);
                         list($startTime, $endTime) = explode(' - ', $session->slot);
-                        $sessionFromTime           = Carbon::createFromFormat('H:i:s', $startTime);
-                        $sessionToTime             = Carbon::createFromFormat('H:i:s', $endTime);
 
-                        // Check if the session is within the leave period
-                        if ($sessionFromTime->between($leaveFromTime, $leaveToTime, false) || $sessionToTime->between($leaveFromTime, $leaveToTime, false)) {
+                        if (app(BatchOccurrenceService::class)->timeRangesOverlap(
+                            $startTime,
+                            $endTime,
+                            $leaveDate['from_time'],
+                            $leaveDate['to_time']
+                        )) {
                             $isLeaveDate = true;
                             break;
                         }

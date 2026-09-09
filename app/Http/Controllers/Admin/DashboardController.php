@@ -456,17 +456,6 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        $yesdayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $yesterdayDate)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        $fromLeaveTime = null;
-
-        if ($yesdayCoachLeave) {
-            $fromLeaveTime = $yesdayCoachLeave->from_time;
-        }
-
         $combinedData = [];
 
         if (in_array("UK", $coach->country)) {
@@ -522,16 +511,6 @@ class DashboardController extends Controller
             }
         }
 
-
-        $todayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        if ($todayCoachLeave) {
-            $fromLeaveTime = $todayCoachLeave->from_time;
-            $toLeaveTime   = $todayCoachLeave->to_time;
-        }
 
         // $combinedData = [];
         foreach ($batches as $batch) {
@@ -756,17 +735,6 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        $yesdayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $yesterdayDate)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        $fromLeaveTime = null;
-
-        if ($yesdayCoachLeave) {
-            $fromLeaveTime = $yesdayCoachLeave->from_time;
-        }
-
         $combinedData = [];
 
         if (in_array("UK", $coach->country)) {
@@ -830,15 +798,6 @@ class DashboardController extends Controller
                     ];
                 }
             }
-        }
-
-        $todayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->first();
-        if ($todayCoachLeave) {
-            $fromLeaveTime = $todayCoachLeave->from_time;
-            $toLeaveTime   = $todayCoachLeave->to_time;
         }
 
         $combinedData = [];
@@ -2317,18 +2276,31 @@ class DashboardController extends Controller
 
         // Leave Requests Data ::
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)
-            ->whereBetween('from_date', [$startDate, $endDate])
+            ->whereDate('from_date', '<=', $endDate->toDateString())
+            ->where(function ($query) use ($startDate) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $startDate->toDateString());
+            })
             ->where('status', 'APPROVED') // Add this line to filter by status
             ->get();
 
         foreach ($leaveRequests as $leaveRequest) {
-            $calendarData[] = [
-                'title'     => '' . Carbon::parse($leaveRequest->from_time)->format('g:i A') . ' - ' . Carbon::parse($leaveRequest->to_time)->format('g:i A') . '',
-                'start'     => $leaveRequest->from_date,
-                'end'       => $leaveRequest->to_date,
-                'color'     => 'yellow',
-                'textColor' => 'black',
-            ];
+            $leaveStartDate = Carbon::parse($leaveRequest->from_date);
+            $leaveEndDate = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
+
+            for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $date->toDateString());
+                if (! $leaveWindow) {
+                    continue;
+                }
+
+                $calendarData[] = [
+                    'title'     => Carbon::parse($leaveWindow['from_time'])->format('g:i A') . ' - ' . Carbon::parse($leaveWindow['to_time'])->format('g:i A'),
+                    'start'     => $date->toDateString(),
+                    'color'     => 'yellow',
+                    'textColor' => 'black',
+                ];
+            }
         }
 
         // Demo Session Data ::
@@ -2965,41 +2937,12 @@ class DashboardController extends Controller
                 // dd( $dayInfo );
                     $date = $dayInfo['full'];
                     $day  = $dayInfo['day'];            
-                    $coach = Coach::find($coachId);
-                    // dd($day, $date, $slot, $endSlot, $coach->id );
-                // if ($date == '2025-01-02' && $slot == '11:30:00') {
-                    // ✅ Coach Leave
-                    if ($this->checkCoachLeave($coach, $date, $slot, $endSlot)) {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'Leave', 'color' => 'orange'];
-                        continue;
-                    }
-                    
-                    // ✅ Batch Class
-                    if ($this->checkBatchSchedule($coach, $date, $day, $slot, $endSlot)) {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'Class', 'color' => 'red'];
-                        continue;
-                    }
-                    // dd($date);
-                    // dd($this->   checkCoverupClass($coach, $date, $day, $slot, $endSlot));
-                    if ($this->checkCoverupClass($coach, $date, $day, $slot, $endSlot)) {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'Coverup', 'color' => 'purple'];
-                        continue;
-                    }
-
-                    // ✅ Demo Assign
-                    if ($this->checkDemoAssign($coach, $date, $day, $slot, $endSlot)) {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'Demo', 'color' => 'blue'];
-                        continue;
-                    }
-
-                    // ✅ Availability Check
-                    $availableCoaches = $this->getAvailableCoaches($slot, $endSlot, $day, $date, $coachId);
-                    if (count($availableCoaches) > 0) {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'Available', 'color' => 'green'];
-                    } else {
-                        $grid[$displaySlots[$index]][$day] = ['status' => 'N/A', 'color' => '#e3e22e'];
-                    }
-                // }
+                    $grid[$displaySlots[$index]][$day] = $this->availabilityGridStatus(
+                        (int) $coachId,
+                        $date,
+                        $slot,
+                        $endSlot
+                    );
             }
         }
         // dd($grid);
@@ -3008,131 +2951,42 @@ class DashboardController extends Controller
         return view('Admin.Dashboard.availability', compact('grid', 'timeSlots', 'weekdays', 'displaySlots'));
     }
 
-    private function checkCoachLeave($coach, $date, $slot = null, $endSlot = null)
+    private function availabilityGridStatus(int $coachId, string $date, string $fromTime, string $toTime): array
     {
-        $leaves = $coach->leaves()
-            ->whereDate('from_date', '<=', $date)
-            ->whereDate('to_date', '>=', $date)
-            ->get();
+        $validation = app(CoachAvailabilityService::class)->validateCoachForSingleEvent(
+            $coachId,
+            $date,
+            $fromTime,
+            $toTime
+        );
 
-        if (!$slot || !$endSlot) {
-            return $leaves->isNotEmpty();
+        if ($validation['ok']) {
+            return ['status' => 'Available', 'color' => 'green'];
         }
 
-        return $leaves->contains(function ($leave) use ($slot, $endSlot) {
-            return app(BatchOccurrenceService::class)->timeRangesOverlap(
-                $slot,
-                $endSlot,
-                $leave->from_time,
-                $leave->to_time
-            );
-        });
-    }
+        $message = strtolower($validation['message'] ?? '');
 
-    private function checkDemoAssign($coach, $date, $weekday, $from_time, $to_time)
-    {
-        if ($this->isPastAvailabilityDate($date)) {
-            return false;
+        if (str_contains($message, 'approved leave')) {
+            return ['status' => 'Leave', 'color' => 'orange'];
         }
 
-        return DemoSession::where('coach_id', $coach->id)
-            ->whereDate('date', $date)
-            ->where('status', 'ACTIVE')
-            ->get()
-            ->contains(function (DemoSession $demoSession) use ($from_time, $to_time) {
-                if ($this->isFinishedAvailabilityStatus($demoSession->coach_attendance_status)) {
-                    return false;
-                }
-
-                if (! $demoSession->slot || ! str_contains($demoSession->slot, ' - ')) {
-                    return false;
-                }
-
-                [$demoFrom, $demoTo] = array_map('trim', explode(' - ', $demoSession->slot));
-
-                return $this->availabilityTimesOverlap($from_time, $to_time, $demoFrom, $demoTo);
-            });
-    }
-
-    private function checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time)
-    {
-        // dd( $coach->id, $date, $weekday, $from_time, $to_time );
-        $aa = BatchSchedule::whereHas('batch', function ($query) use ($coach, $date) {
-                $query->where('coach_id', $coach->id)
-                    ->where('status', '!=', 'INACTIVE')->where('start_date', '<=', $date)->where('end_date', '>=', $date);
-            })
-            ->where('weekday', $weekday)
-            ->get()
-            ->contains(function ($schedule) use ($from_time, $to_time) {
-                return $this->availabilityTimesOverlap($from_time, $to_time, $schedule->from_time, $schedule->to_time);
-            });
-            // dd( $aa );
-        return $aa;
-    }
-    private function checkCoverupClass($coach, $date, $weekday, $from_time, $to_time)
-    {
-        if ($this->isPastAvailabilityDate($date)) {
-            return false;
+        if (str_contains($message, 'reserved batch')) {
+            return ['status' => 'Class', 'color' => 'red'];
         }
 
-        // normalize inputs
-        $dateOnly = Carbon::parse($date)->toDateString();         // 'YYYY-MM-DD'
-        $weekdayName = Carbon::parse($date)->format('l');        // 'Monday' etc
+        if (str_contains($message, 'coverup class')) {
+            return ['status' => 'Coverup', 'color' => 'purple'];
+        }
 
-        $isCoverupScheduleExist = Coverupclass::whereDate('date', $dateOnly)
-            ->where('new_coach_id', $coach->id)
-            ->whereHas('batch', function ($batchQuery) use ($coach, $dateOnly, $weekdayName) {
-                $batchQuery->whereHas('batchSchedules', function ($schedQ) use ($weekdayName) {
-                    $schedQ->where('weekday', $weekdayName);
-                });
-            })
-            ->get()
-            ->contains(function (Coverupclass $coverupclass) use ($coach, $dateOnly, $weekdayName, $from_time, $to_time) {
-                $schedule = $coverupclass->batch?->batchSchedules
-                    ?->first(function ($schedule) use ($weekdayName, $from_time, $to_time) {
-                        return $schedule->weekday === $weekdayName
-                            && $this->availabilityTimesOverlap($from_time, $to_time, $schedule->from_time, $schedule->to_time);
-                    });
+        if (str_contains($message, 'demo class')) {
+            return ['status' => 'Demo', 'color' => 'blue'];
+        }
 
-                if (!$schedule) {
-                    return false;
-                }
+        if (str_contains($message, 'masterclass')) {
+            return ['status' => 'Masterclass', 'color' => '#6f42c1'];
+        }
 
-                $attendance = CoachAttendance::where('coach_id', $coach->id)
-                    ->where('batch_id', $coverupclass->batch_id)
-                    ->whereDate('date', $dateOnly)
-                    ->orderByDesc('id')
-                    ->first();
-
-                return ! $attendance || ! $this->isFinishedAvailabilityStatus($attendance->status);
-            });
-
-        return $isCoverupScheduleExist;
-    }
-
-    private function isPastAvailabilityDate(string $date): bool
-    {
-        return Carbon::parse($date)->lt(Carbon::today());
-    }
-
-    private function isFinishedAvailabilityStatus(?string $status): bool
-    {
-        return in_array(strtoupper((string) $status), ['COMPLETED', 'CANCELLED', 'INACTIVE'], true);
-    }
-
-    private function availabilityTimesOverlap(string $fromA, string $toA, string $fromB, string $toB): bool
-    {
-        return app(CoachAvailabilityService::class)->timeOverlaps($fromA, $toA, $fromB, $toB);
-    }
-
-
-    public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id)
-    {
-        $dayOfWeek = Carbon::parse($date)->dayName;
-        $availability = app(CoachAvailabilityService::class)
-            ->coachHasBaseAvailability((int) $coach_id, $dayOfWeek, $from_time, $to_time);
-
-        return $availability ? Coach::where('id', $coach_id)->with('user')->get() : collect([]);
+        return ['status' => 'N/A', 'color' => '#e3e22e'];
     }
 
     private function availabilityPeriodEnd(string $fromTime, string $toTime): Carbon

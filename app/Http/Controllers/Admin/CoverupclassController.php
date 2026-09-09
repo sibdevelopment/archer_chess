@@ -6,12 +6,9 @@ use DataTables;
 use Carbon\Carbon;
 use App\Models\Batch;
 use App\Models\Coach;
-use App\Models\DemoSession;
 use App\Models\Coverupclass;
-use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
-use App\Models\CoachAvailability;
 use App\Http\Controllers\Controller;
 use App\Services\CoachAvailabilityService;
 
@@ -215,107 +212,27 @@ class CoverupclassController extends Controller
 
     public function getAvailableCoaches($from_time, $to_time, $weekday, $date, $coach_id)
     {
-        // dd($from_time, $to_time, $weekday, $date, $coach_id);
+        $availability = app(CoachAvailabilityService::class);
         $coach          = Coach::where('id', $coach_id)->with('user')->first();
         $coachCountries = is_array($coach->country) ? $coach->country : explode(',', $coach->country);
 
-        $dayOfWeek                   = Carbon::parse($date)->dayName;
-        $coachAvailabilitiesCoachIds = CoachAvailability::where('day_of_week', $dayOfWeek)
-            ->whereHas('periods', function ($query) use ($from_time, $to_time) {
-                $query->where('from_period', '<=', $from_time)
-                    ->where('to_period', '>=', $to_time);
-            })
-            ->where('status', 'ACTIVE')
-            ->whereHas('coach', function ($query) {
-                $query->where('status', 'ACTIVE');
-            })
-            ->with('coach.user')
-            ->pluck('coach_id')
-            ->toArray();
-
-        // dd($coachAvailabilitiesCoachIds);
-
-        $coachCountries = is_array($coach->country) ? $coach->country : explode(',', $coach->country);
-        // dd($coachCountries);
-        // dd is
-        // array:2 [ // app/Http/Controllers/Admin/LeaveRequestController.php:486
-        //     0 => "USA"
-        //     1 => "CANADA"
-        //   ]
-
-        $coaches = Coach::whereIn('id', $coachAvailabilitiesCoachIds)->get();
-        // dd($coaches);
-        // dd($coaches);
-
         $availableCoachIds = [];
-        foreach ($coaches as $coach) {
-            // dd($coach);
-            $isLeave = $this->checkCoachLeave($coach, $date);
-            // dd($isLeave);
-            if ($isLeave == 0) {
-                $isBatchSchedule = $this->checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time);
-                // dd($isBatchSchedule);
-                if ($isBatchSchedule == 0) {
-                    $isDemoAssign = $this->checkDemoAssign($coach, $date, $weekday, $from_time, $to_time);
-                    if ($isDemoAssign == 0) {
-                        $availableCoachIds[] = $coach->id;
-                    }
-                }
+        foreach (Coach::where('status', 'ACTIVE')->get() as $coach) {
+            $validation = $availability->validateCoachForSingleEvent(
+                $coach->id,
+                $date,
+                $from_time,
+                $to_time,
+                $coachCountries,
+                'coverup'
+            );
+
+            if ($validation['ok']) {
+                $availableCoachIds[] = $coach->id;
             }
         }
+
         $coaches = Coach::whereIn('id', $availableCoachIds)->with('user')->get();
         return $coaches;
     }
-
-    private function checkDemoAssign($coach, $date, $weekday, $from_time, $to_time)
-    {
-        $demo_sessions = DemoSession::where('coach_id', $coach->id)
-            ->whereDate('date', '=', $date)
-            ->where('time', '>=', $from_time)
-            ->where('time', '<=', $to_time)
-            ->where('status', 'ACTIVE')
-            ->get();
-
-        if ($demo_sessions->count() > 0) {
-            return 1;
-        }
-        return 0;
-    }
-
-    private function checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time)
-    {
-
-        $isBatchScheduleExist = BatchSchedule::whereHas('batch', function ($query) use ($coach) {
-            $query->where('coach_id', $coach->id)->whereIn('status', ['ACTIVE', 'STANDBY']);
-        })
-            ->where('weekday', $weekday)
-            ->where(function ($query) use ($from_time, $to_time) {
-                $query->where(function ($q) use ($from_time, $to_time) {
-                    $q->where('from_time', '<', $to_time)
-                        ->where('to_time', '>', $from_time);
-                });
-            })
-            ->get();
-
-        // dd($isBatchScheduleExist);
-
-        if ($isBatchScheduleExist->count() > 0) {
-            return 1;
-        }
-        return 0;
-    }
-    private function checkCoachLeave($coach, $date)
-    {
-        $isCoachLeave = LeaveRequest::where('coach_id', $coach->id)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        if ($isCoachLeave) {
-            return 1;
-        }
-        return 0;
-    }
-
-
 }

@@ -5,15 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\DemoScheduleMail;
 use App\Models\Batch;
-use App\Models\BatchSchedule;
 use App\Models\Coach;
 use App\Models\CoachAttendance;
 use App\Models\CoachAvailability;
-use App\Models\Coverupclass;
 use App\Models\DemoLead;
 use App\Models\DemoSession;
 use App\Models\DelayedBatch;
-use App\Models\LeaveRequest;
 use App\Models\Level;
 use App\Models\Role;
 use App\Services\CoachAvailabilityService;
@@ -172,6 +169,7 @@ class DemoSessionsController extends Controller
     public function getCoachAvailability(Request $request)
     {
         $time = Carbon::parse($request->input('time'))->toTimeString();
+        $demoEndTime = Carbon::parse($time)->addMinutes(30)->toTimeString();
         $date = Carbon::parse($request->input('date'))->toDateString();
         // dd($time, $date);
 
@@ -198,7 +196,9 @@ class DemoSessionsController extends Controller
 
 
         $dayOfWeek = Carbon::parse($date)->dayName;
+        $availability = app(CoachAvailabilityService::class);
         $coachAvailabilities = CoachAvailability::where('day_of_week', $dayOfWeek)
+            ->where('status', 'ACTIVE')
             ->whereHas('coach', function ($query) use ($countriesArray, $demolead) {
                 if (auth()->user()->roles()->where('name', 'SuperAdmin')->exists()) {
                     $query->where('status', 'ACTIVE')->WhereJsonContains('country', $demolead->country);
@@ -222,75 +222,17 @@ class DemoSessionsController extends Controller
         foreach ($coachAvailabilities as $coachAvailability) {
             $coachId = $coachAvailability->coach_id;
 
-            $batchSchedules = BatchSchedule::where('weekday', $dayOfWeek)
-                ->whereHas('batch', function ($query) use ($coachId, $date) {
-                    $query->where('coach_id', $coachId)
-                        ->whereIn('status', ['ACTIVE', 'STANDBY'])
-                        ->whereHas('studentBatches', function ($q) use ($date) {
-                            $q->eligibleOn($date);
-                        });
-                })
-                ->get(); 
-            
-            $isInBatchSchedule = false;
-            foreach ($batchSchedules as $batchSchedule) {
-                $start_time = Carbon::parse($batchSchedule->from_time)->format('H:i');
-                $end_time = Carbon::parse($batchSchedule->to_time)->format('H:i');
-                if ($time >= $start_time && $time <= $end_time) {
-                    $isInBatchSchedule = true;
-                    break;
-                }
-            }
+            $coachValidation = $availability->validateCoachForSingleEvent(
+                $coachId,
+                $date,
+                $time,
+                $demoEndTime,
+                [$demolead?->country],
+                'demo'
+            );
 
-            if ($isInBatchSchedule) {
-                continue; // Skip this coach if the time is within their batch schedule
-            }
-
-            $coverupclass = Coverupclass::where('new_coach_id', $coachId)
-                ->whereDate('date', $date)
-                ->first();
-
-            if ($coverupclass) {
-                $batchSchedule = BatchSchedule::where('id', $coverupclass->batchschedule_id)->first();
-
-                if ($batchSchedule) {
-                    $start_time = Carbon::parse($batchSchedule->from_time)->format('H:i');
-                    $end_time = Carbon::parse($batchSchedule->to_time)->format('H:i');
-
-                    // Skip this coach if the time is within their batch schedule
-                    if ($time >= $start_time && $time <= $end_time) {
-                        continue;
-                    }
-                }
-            }
-
-            // Check if the coach has an approved leave request for the specified date and time
-            $leaveRequest = LeaveRequest::where('coach_id', $coachId)
-                ->where('status', 'APPROVED')
-                ->where(function ($query) use ($date, $time) {
-                    $query->where(function ($query) use ($date, $time) {
-                        $query->where('from_date', '<=', $date)
-                            ->where('to_date', '>=', $date)
-                            ->where(function ($query) use ($time) {
-                                $query->where(function ($query) use ($time) {
-                                    $query->where('from_time', '<=', $time)
-                                        ->where('to_time', '>', $time);
-                                })
-                                    ->orWhere(function ($query) use ($time) {
-                                        $query->where('from_time', '<=', $time)
-                                            ->where('to_time', '>=', $time);
-                                    });
-                            });
-                    });
-                })
-                ->first();
-
-            // If there is an approved leave request, check the time boundaries
-            if ($leaveRequest) {
-                $leaveEndTime = Carbon::createFromFormat('H:i:s', $leaveRequest->to_time)->format('H:i:s');
-                if ($time < $leaveEndTime) {
-                    continue; // Skip this coach if the current time is within the leave period
-                }
+            if (! $coachValidation['ok']) {
+                continue;
             }
 
             $availableSlots = $this->calculateAvailableSlots($coachId, $date, $time);
@@ -402,6 +344,22 @@ class DemoSessionsController extends Controller
 
         $finalAvailableSlots = collect($availableSlots)->reject(function ($slot) use ($bookedSlots) {
             return in_array($slot, $bookedSlots);
+        })->filter(function ($slot) use ($coachId, $date) {
+            $slotParts = explode(' - ', $slot);
+            if (count($slotParts) !== 2) {
+                return false;
+            }
+
+            $validation = app(CoachAvailabilityService::class)->validateCoachForSingleEvent(
+                (int) $coachId,
+                $date,
+                $slotParts[0],
+                $slotParts[1],
+                [],
+                'demo'
+            );
+
+            return $validation['ok'];
         })->values()->all();
         // dd($finalAvailableSlots);
         usort($finalAvailableSlots, function ($a, $b) {

@@ -816,11 +816,21 @@ class BatchController extends Controller
                 $today = Carbon::now();
                 $todayDay = $today->format('l');
                 $todayDate = $today->toDateString();
+                $todayStart = $today->copy()->startOfDay();
 
                 foreach ($batch->batchSchedules as $schedule) {
                     if ($schedule->weekday === $todayDay) {
                         $fromDateTime = Carbon::parse($todayDate . ' ' . $schedule->from_time);
-                        if ($today->greaterThanOrEqualTo($fromDateTime) && $today->lessThanOrEqualTo($fromDateTime->copy()->addMinutes(800))) {
+                        $attendanceExists = CoachAttendance::where('batch_id', $batch->id)
+                            ->whereDate('date', $todayDate)
+                            ->whereIn('status', ['COMPLETED', 'CANCELLED', 'NOTMARKED'])
+                            ->exists();
+
+                        if (
+                            !$attendanceExists
+                            && $today->greaterThanOrEqualTo($todayStart)
+                            && $today->lessThan($fromDateTime)
+                        ) {
                             $is_today_batch = true;
                             break;
                         }

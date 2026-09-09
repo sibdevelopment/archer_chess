@@ -2880,7 +2880,7 @@ class DashboardController extends Controller
 
     public function availabilityIndex(Request $request)
     {
-        $coaches = Coach::where('status', 'ACTIVE')->get();
+        $coaches = Coach::with('user')->where('status', 'ACTIVE')->get();
         return view('Admin.Dashboard.availability-index', compact('coaches'));
     }
 

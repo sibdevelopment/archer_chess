@@ -610,7 +610,10 @@ class MasterclassController extends Controller
             $toTime,
             [],
             'masterclass',
-            $ignoreMasterclassId
+            $ignoreMasterclassId,
+            true,
+            [],
+            true
         );
 
         if (!$validation['ok']) {

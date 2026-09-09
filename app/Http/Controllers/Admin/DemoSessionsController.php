@@ -16,6 +16,7 @@ use App\Models\DelayedBatch;
 use App\Models\LeaveRequest;
 use App\Models\Level;
 use App\Models\Role;
+use App\Services\BatchOccurrenceService;
 use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Carbon\Carbon;
@@ -172,6 +173,7 @@ class DemoSessionsController extends Controller
     public function getCoachAvailability(Request $request)
     {
         $time = Carbon::parse($request->input('time'))->toTimeString();
+        $demoEndTime = Carbon::parse($time)->addMinutes(30)->toTimeString();
         $date = Carbon::parse($request->input('date'))->toDateString();
         // dd($time, $date);
 
@@ -264,33 +266,8 @@ class DemoSessionsController extends Controller
                 }
             }
 
-            // Check if the coach has an approved leave request for the specified date and time
-            $leaveRequest = LeaveRequest::where('coach_id', $coachId)
-                ->where('status', 'APPROVED')
-                ->where(function ($query) use ($date, $time) {
-                    $query->where(function ($query) use ($date, $time) {
-                        $query->where('from_date', '<=', $date)
-                            ->where('to_date', '>=', $date)
-                            ->where(function ($query) use ($time) {
-                                $query->where(function ($query) use ($time) {
-                                    $query->where('from_time', '<=', $time)
-                                        ->where('to_time', '>', $time);
-                                })
-                                    ->orWhere(function ($query) use ($time) {
-                                        $query->where('from_time', '<=', $time)
-                                            ->where('to_time', '>=', $time);
-                                    });
-                            });
-                    });
-                })
-                ->first();
-
-            // If there is an approved leave request, check the time boundaries
-            if ($leaveRequest) {
-                $leaveEndTime = Carbon::createFromFormat('H:i:s', $leaveRequest->to_time)->format('H:i:s');
-                if ($time < $leaveEndTime) {
-                    continue; // Skip this coach if the current time is within the leave period
-                }
+            if (app(BatchOccurrenceService::class)->approvedLeaveForSchedule($coachId, $date, $time, $demoEndTime)) {
+                continue;
             }
 
             $availableSlots = $this->calculateAvailableSlots($coachId, $date, $time);

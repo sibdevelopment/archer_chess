@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
 use App\Models\CoachAvailability;
 use App\Http\Controllers\Controller;
+use App\Services\BatchOccurrenceService;
 use App\Services\CoachAvailabilityService;
 
 class CoverupclassController extends Controller
@@ -250,7 +251,7 @@ class CoverupclassController extends Controller
         $availableCoachIds = [];
         foreach ($coaches as $coach) {
             // dd($coach);
-            $isLeave = $this->checkCoachLeave($coach, $date);
+            $isLeave = $this->checkCoachLeave($coach, $date, $from_time, $to_time);
             // dd($isLeave);
             if ($isLeave == 0) {
                 $isBatchSchedule = $this->checkBatchSchedule($coach, $date, $weekday, $from_time, $to_time);
@@ -304,17 +305,25 @@ class CoverupclassController extends Controller
         }
         return 0;
     }
-    private function checkCoachLeave($coach, $date)
+    private function checkCoachLeave($coach, $date, ?string $fromTime = null, ?string $toTime = null)
     {
-        $isCoachLeave = LeaveRequest::where('coach_id', $coach->id)
-            ->whereDate('from_date', '=', $date)
+        $leaves = LeaveRequest::where('coach_id', $coach->id)
+            ->whereDate('from_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $date);
+            })
             ->where('status', 'APPROVED')
-            ->first();
+            ->get();
 
-        if ($isCoachLeave) {
-            return 1;
+        if (! $fromTime || ! $toTime) {
+            return $leaves->isNotEmpty() ? 1 : 0;
         }
-        return 0;
+
+        $occurrences = app(BatchOccurrenceService::class);
+        return $leaves->contains(function ($leave) use ($occurrences, $date, $fromTime, $toTime) {
+            return $occurrences->leaveOverlapsSchedule($leave, $date, $fromTime, $toTime);
+        }) ? 1 : 0;
     }
 
 

@@ -321,11 +321,12 @@
 
                                 // Start building the HTML for schedules table
                                 var schedulesHtml =
-                                    '<table class="table table-bordered"><thead><tr><th>Weekday</th><th>From Time</th><th>To Time</th><th>Missed Sessions</th><th>Cover By</th></tr></thead><tbody>';
+                                    '<table class="table table-bordered"><thead><tr><th>Date</th><th>Weekday</th><th>From Time</th><th>To Time</th><th>Missed Sessions</th><th>Cover By</th></tr></thead><tbody>';
 
                                 $.each(batch.schedules, function(day, schedule) {
                                     schedulesHtml += '<input type="hidden" name="affectedData['+arrKey+'][batch_id]" value="'+ batch.id +'">';
                                     schedulesHtml += '<input type="hidden" name="affectedData['+arrKey+'][schedule_id]" value="'+ schedule.id +'">';
+                                    schedulesHtml += '<input type="hidden" name="affectedData['+arrKey+'][date]" value="'+ schedule.date +'">';
 
                                     var coachDropdown = '<select class="form-select select2" name="affectedData['+arrKey+'][coach_id]">';
                                     coachDropdown += '<option value="">Select Coach</option>';
@@ -344,6 +345,7 @@
 
                                     // Append row data for each schedule
                                     schedulesHtml += '<tr>' +
+                                        '<td>' + schedule.date + '</td>' +
                                         '<td>' + schedule.weekday + '</td>' +
                                         '<td>' + schedule.from_time + '</td>' +
                                         '<td>' + schedule.to_time + '</td>' +

@@ -456,17 +456,6 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        $yesdayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $yesterdayDate)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        $fromLeaveTime = null;
-
-        if ($yesdayCoachLeave) {
-            $fromLeaveTime = $yesdayCoachLeave->from_time;
-        }
-
         $combinedData = [];
 
         if (in_array("UK", $coach->country)) {
@@ -522,16 +511,6 @@ class DashboardController extends Controller
             }
         }
 
-
-        $todayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        if ($todayCoachLeave) {
-            $fromLeaveTime = $todayCoachLeave->from_time;
-            $toLeaveTime   = $todayCoachLeave->to_time;
-        }
 
         // $combinedData = [];
         foreach ($batches as $batch) {
@@ -756,17 +735,6 @@ class DashboardController extends Controller
             ->where('status', 'ACTIVE')
             ->get();
 
-        $yesdayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $yesterdayDate)
-            ->where('status', 'APPROVED')
-            ->first();
-
-        $fromLeaveTime = null;
-
-        if ($yesdayCoachLeave) {
-            $fromLeaveTime = $yesdayCoachLeave->from_time;
-        }
-
         $combinedData = [];
 
         if (in_array("UK", $coach->country)) {
@@ -830,15 +798,6 @@ class DashboardController extends Controller
                     ];
                 }
             }
-        }
-
-        $todayCoachLeave = LeaveRequest::where('coach_id', $coachId)
-            ->whereDate('from_date', '=', $date)
-            ->where('status', 'APPROVED')
-            ->first();
-        if ($todayCoachLeave) {
-            $fromLeaveTime = $todayCoachLeave->from_time;
-            $toLeaveTime   = $todayCoachLeave->to_time;
         }
 
         $combinedData = [];
@@ -2317,18 +2276,31 @@ class DashboardController extends Controller
 
         // Leave Requests Data ::
         $leaveRequests = LeaveRequest::where('coach_id', $coachId)
-            ->whereBetween('from_date', [$startDate, $endDate])
+            ->whereDate('from_date', '<=', $endDate->toDateString())
+            ->where(function ($query) use ($startDate) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $startDate->toDateString());
+            })
             ->where('status', 'APPROVED') // Add this line to filter by status
             ->get();
 
         foreach ($leaveRequests as $leaveRequest) {
-            $calendarData[] = [
-                'title'     => '' . Carbon::parse($leaveRequest->from_time)->format('g:i A') . ' - ' . Carbon::parse($leaveRequest->to_time)->format('g:i A') . '',
-                'start'     => $leaveRequest->from_date,
-                'end'       => $leaveRequest->to_date,
-                'color'     => 'yellow',
-                'textColor' => 'black',
-            ];
+            $leaveStartDate = Carbon::parse($leaveRequest->from_date);
+            $leaveEndDate = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date);
+
+            for ($date = $leaveStartDate->copy(); $date->lte($leaveEndDate); $date->addDay()) {
+                $leaveWindow = app(BatchOccurrenceService::class)->leaveWindowForDate($leaveRequest, $date->toDateString());
+                if (! $leaveWindow) {
+                    continue;
+                }
+
+                $calendarData[] = [
+                    'title'     => Carbon::parse($leaveWindow['from_time'])->format('g:i A') . ' - ' . Carbon::parse($leaveWindow['to_time'])->format('g:i A'),
+                    'start'     => $date->toDateString(),
+                    'color'     => 'yellow',
+                    'textColor' => 'black',
+                ];
+            }
         }
 
         // Demo Session Data ::
@@ -3012,20 +2984,18 @@ class DashboardController extends Controller
     {
         $leaves = $coach->leaves()
             ->whereDate('from_date', '<=', $date)
-            ->whereDate('to_date', '>=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $date);
+            })
             ->get();
 
         if (!$slot || !$endSlot) {
             return $leaves->isNotEmpty();
         }
 
-        return $leaves->contains(function ($leave) use ($slot, $endSlot) {
-            return app(BatchOccurrenceService::class)->timeRangesOverlap(
-                $slot,
-                $endSlot,
-                $leave->from_time,
-                $leave->to_time
-            );
+        return $leaves->contains(function ($leave) use ($date, $slot, $endSlot) {
+            return app(BatchOccurrenceService::class)->leaveOverlapsSchedule($leave, $date, $slot, $endSlot);
         });
     }
 

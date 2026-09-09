@@ -22,6 +22,7 @@ use App\Models\DemoLeadEnquiry;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\StudentAttendance;
 use App\Http\Controllers\Controller;
+use App\Services\BatchOccurrenceService;
 use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
@@ -634,18 +635,24 @@ class StudentDashboardController extends Controller
 
             // ✅ If leave exists, and no coverup, then invalidate class
             $coachLeave = LeaveRequest::where('coach_id', $upcomingClassCoach->id)
-                ->whereDate('from_date', '=', $upcomingClassDate)
+                ->whereDate('from_date', '<=', $upcomingClassDate)
+                ->where(function ($query) use ($upcomingClassDate) {
+                    $query->whereNull('to_date')
+                        ->orWhereDate('to_date', '>=', $upcomingClassDate);
+                })
                 ->where('status', 'APPROVED')
-                ->first();
+                ->get()
+                ->first(function ($leave) use ($upcomingClassDate, $firstMatchingClassFromTime, $firstMatchingClass) {
+                    return app(BatchOccurrenceService::class)->leaveOverlapsSchedule(
+                        $leave,
+                        $upcomingClassDate,
+                        $firstMatchingClassFromTime,
+                        Carbon::parse($firstMatchingClass->to_time)->format('H:i:s')
+                    );
+                });
 
             if ($coachLeave && !$existingCoverup) {
-                $fromLeaveTime = $coachLeave->from_time;
-                $toLeaveTime   = $coachLeave->to_time;
-                $firstMatchingClassToTime = Carbon::parse($firstMatchingClass->to_time)->format('H:i:s');
-
-                if ($firstMatchingClassFromTime < $toLeaveTime && $firstMatchingClassToTime > $fromLeaveTime) {
-                    $firstMatchingClass = null;
-                }
+                $firstMatchingClass = null;
             }
         }
 

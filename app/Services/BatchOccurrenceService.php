@@ -20,15 +20,14 @@ class BatchOccurrenceService
     {
         return LeaveRequest::where('coach_id', $coachId)
             ->where('status', 'APPROVED')
-            ->whereDate('from_date', $date)
+            ->whereDate('from_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query->whereNull('to_date')
+                    ->orWhereDate('to_date', '>=', $date);
+            })
             ->get()
-            ->first(function (LeaveRequest $leave) use ($fromTime, $toTime) {
-                return $this->timeRangesOverlap(
-                    $fromTime,
-                    $toTime,
-                    $leave->from_time,
-                    $leave->to_time
-                );
+            ->first(function (LeaveRequest $leave) use ($date, $fromTime, $toTime) {
+                return $this->leaveOverlapsSchedule($leave, $date, $fromTime, $toTime);
             });
     }
 
@@ -261,12 +260,7 @@ class BatchOccurrenceService
 
             foreach ($batches as $batch) {
                 foreach ($batch->batchSchedules as $schedule) {
-                    if (! $this->timeRangesOverlap(
-                        $schedule->from_time,
-                        $schedule->to_time,
-                        $leaveRequest->from_time,
-                        $leaveRequest->to_time
-                    )) {
+                    if (! $this->leaveOverlapsSchedule($leaveRequest, $dateString, $schedule->from_time, $schedule->to_time)) {
                         continue;
                     }
 
@@ -385,6 +379,57 @@ class BatchOccurrenceService
         }
 
         return $startA->lt($endB) && $endA->gt($startB);
+    }
+
+    public function leaveOverlapsSchedule(LeaveRequest $leaveRequest, string $date, ?string $fromTime, ?string $toTime): bool
+    {
+        $leaveWindow = $this->leaveWindowForDate($leaveRequest, $date);
+
+        if (! $leaveWindow) {
+            return false;
+        }
+
+        return $this->timeRangesOverlap($fromTime, $toTime, $leaveWindow['from_time'], $leaveWindow['to_time']);
+    }
+
+    public function leaveWindowForDate(LeaveRequest $leaveRequest, string $date): ?array
+    {
+        $date = Carbon::parse($date)->toDateString();
+        $fromDate = Carbon::parse($leaveRequest->from_date)->toDateString();
+        $toDate = Carbon::parse($leaveRequest->to_date ?? $leaveRequest->from_date)->toDateString();
+
+        if ($date < $fromDate || $date > $toDate) {
+            return null;
+        }
+
+        $fromTime = $leaveRequest->from_time ?: '00:00:00';
+        $toTime = $leaveRequest->to_time ?: '23:59:59';
+
+        if ($fromDate === $toDate) {
+            return [
+                'from_time' => $fromTime,
+                'to_time' => $toTime,
+            ];
+        }
+
+        if ($date === $fromDate) {
+            return [
+                'from_time' => $fromTime,
+                'to_time' => '23:59:59',
+            ];
+        }
+
+        if ($date === $toDate) {
+            return [
+                'from_time' => '00:00:00',
+                'to_time' => $toTime,
+            ];
+        }
+
+        return [
+            'from_time' => '00:00:00',
+            'to_time' => '23:59:59',
+        ];
     }
 
     private function timeRangeEnd(string $fromTime, string $toTime): Carbon

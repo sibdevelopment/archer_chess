@@ -3,6 +3,37 @@
    Coach Availability
 @endsection
 @section('content')
+    @php
+        $availabilityCountries = $coaches
+            ->flatMap(function ($coach) {
+                return is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true);
+            })
+            ->filter()
+            ->map(function ($country) {
+                return trim($country);
+            })
+            ->unique()
+            ->sort()
+            ->values();
+
+        $availabilityCoachOptions = $coaches
+            ->map(function ($coach) {
+                $countries = is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true);
+
+                return [
+                    'id' => $coach->id,
+                    'name' => trim(optional($coach->user)->first_name . ' ' . optional($coach->user)->last_name),
+                    'countries' => collect($countries)
+                        ->filter()
+                        ->map(function ($country) {
+                            return trim($country);
+                        })
+                        ->values()
+                        ->toArray(),
+                ];
+            })
+            ->values();
+    @endphp
     <style>
     .permission-container {
         display: flex;
@@ -104,15 +135,6 @@
                             <div class="col-3">
                                 <select id="country-filter" class="select2 form-select form-select-sm pure-white" aria-label="Select country">
                                     <option value="">All Countries</option>
-                                    @php
-                                        $availabilityCountries = $coaches
-                                            ->flatMap(fn ($coach) => is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true))
-                                            ->filter()
-                                            ->map(fn ($country) => trim($country))
-                                            ->unique()
-                                            ->sort()
-                                            ->values();
-                                    @endphp
                                     @foreach ($availabilityCountries as $country)
                                         <option value="{{ $country }}">{{ $country }}</option>
                                     @endforeach
@@ -138,17 +160,7 @@
 
     <script>
         $(document).ready(function() {
-            const coaches = @json($coaches->map(function ($coach) {
-                return [
-                    'id' => $coach->id,
-                    'name' => trim(optional($coach->user)->first_name . ' ' . optional($coach->user)->last_name),
-                    'countries' => collect(is_array($coach->country) ? $coach->country : json_decode($coach->country ?? '[]', true))
-                        ->filter()
-                        ->map(fn ($country) => trim($country))
-                        ->values()
-                        ->toArray(),
-                ];
-            })->values());
+            const coaches = @json($availabilityCoachOptions);
 
             function renderCoachOptions() {
                 const selectedCountry = $('#country-filter').val();

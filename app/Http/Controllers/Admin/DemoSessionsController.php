@@ -5,18 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\DemoScheduleMail;
 use App\Models\Batch;
-use App\Models\BatchSchedule;
 use App\Models\Coach;
 use App\Models\CoachAttendance;
 use App\Models\CoachAvailability;
-use App\Models\Coverupclass;
 use App\Models\DemoLead;
 use App\Models\DemoSession;
 use App\Models\DelayedBatch;
-use App\Models\LeaveRequest;
 use App\Models\Level;
 use App\Models\Role;
-use App\Services\BatchOccurrenceService;
 use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Carbon\Carbon;
@@ -200,7 +196,9 @@ class DemoSessionsController extends Controller
 
 
         $dayOfWeek = Carbon::parse($date)->dayName;
+        $availability = app(CoachAvailabilityService::class);
         $coachAvailabilities = CoachAvailability::where('day_of_week', $dayOfWeek)
+            ->where('status', 'ACTIVE')
             ->whereHas('coach', function ($query) use ($countriesArray, $demolead) {
                 if (auth()->user()->roles()->where('name', 'SuperAdmin')->exists()) {
                     $query->where('status', 'ACTIVE')->WhereJsonContains('country', $demolead->country);
@@ -224,49 +222,16 @@ class DemoSessionsController extends Controller
         foreach ($coachAvailabilities as $coachAvailability) {
             $coachId = $coachAvailability->coach_id;
 
-            $batchSchedules = BatchSchedule::where('weekday', $dayOfWeek)
-                ->whereHas('batch', function ($query) use ($coachId, $date) {
-                    $query->where('coach_id', $coachId)
-                        ->whereIn('status', ['ACTIVE', 'STANDBY'])
-                        ->whereHas('studentBatches', function ($q) use ($date) {
-                            $q->eligibleOn($date);
-                        });
-                })
-                ->get(); 
-            
-            $isInBatchSchedule = false;
-            foreach ($batchSchedules as $batchSchedule) {
-                $start_time = Carbon::parse($batchSchedule->from_time)->format('H:i');
-                $end_time = Carbon::parse($batchSchedule->to_time)->format('H:i');
-                if ($time >= $start_time && $time <= $end_time) {
-                    $isInBatchSchedule = true;
-                    break;
-                }
-            }
+            $coachValidation = $availability->validateCoachForSingleEvent(
+                $coachId,
+                $date,
+                $time,
+                $demoEndTime,
+                [$demolead?->country],
+                'demo'
+            );
 
-            if ($isInBatchSchedule) {
-                continue; // Skip this coach if the time is within their batch schedule
-            }
-
-            $coverupclass = Coverupclass::where('new_coach_id', $coachId)
-                ->whereDate('date', $date)
-                ->first();
-
-            if ($coverupclass) {
-                $batchSchedule = BatchSchedule::where('id', $coverupclass->batchschedule_id)->first();
-
-                if ($batchSchedule) {
-                    $start_time = Carbon::parse($batchSchedule->from_time)->format('H:i');
-                    $end_time = Carbon::parse($batchSchedule->to_time)->format('H:i');
-
-                    // Skip this coach if the time is within their batch schedule
-                    if ($time >= $start_time && $time <= $end_time) {
-                        continue;
-                    }
-                }
-            }
-
-            if (app(BatchOccurrenceService::class)->approvedLeaveForSchedule($coachId, $date, $time, $demoEndTime)) {
+            if (! $coachValidation['ok']) {
                 continue;
             }
 
@@ -379,6 +344,22 @@ class DemoSessionsController extends Controller
 
         $finalAvailableSlots = collect($availableSlots)->reject(function ($slot) use ($bookedSlots) {
             return in_array($slot, $bookedSlots);
+        })->filter(function ($slot) use ($coachId, $date) {
+            $slotParts = explode(' - ', $slot);
+            if (count($slotParts) !== 2) {
+                return false;
+            }
+
+            $validation = app(CoachAvailabilityService::class)->validateCoachForSingleEvent(
+                (int) $coachId,
+                $date,
+                $slotParts[0],
+                $slotParts[1],
+                [],
+                'demo'
+            );
+
+            return $validation['ok'];
         })->values()->all();
         // dd($finalAvailableSlots);
         usort($finalAvailableSlots, function ($a, $b) {

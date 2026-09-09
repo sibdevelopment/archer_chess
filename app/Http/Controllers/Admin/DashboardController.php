@@ -2911,18 +2911,20 @@ class DashboardController extends Controller
         $timeSlots    = [];
         $displaySlots = [];
 
-        foreach ($availabilityPeriods as $period) {
-            $fromTime = Carbon::parse($period->from_period);
-            $toTime   = $this->availabilityPeriodEnd($period->from_period, $period->to_period);
+        if ($availabilityPeriods->isNotEmpty()) {
+            $timelineStart = $availabilityPeriods
+                ->map(fn ($period) => Carbon::parse($period->from_period))
+                ->sort()
+                ->first();
 
-            for ($time = $fromTime->copy(); $time->lt($toTime); $time->addMinutes(30)) {
-                $timeStr    = $time->format('H:i:s'); 
-                $displayStr = $time->format('g:i A');
+            $timelineEnd = $availabilityPeriods
+                ->map(fn ($period) => $this->availabilityPeriodEnd($period->from_period, $period->to_period))
+                ->sortDesc()
+                ->first();
 
-                if (!in_array($timeStr, $timeSlots)) { // ✅ prevent duplicates
-                    $timeSlots[]    = $timeStr;
-                    $displaySlots[] = $displayStr;
-                }
+            for ($time = $timelineStart->copy(); $time->lt($timelineEnd); $time->addMinutes(30)) {
+                $timeSlots[] = $time->format('H:i:s');
+                $displaySlots[] = $time->format('g:i A');
             }
         }
 

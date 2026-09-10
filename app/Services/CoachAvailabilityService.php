@@ -91,7 +91,14 @@ class CoachAvailabilityService
             return $this->blocked('Selected coach is not available for the selected country.');
         }
 
-        $period = CarbonPeriod::create(Carbon::parse($startDate), Carbon::parse($endDate));
+        $effectiveStartDate = Carbon::parse($startDate)->max(Carbon::today());
+        $effectiveEndDate = Carbon::parse($endDate);
+
+        if ($effectiveStartDate->gt($effectiveEndDate)) {
+            return $this->ok();
+        }
+
+        $period = CarbonPeriod::create($effectiveStartDate, $effectiveEndDate);
 
         foreach ($period as $date) {
             $weekday = $date->format('l');

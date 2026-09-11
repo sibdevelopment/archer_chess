@@ -14,6 +14,7 @@ use App\Models\Masterclass;
 use App\Models\Coverupclass;
 use App\Models\LeaveRequest;
 use App\Models\Paymentlevel;
+use App\Services\PaymentLevelService;
 use App\Models\StudentBatch;
 use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
@@ -771,7 +772,7 @@ class StudentDashboardController extends Controller
             'student'                => $student,
             'studentFees'            => [],
             'nextPaymentLevel'       => null,
-            'nextThreePaymentLevels' => [],
+            'nextThreePaymentLevels' => collect(),
         ];
 
 
@@ -784,35 +785,17 @@ class StudentDashboardController extends Controller
             // if ($student->country != 'QATAR' && $student->country != 'SINGAPORE') {
                 $student_last_batch = StudentBatch::where('student_id', $student->id)->orderBy('id', 'desc')->first();
 
-                if ($student_last_batch) {
-                    $lastpayment_level = Paymentlevel::where('level_id', $student_last_batch->batch->level_id)->where('status', 'ACTIVE')->first();
+                if ($student_last_batch && $student->status == 'FEESDUE') {
+                    $paymentLevels = app(PaymentLevelService::class);
+                    $nextPlan = $paymentLevels->nextPlan($student, 1);
+                    $nextThreePlan = $paymentLevels->nextPlan($student, 3);
 
-                    // If current batch is not active, move to next sequence
-                    if ($student_last_batch->batch->status != 'ACTIVE') {
-                        $lastpayment_level = Paymentlevel::where('sequence', $lastpayment_level->sequence + 1)->where('status', 'ACTIVE')->first();
+                    if ($nextPlan['ok']) {
+                        $data['nextPaymentLevel'] = $nextPlan['target_level'];
                     }
 
-                    if ($student->status == 'FEESDUE') {
-                        if ($lastpayment_level) {
-                            $nextPaymentLevel = Paymentlevel::where('sequence', $lastpayment_level->sequence)->where('status', 'ACTIVE')->first();
-
-                            $nextThreePaymentLevels = Paymentlevel::where('sequence', '>=', $lastpayment_level->sequence)
-                                ->orderBy('sequence', 'asc')
-                                ->where('status', 'ACTIVE')
-                                ->limit(3)
-                                ->get();
-                        } else {
-                            $nextPaymentLevel = Paymentlevel::first();
-
-                            $nextThreePaymentLevels = Paymentlevel::where('sequence', '>=', $nextPaymentLevel->sequence)
-                                ->orderBy('sequence', 'asc')
-                                ->where('status', 'ACTIVE')
-                                ->limit(3)
-                                ->get();
-                        }
-
-                        $data['nextPaymentLevel'] = $nextPaymentLevel;
-                        $data['nextThreePaymentLevels'] = $nextThreePaymentLevels;
+                    if ($nextThreePlan['ok']) {
+                        $data['nextThreePaymentLevels'] = $nextThreePlan['levels'];
                     }
                 }
             // }

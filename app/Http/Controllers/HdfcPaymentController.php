@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\Paymentlevel;
 use App\Models\StudentBatch;
+use App\Services\PaymentLevelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -24,85 +25,16 @@ class HdfcPaymentController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Student not found']);
         }
 
-        $student_last_batch = StudentBatch::where('student_id', $student->id)->orderBy('id', 'desc')->first();
-        $lastpayment_level  = Paymentlevel::where('level_id', $student_last_batch->level_id)->first();
-
-        if ($student_last_batch->batch->status != 'ACTIVE' && $lastpayment_level) {
-            $lastpayment_level = Paymentlevel::where('sequence', $lastpayment_level->sequence + 1)->first();
+        $paymentPlan = app(PaymentLevelService::class)->planForTarget($student, $request->payment_level_id);
+        if (! $paymentPlan['ok']) {
+            return response()->json(['status' => 'error', 'message' => $paymentPlan['message']]);
         }
 
-        $nextPaymentLevel = $lastpayment_level 
-            ? Paymentlevel::where('sequence', $lastpayment_level->sequence)->first() 
-            : Paymentlevel::first();
-
-        $requestedAmount = floatval($request->amount); 
-        $country = strtoupper(trim($student->country));
-        $currency = '';
-        $correctAmount = null;
-
-        switch ($country) {
-            case 'USA':
-            case 'CANADA':
-                $correctAmount = floatval($nextPaymentLevel->usa_fees);
-                $currency = 'USD';
-                break;
-            case 'AUSTRALIA':
-                $correctAmount = floatval($nextPaymentLevel->australia_fees);
-                $currency = 'AUD';
-                break;
-            case 'NEW ZEALAND':
-                $correctAmount = floatval($nextPaymentLevel->newzealand_fees);
-                $currency = 'NZD';
-                break;
-            case 'INDIA':
-                $correctAmount = floatval($nextPaymentLevel->india_fees);
-                $currency = 'INR';
-                break;
-            case 'UAE':
-                $correctAmount = floatval($nextPaymentLevel->uae_fees);
-                $currency = 'AED';
-                break;
-            case 'UK':
-                $correctAmount = floatval($nextPaymentLevel->uk_fees);
-                $currency = 'GBP';
-                break;
-            default:
-                return response()->json(['status' => 'error', 'message' => 'Unsupported country']);
-        }
-
-        // dd($requestedAmount, $correctAmount, $country, $currency);
-
-        $nextThreePaymentLevels = Paymentlevel::where('sequence', '>=', $nextPaymentLevel->sequence)
-                        ->orderBy('sequence', 'asc')
-                        // ->where('status', 'ACTIVE')
-                        ->limit(3)
-                        ->get();
-        
-        $nextThreePaymentLevelsAmount = 0;
-         if ($country == 'USA') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('usa_fees');
-        } elseif ($country == 'CANADA') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('canada_fees');
-        } elseif ($country == 'AUSTRALIA') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('australia_fees');
-        } elseif ($country == 'NEW ZEALAND') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('newzealand_fees');
-        } elseif ($country == 'INDIA') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('india_fees');
-        } elseif ($country == 'UAE') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uae_fees');
-        } elseif ($country == 'UK') {
-            $nextThreePaymentLevelsAmount = $nextThreePaymentLevels->sum('uk_fees');
-        }
-
-
-        if (
-            abs($requestedAmount - $correctAmount) > 0.01
-            && abs($requestedAmount - $nextThreePaymentLevelsAmount) > 0.01
-        ) {
+        $requestedAmount = floatval($request->amount);
+        if (abs($requestedAmount - (float) $paymentPlan['amount']) > 0.01) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Amount mismatch. You entered ₹$requestedAmount but required is ₹$correctAmount or ₹$nextThreePaymentLevelsAmount for country $country."
+                'message' => 'Payment amount does not match the next payment level sequence.'
             ]);
         }
 
@@ -110,16 +42,21 @@ class HdfcPaymentController extends Controller
         $order = new Order();
         $order->student_id    = $student->id;
         $order->hdfc_order_id = $order_id_str;
-        $order->amount        = $requestedAmount;
-        $order->currency      = $currency;
+        $order->amount        = $paymentPlan['amount'];
+        $order->currency      = $paymentPlan['currency'];
         $order->status        = 'PENDING';
+        $order->razorpay_data = json_encode([
+            'source' => 'hdfc_checkout_initiated',
+            'payment_level_id' => $paymentPlan['target_level']->id,
+            'payment_level_ids' => $paymentPlan['level_ids'],
+        ]);
         $order->save();
 
         return response()->json([
             'status'     => 'success',
             'order_id'   => $order_id_str,
-            'amount'     => $requestedAmount,
-            'currency'   => $currency,
+            'amount'     => $paymentPlan['amount'],
+            'currency'   => $paymentPlan['currency'],
             'student_id' => $student->id
         ]);
     }
@@ -362,7 +299,24 @@ class HdfcPaymentController extends Controller
                 return redirect()->back()->with('error', 'Order not found.');
             }
 
+            if ($order->status == 'COMPLETED' || $order->status == 'FAILED') {
+                $orderDetails = $order->hdfc_data ? json_decode($order->hdfc_data, true) : [
+                    'amount' => $order->amount,
+                    'currency' => $order->currency,
+                    'customer_email' => $order->customer_email,
+                    'id' => $order->hdfc_order_id,
+                    'status' => $order->status,
+                ];
+
+                return view('Frontend.hdfcthankyou', compact('response', 'orderDetails'));
+            }
+
             $student = Student::find($order->student_id);
+            $orderMeta = $order->razorpay_data ? json_decode($order->razorpay_data, true) : [];
+            $paymentPlan = app(PaymentLevelService::class)->planForTarget($student, $orderMeta['payment_level_id'] ?? null);
+            if (! $paymentPlan['ok']) {
+                return redirect()->back()->with('error', $paymentPlan['message']);
+            }
 
             // $orderResponse = Http::withHeaders([
             //     'Authorization' => 'Basic ' . base64_encode('C6F050B13004DD595A329E8BEF29A3:2A4B272BC704842ABACF30D3F9993D'),
@@ -384,10 +338,6 @@ class HdfcPaymentController extends Controller
                 $orderDetails = $orderResponse->json();
                 if ($order->amount != $orderResponse['amount']) {
                     return view('Frontend.hdfcerror', compact('response', 'orderDetails'));
-                }
-
-                if ($order->status == 'COMPLETED' || $order->status == 'FAILED') {
-                    return view('Frontend.hdfcthankyou', compact('response', 'orderDetails'));
                 }
 
                 if ($orderDetails['status'] == 'CHARGED') {
@@ -423,13 +373,14 @@ class HdfcPaymentController extends Controller
 
                     $studentfee = new StudentFee();
                     $studentfee->student_id        = $order->student_id;
+                    $studentfee->payment_level_id  = $paymentPlan['target_level']->id;
                     $studentfee->start_date        = Carbon::today()->format('Y-m-d');
                     $studentfee->end_date =          Carbon::today()->addDays(24);
                     $studentfee->receive_date      = Carbon::today()->format('Y-m-d');
-                    $studentfee->monthly_fees      = $order->amount;
-                    $studentfee->total_amount_paid = $order->amount;
+                    $studentfee->monthly_fees      = $paymentPlan['amount'];
+                    $studentfee->total_amount_paid = $paymentPlan['amount'];
                     $studentfee->status            = 'ACTIVE';
-                    $studentfee->currency          = $request->currency;
+                    $studentfee->currency          = $paymentPlan['currency'];
                     $studentfee->save();
                     $studentBatchStartDate = Carbon::parse($studentfee->start_date)->toDateString();
 
@@ -518,6 +469,7 @@ class HdfcPaymentController extends Controller
                     }
 
                     $student->status = 'ACTIVE';
+                    $student->lastpayment_level_id = $paymentPlan['target_level']->id;
                     $student->save();
                 } else {
                     $order->status = 'FAILED';

@@ -34,6 +34,19 @@ Demo Session
                                 <div id="receive_date-error" style="color:red"></div>
                             </div>
                             <div class="col-sm-6 col-md-4">
+                                <label class="control-label col-form-label">Paid Till Payment Level *</label>
+                                <select class="form-control select2" name="payment_level_id" required>
+                                    <option value="">Select Payment Level</option>
+                                    @foreach ($paymentlevels as $paymentlevel)
+                                        <option value="{{ $paymentlevel->id }}"
+                                            {{ old('payment_level_id', isset($student_fee) ? $student_fee->payment_level_id : '') == $paymentlevel->id ? 'selected' : '' }}>
+                                            {{ $paymentlevel->name }} ({{ $paymentlevel->level->name ?? 'N/A' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div id="payment_level_id-error" style="color:red"></div>
+                            </div>
+                            <div class="col-sm-6 col-md-4">
                                 <label class="control-label col-form-label">Currency</label>
                                 @include('Admin.partials.currency-select', [
                                     'selected' => isset($student_fee) ? $student_fee->currency : '',

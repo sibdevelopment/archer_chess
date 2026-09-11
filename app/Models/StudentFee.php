@@ -5,6 +5,7 @@
  use App\Traits\Hashidable;
  use App\Models\Student;
  use App\Models\BaseModel;
+ use App\Models\Paymentlevel;
  use Illuminate\Support\Facades\Auth;
  use Illuminate\Database\Eloquent\Model;
  use Spatie\Activitylog\Traits\LogsActivity;
@@ -17,6 +18,7 @@
      protected $table = 'student_fees';
      protected $fillable = [
          'student_id',
+         'payment_level_id',
          'start_date',
          'end_date',
          'receive_date',
@@ -32,6 +34,11 @@
      public function student()
      {
          return $this->belongsTo(Student::class);
+     }
+
+     public function paymentLevel()
+     {
+         return $this->belongsTo(Paymentlevel::class, 'payment_level_id');
      }
 
      public function generateFeeDueMessage() {
@@ -76,8 +83,6 @@
      {
          return LogOptions::defaults()
              ->logAll() // Log all attributes (or you can specify the ones you want to log)
-             ->logOnly(['student_id', 'start_date', 'end_date', 'currency', 'monthly_fees', 'total_amount_paid', 'remark', 'status']); // Specify attributes to log
+             ->logOnly(['student_id', 'payment_level_id', 'start_date', 'end_date', 'currency', 'monthly_fees', 'total_amount_paid', 'remark', 'status']); // Specify attributes to log
      }
  }
-
-

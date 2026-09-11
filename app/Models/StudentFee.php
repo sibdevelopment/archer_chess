@@ -6,6 +6,7 @@
  use App\Models\Student;
  use App\Models\BaseModel;
  use App\Models\Paymentlevel;
+ use App\Services\PaymentLevelService;
  use Illuminate\Support\Facades\Auth;
  use Illuminate\Database\Eloquent\Model;
  use Spatie\Activitylog\Traits\LogsActivity;
@@ -45,12 +46,18 @@
          // Fetch the related student to access its first_name, last_name, currency, and monthly_fees
          $student = $this->student()->first();
          $fullName = $student->first_name . ' ' . $student->last_name;
-         $currency = $student->currency;
+         $dueSummary = app(PaymentLevelService::class)->dueAmountSummary($student);
+         $dueAmount = $dueSummary['amount'];
+         $currency = $dueSummary['currency'];
+         $paymentLevel = $dueSummary['payment_level'];
 
          $message = "Dear $fullName, This is to inform you that the Chess Class fee has been due with Archer Chess Academy. ";
          $message .= "Your previous module has ended on *".Carbon::parse($this->end_date)->format('l, d-M-Y')."* ";
          $message .= "Please attend to this matter as soon as you possibly can. Thank you very much. \n";
-         $message .= "The total due amount is *".$this->monthly_fees." ".$currency."*. ";
+         if ($paymentLevel) {
+             $message .= "The next payment level is *".$paymentLevel."*. ";
+         }
+         $message .= "The total due amount is *".$dueAmount." ".$currency."*. ";
          $message .= "Kindly check out Archer Chess Academy or Archer Kids on the payment gateway before making payment.";
 
          return $message;

@@ -80,6 +80,29 @@ class PaymentLevelService
         return self::COUNTRY_MAP[$country] ?? ['column' => null, 'currency' => ''];
     }
 
+    public function dueAmountSummary(Student $student): array
+    {
+        $plan = $this->nextPlan($student, 1);
+
+        if ($plan['ok']) {
+            return [
+                'amount' => $plan['amount'],
+                'currency' => $plan['currency'],
+                'payment_level' => $plan['target_level']->name,
+            ];
+        }
+
+        $latestFee = StudentFee::where('student_id', $student->id)
+            ->orderByDesc('id')
+            ->first();
+
+        return [
+            'amount' => $latestFee ? $latestFee->monthly_fees : $student->monthly_fees,
+            'currency' => $latestFee ? $latestFee->currency : $student->currency,
+            'payment_level' => null,
+        ];
+    }
+
     public function lastPaidPaymentLevel(Student $student): ?Paymentlevel
     {
         $latestFee = StudentFee::where('student_id', $student->id)

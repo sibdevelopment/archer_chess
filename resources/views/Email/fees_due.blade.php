@@ -23,6 +23,16 @@
     records and confirm enrollment.
 </p>
 
+@if(!empty($fee_due_amount) && !empty($fee_due_currency))
+<p style="font-size: 16px; color: #555;">
+    The total due amount is <strong>{{ $fee_due_currency }} {{ $fee_due_amount }}</strong>
+    @if(!empty($fee_due_payment_level))
+        for <strong>{{ $fee_due_payment_level }}</strong>
+    @endif
+    .
+</p>
+@endif
+
 <p style="font-size: 16px; color: #555;">
     Please use the student portal to make the payment:
 </p>

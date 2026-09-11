@@ -14,6 +14,16 @@
     To ensure your child's uninterrupted participation, we kindly request that the payment be completed <strong>at your earliest convenience</strong>. This will allow our administrative team to update records and confirm enrollment in a timely manner.
 </p>
 
+@if(!empty($fee_due_amount) && !empty($fee_due_currency))
+<p style="font-size: 16px; color: #555;">
+    The total due amount is <strong>{{ $fee_due_currency }} {{ $fee_due_amount }}</strong>
+    @if(!empty($fee_due_payment_level))
+        for <strong>{{ $fee_due_payment_level }}</strong>
+    @endif
+    .
+</p>
+@endif
+
 <p style="font-size: 16px; color: #555;">
     Please use the student portal to make the payment:
 </p>

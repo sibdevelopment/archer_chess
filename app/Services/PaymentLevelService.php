@@ -10,6 +10,8 @@ use Illuminate\Support\Collection;
 
 class PaymentLevelService
 {
+    private const THREE_LEVEL_DISCOUNT_PERCENT = 10;
+
     private const COUNTRY_MAP = [
         'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
         'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],
@@ -167,7 +169,10 @@ class PaymentLevelService
             return ['ok' => false, 'message' => "Payment amount is not configured for {$student->country}."];
         }
 
-        $amount = (float) $levels->sum($feeColumn);
+        $originalAmount = (float) $levels->sum($feeColumn);
+        $discountPercent = $levels->count() === 3 ? self::THREE_LEVEL_DISCOUNT_PERCENT : 0;
+        $discountAmount = $discountPercent > 0 ? round(($originalAmount * $discountPercent) / 100, 2) : 0.0;
+        $amount = round($originalAmount - $discountAmount, 2);
 
         if ($amount <= 0) {
             return ['ok' => false, 'message' => "Payment amount is not configured for {$student->country}."];
@@ -178,6 +183,9 @@ class PaymentLevelService
             'levels' => $levels,
             'level_ids' => $levels->pluck('id')->values()->all(),
             'target_level' => $levels->last(),
+            'original_amount' => $originalAmount,
+            'discount_percent' => $discountPercent,
+            'discount_amount' => $discountAmount,
             'amount' => $amount,
             'currency' => $currency,
             'fee_column' => $feeColumn,

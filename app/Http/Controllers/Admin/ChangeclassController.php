@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\Changeclass;
 use App\Models\StudentBatch;
+use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
@@ -310,7 +311,9 @@ class ChangeclassController extends Controller
         )->get();
 
         
-        return view('Admin.ChangeClass.show', compact('changeclass', 'employees', 'batches'));
+        $paymentlevels = Paymentlevel::with('level')->where('status', 'ACTIVE')->get();
+
+        return view('Admin.ChangeClass.show', compact('changeclass', 'employees', 'batches', 'paymentlevels'));
     }
 
     /**
@@ -396,6 +399,7 @@ class ChangeclassController extends Controller
                 'receive_date' => 'required|date',
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
+                'payment_level_id' => 'required|exists:paymentlevels,id',
                 'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'required',
             ], [
@@ -412,6 +416,8 @@ class ChangeclassController extends Controller
                 'received_fees.required'  => 'Please enter the received fees amount.',
                 'received_fees.numeric'   => 'The received fees must be a valid number.',
                 'received_fees.min'       => 'Received fees cannot be negative.',
+                'payment_level_id.required' => 'Please select the paid till payment level.',
+                'payment_level_id.exists' => 'Please select a valid payment level.',
                 'currency.required'       => 'Please enter the currency.',
             ]);
 
@@ -445,12 +451,14 @@ class ChangeclassController extends Controller
                 $student_fee->receive_date      = $request->receive_date;
                 $student_fee->monthly_fees      = $request->fees;
                 $student_fee->total_amount_paid = $request->received_fees;
+                $student_fee->payment_level_id  = $request->payment_level_id;
                 $student_fee->currency          = $request->currency;
                 $student_fee->remark            = $request->remark;
                 $student_fee->status            = 'ACTIVE';
                 $student_fee->save();
 
                 $student->status = 'ACTIVE';
+                $student->lastpayment_level_id = $request->payment_level_id;
                 $student->save();
 
                 $assignmentResult = $this->directAssignChangeClassStudent($student, $batch, $student_fee, $change_class);

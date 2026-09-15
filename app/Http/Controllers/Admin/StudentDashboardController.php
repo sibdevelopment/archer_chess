@@ -773,6 +773,8 @@ class StudentDashboardController extends Controller
             'studentFees'            => [],
             'nextPaymentLevel'       => null,
             'nextThreePaymentLevels' => collect(),
+            'nextPaymentPlan'        => null,
+            'nextThreePaymentPlan'   => null,
         ];
 
 
@@ -792,10 +794,12 @@ class StudentDashboardController extends Controller
 
                     if ($nextPlan['ok']) {
                         $data['nextPaymentLevel'] = $nextPlan['target_level'];
+                        $data['nextPaymentPlan'] = $nextPlan;
                     }
 
                     if ($nextThreePlan['ok']) {
                         $data['nextThreePaymentLevels'] = $nextThreePlan['levels'];
+                        $data['nextThreePaymentPlan'] = $nextThreePlan;
                     }
                 }
             // }

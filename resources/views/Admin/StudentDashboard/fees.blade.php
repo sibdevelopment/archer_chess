@@ -142,7 +142,7 @@
             $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];
             $currency = $paymentCountry['currency'];
-            $nextPaymentLevelAmount = $feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0;
+            $nextPaymentLevelAmount = $nextPaymentPlan['amount'] ?? ($feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0);
             $canPayNextPaymentLevel = $currency && (float) $nextPaymentLevelAmount > 0;
 
         @endphp
@@ -182,13 +182,25 @@
             @if ($nextThreePaymentLevels->count() > 0)
                 @php
                     $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
-                    $nextThreePaymentLevelsAmount = $feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0;
+                    $nextThreePaymentLevelsOriginalAmount = $nextThreePaymentPlan['original_amount'] ?? ($feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0);
+                    $nextThreePaymentLevelsDiscountPercent = $nextThreePaymentPlan['discount_percent'] ?? 0;
+                    $nextThreePaymentLevelsDiscountAmount = $nextThreePaymentPlan['discount_amount'] ?? 0;
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentPlan['amount'] ?? $nextThreePaymentLevelsOriginalAmount;
                     $canPayNextThreePaymentLevels = $currency && (float) $nextThreePaymentLevelsAmount > 0;
                 @endphp
                 <div class="card shadow-lg border-0 rounded-lg">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+                            <div>
+                                <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+                                @if ($nextThreePaymentLevelsDiscountPercent > 0)
+                                    <p class="mb-0 text-success">
+                                        {{ $nextThreePaymentLevelsDiscountPercent }}% discount applied:
+                                        <span class="text-decoration-line-through">{{ $nextThreePaymentLevelsOriginalAmount }} {{ $currency }}</span>
+                                        - {{ $nextThreePaymentLevelsDiscountAmount }} {{ $currency }}
+                                    </p>
+                                @endif
+                            </div>
 
                             {{-- <button class="btn btn-primary pay-now-btn hdfc-btn"
                                 data-amount="{{ $nextThreePaymentLevelsAmount }}">

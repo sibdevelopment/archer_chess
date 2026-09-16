@@ -129,17 +129,9 @@ Coach
                             <label class="control-label col-form-label">Status</label>
                             <select class="form-control" name="status">
                                 <option value="">Select</option>
-                                @if(isset($coach) && $coach->user->status == 'ACTIVE')
-                                <option value="ACTIVE" selected>Active</option>
-                                @else
-                                <option value="ACTIVE">Active</option>
-                                @endif
-
-                                @if(isset($coach) && $coach->user->status == 'INACTIVE')
-                                <option value="INACTIVE" selected>Inactive</option>
-                                @else
-                                <option value="INACTIVE">Inactive</option>
-                                @endif
+                                <option value="ACTIVE" {{ isset($coach) && $coach->status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                                <option value="STANDBY" {{ isset($coach) && $coach->status == 'STANDBY' ? 'selected' : '' }}>Standby</option>
+                                <option value="INACTIVE" {{ isset($coach) && $coach->status == 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
                             </select>
                             <div id="status-error" style="color:red"></div>
                         </div>

@@ -47,9 +47,10 @@
                         <div class="col-2 d-flex justify-content-end">
                             <select name="status" id="status" class="select2 form-select form-select-sm   pure-white" aria-label=".form-select-sm example">
                                 {{-- <option value="">Select Status</option> --}}
-                                <option value="ACTIVE ">Active</option>
-                                <option value="INACTIVE ">Inactive</option>
-                                <option value=" ">ALL</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="STANDBY">Standby</option>
+                                <option value="INACTIVE">Inactive</option>
+                                <option value="">ALL</option>
                             </select>
                         </div>
                         <div class="col-3 d-flex justify-content-end">
@@ -223,11 +224,12 @@
         });
     });
 
-    $(document).on('change', '.coach-status-switch', function(e){
+    $(document).on('change', '.coach-status-select', function(e){
         e.preventDefault();
-        var $switch = $(this);
+        var $select = $(this);
         var routeKey = $(this).data('routekey');
-        var status = $(this).is(':checked') ? 'ACTIVE' : 'INACTIVE';
+        var status = $(this).val();
+        var previousStatus = $select.data('previous-status') || $select.find('option[selected]').val() || 'ACTIVE';
         $.ajax({
             url: "{{ route('admin.coaches.change.status') }}",
             type: 'POST',
@@ -257,7 +259,7 @@
                 }
             },
             error: function(xhr) {
-                $switch.prop('checked', status === 'INACTIVE');
+                $select.val(previousStatus).trigger('change.select2');
 
                 if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.status === 'blocked') {
                     var rows = '';
@@ -283,6 +285,10 @@
                 toastr.error('Something went wrong!');
             }
         });
+    });
+
+    $(document).on('focus', '.coach-status-select', function() {
+        $(this).data('previous-status', $(this).val());
     });
 
 

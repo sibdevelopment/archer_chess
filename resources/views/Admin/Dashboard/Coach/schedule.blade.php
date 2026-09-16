@@ -29,17 +29,18 @@
             @php
                 // dd($schedules);
                 $todaysDate = date('Y-m-d');
+                $scheduleDate = $schedule['schedule_date'] ?? $todaysDate;
                 $isDemoSchedule = ($schedule['type'] ?? null) === 'Demo';
                 $isAttendaceMarked = false;
 
                 if ($isDemoSchedule && !empty($schedule['demolead_id'])) {
                     $isAttendaceMarked = App\Models\CoachAttendance::where('demolead_id', $schedule['demolead_id'])
                         ->where('coach_id', $coach->id)
-                        ->whereDate('date', $todaysDate)
+                        ->whereDate('date', $scheduleDate)
                         ->exists();
                 } elseif (!$isDemoSchedule) {
                     $isAttendaceMarked = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                        ->whereDate('date', $todaysDate)
+                        ->whereDate('date', $scheduleDate)
                         ->exists();
                 }
 
@@ -97,12 +98,14 @@
                         @elseif ($schedule['type'] === 'Demo')
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
+                                data-date="{{ $scheduleDate }}"
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
                             </button>
                         @else
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
+                                data-date="{{ $scheduleDate }}"
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
                             </button>
@@ -111,7 +114,12 @@
                         {{ $schedule['status'] }}
                     @endif
                 </td>
-                <td style="text-align: center;">{{ $schedule['slot'] }}</td>
+                <td style="text-align: center;">
+                    {{ $schedule['slot'] }}
+                    @if (($schedule['schedule_date'] ?? $todaysDate) !== $todaysDate)
+                        <div><span class="badge bg-info">{{ \Carbon\Carbon::parse($schedule['schedule_date'])->format('d M Y') }}</span></div>
+                    @endif
+                </td>
                 <td style="text-align: center;">
                     @if (in_array($schedule['type'], ['Batch', 'BATCH', 'Coverup', 'COVERUP']))
                         @if (($schedule['is_one_to_one'] ?? false) && in_array($schedule['type'], ['Batch', 'BATCH']))
@@ -137,7 +145,9 @@
                         $now = \Carbon\Carbon::now();
 
                         // Determine correct slot dates
-                        $slotDate = $schedule['type'] === 'Yesterday Batch' ? now()->subDay() : now();
+                        $slotDate = $schedule['type'] === 'Yesterday Batch'
+                            ? now()->subDay()
+                            : \Carbon\Carbon::parse($schedule['schedule_date'] ?? $todaysDate);
 
                         // Parse start & end times
                         $slotStartTime = \Carbon\Carbon::parse($slotParts[0])->setDate(
@@ -160,7 +170,7 @@
                         if ($schedule['type'] === 'Demo' && !empty($schedule['demolead_id'])) {
                             $demoLatestAttendance = App\Models\CoachAttendance::where('demolead_id', $schedule['demolead_id'])
                                 ->where('coach_id', $coach->id)
-                                ->whereDate('date', $todaysDate)
+                                ->whereDate('date', $scheduleDate)
                                 ->latest()
                                 ->first();
 
@@ -171,7 +181,7 @@
                             $latestAttendance = $demoLatestAttendance;
                         } else {
                             $latestAttendance = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                                ->whereDate('date', $todaysDate)
+                                ->whereDate('date', $scheduleDate)
                                 ->latest()
                                 ->first();
                         }
@@ -211,6 +221,7 @@
                                     class="btn btn-primary-theme-outline status-btn"
                                     data-type="{{ $schedule['type'] }}"
                                     data-id="{{ $schedule['id'] }}"
+                                    data-date="{{ $scheduleDate }}"
                                     data-btn="startBtn">
                                     Mark Attendance
                                 </a>
@@ -240,6 +251,7 @@
                             class="btn btn-primary-theme-outline status-btn"
                             data-type="{{ $schedule['type'] }}"
                             data-id="{{ $schedule['id'] }}"
+                            data-date="{{ $scheduleDate }}"
                             data-btn="startBtn">
                             Start
                         </a>

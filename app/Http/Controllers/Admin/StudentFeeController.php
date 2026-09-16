@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Mail;
 
 class StudentFeeController extends Controller
 {
+    private const ADVANCE_FEE_DAYS = 5;
+
     private function syncActiveStudentBatchFeeWindow(Student $student, StudentFee $studentFee): void
     {
         if ($studentFee->status !== 'ACTIVE' || ! $studentFee->start_date) {
@@ -26,6 +28,10 @@ class StudentFeeController extends Controller
         }
 
         $feeStartDate = Carbon::parse($studentFee->start_date)->toDateString();
+        if (Carbon::parse($feeStartDate)->gt(Carbon::today())) {
+            return;
+        }
+
         $feeEndDate = $studentFee->end_date
             ? Carbon::parse($studentFee->end_date)->toDateString()
             : null;
@@ -198,19 +204,37 @@ class StudentFeeController extends Controller
         $request->validate($this->rules(), $this->customMessages);
 
         $activeFeeExists = StudentFee::where('student_id', $request->student_id)
+            ->where('status', 'ACTIVE')
             ->orderBy('end_date', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
 
 
-        if ($activeFeeExists && $activeFeeExists->end_date >= Carbon::today()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An active fee record already exists for this student until '
-                    . $activeFeeExists->end_date
-                    . '. Please update the existing record or wait until it expires before creating a new one.',
-            ], 400);
-        }
+        if ($activeFeeExists && $activeFeeExists->end_date) {
+            $today = Carbon::today();
+            $activeFeeEndDate = Carbon::parse($activeFeeExists->end_date)->startOfDay();
+            $newFeeStartDate = Carbon::parse($request->input('start_date'))->startOfDay();
 
+            if ($activeFeeEndDate->gt($today->copy()->addDays(self::ADVANCE_FEE_DAYS))) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'An active fee record already exists for this student until '
+                        . $activeFeeExists->end_date
+                        . '. Advance fee can be added only within '
+                        . self::ADVANCE_FEE_DAYS
+                        . ' days of the current fee end date.',
+                ], 400);
+            }
+
+            if ($activeFeeEndDate->gte($today) && $newFeeStartDate->lte($activeFeeEndDate)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Advance fee start date must be after the current active fee end date '
+                        . $activeFeeExists->end_date
+                        . '.',
+                ], 400);
+            }
+        }
 
         $student = Student::find($request->student_id);
         $student_fee = new StudentFee;

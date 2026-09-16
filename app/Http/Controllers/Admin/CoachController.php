@@ -92,11 +92,20 @@ class CoachController extends Controller
                 return '<img src="/backend/dist/images/svgs/icon-connect.svg" width="20" height="20" class="" alt="" /> &nbsp; ' . $countries;
             })
             ->editColumn('status', function ($coach) {
-                if ($coach->status == 'ACTIVE') {
-                    return '<div class="form-check form-switch"><input class="form-check-input coach-status-switch" type="checkbox" checked data-routekey="' . $coach->route_key . '"/></div>';
-                } else {
-                    return '<div class="form-check form-switch"><input class="form-check-input coach-status-switch" type="checkbox" data-routekey="' . $coach->route_key . '"/></div>';
+                $statuses = [
+                    'ACTIVE' => 'Active',
+                    'STANDBY' => 'Standby',
+                    'INACTIVE' => 'Inactive',
+                ];
+
+                $html = '<select class="form-select form-select-sm coach-status-select" data-routekey="' . $coach->route_key . '">';
+                foreach ($statuses as $value => $label) {
+                    $selected = $coach->status === $value ? ' selected' : '';
+                    $html .= '<option value="' . $value . '"' . $selected . '>' . $label . '</option>';
                 }
+                $html .= '</select>';
+
+                return $html;
             })
             ->addColumn('action', function ($coach) {
                 $edit = '<a href="' . route('admin.coaches.edit', ['coach' => $coach->route_key]) . '" class="badge bg-warning fs-1"><i class="fa fa-edit"></i></a>';
@@ -257,7 +266,8 @@ class CoachController extends Controller
 
         // New User ::
         $user = new User;
-        $user->fill($request->all());
+        $user->fill($request->except('status'));
+        $user->status = $request->status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE';
         $user->password = bcrypt($request->password);
         $user->save();
 
@@ -303,7 +313,8 @@ class CoachController extends Controller
             'country' => normalizeCountryValues($request->input('country', [])),
         ]);
         $user = User::find($coach->user_id);
-        $user->fill($request->all());
+        $user->fill($request->except('status'));
+        $user->status = $request->status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE';
         if ($request->password) {
             $user->password = bcrypt($request->password);
         }
@@ -325,7 +336,18 @@ class CoachController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $request->validate([
+            'route_key' => 'required',
+            'status' => 'required|in:ACTIVE,STANDBY,INACTIVE',
+        ]);
+
         $coach = Coach::findByKey($request->route_key);
+        if (!$coach) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Coach not found.',
+            ], 404);
+        }
 
         if ($request->status === 'INACTIVE') {
             $blockingBatches = Batch::where('coach_id', $coach->id)
@@ -380,7 +402,7 @@ class CoachController extends Controller
         'zoom_user_id' => 'required',
         'zoom_password' => 'sometimes|nullable',
         'portal_id' => 'sometimes|nullable|unique:coachs,portal_id',   
-        'status' => 'required|in:ACTIVE,INACTIVE',
+        'status' => 'required|in:ACTIVE,STANDBY,INACTIVE',
     ];
 
     private $customMessages = [

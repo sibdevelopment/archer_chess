@@ -382,9 +382,9 @@ class DashboardController extends Controller
             $coach = Coach::where('user_id', $user->id)->first();
         }
 
-        if ($coach->status == 'INACTIVE') {
+        if (! $coach || in_array($coach->status, ['INACTIVE', 'STANDBY'], true)) {
             Auth::logout();
-            return redirect()->route('login')->with('error', 'Your account is inactive. Please contact support.');
+            return redirect()->route('login')->with('error', 'Your coach account is not active. Please contact support.');
         }
 
         
@@ -670,8 +670,25 @@ class DashboardController extends Controller
             }
         }
 
-        // Sort combined data by slot
+        foreach ($combinedData as &$item) {
+            $item['schedule_date'] = $item['schedule_date'] ?? $todayDate;
+            $item['attendance_date'] = $item['attendance_date'] ?? $todayDate;
+        }
+        unset($item);
+
+        $combinedData = array_merge(
+            $combinedData,
+            $this->coachScheduleItemsForDate($coach, $coachId, Carbon::now()->addDay()->format('Y-m-d'))
+        );
+
+        // Sort combined data by schedule date and slot
         usort($combinedData, function ($a, $b) {
+            $aDate = $a['schedule_date'] ?? Carbon::now()->toDateString();
+            $bDate = $b['schedule_date'] ?? Carbon::now()->toDateString();
+            if ($aDate !== $bDate) {
+                return strcmp($aDate, $bDate);
+            }
+
             $aStartTime = explode(' - ', $a['slot'])[0];
             $bStartTime = explode(' - ', $b['slot'])[0];
             return strtotime($aStartTime) - strtotime($bStartTime);
@@ -692,6 +709,9 @@ class DashboardController extends Controller
     {
         $occurrences = app(BatchOccurrenceService::class);
         $coach = Coach::where('id', $coachId)->first();
+        if (! $coach || $coach->status !== 'ACTIVE') {
+            return response()->json(['message' => 'Your coach account is not active. Please contact support.'], 403);
+        }
 
         $date          = $request->input('date', Carbon::now()->format('Y-m-d'));
         $yesterdayDate = Carbon::now()->subDay()->format('Y-m-d');
@@ -941,9 +961,27 @@ class DashboardController extends Controller
             }
         }
 
-        // dd($combinedData);
-        // Sort combined data by slot
+        foreach ($combinedData as &$item) {
+            $item['schedule_date'] = $item['schedule_date'] ?? $date;
+            $item['attendance_date'] = $item['attendance_date'] ?? $date;
+        }
+        unset($item);
+
+        if ($date === Carbon::now()->toDateString()) {
+            $combinedData = array_merge(
+                $combinedData,
+                $this->coachScheduleItemsForDate($coach, $coachId, Carbon::now()->addDay()->format('Y-m-d'))
+            );
+        }
+
+        // Sort combined data by schedule date and slot
         usort($combinedData, function ($a, $b) {
+            $aDate = $a['schedule_date'] ?? Carbon::now()->toDateString();
+            $bDate = $b['schedule_date'] ?? Carbon::now()->toDateString();
+            if ($aDate !== $bDate) {
+                return strcmp($aDate, $bDate);
+            }
+
             $aStartTime = explode(' - ', $a['slot'])[0];
             $bStartTime = explode(' - ', $b['slot'])[0];
             return strtotime($aStartTime) - strtotime($bStartTime);
@@ -954,6 +992,164 @@ class DashboardController extends Controller
             'coach' => $coach,
             'schedules' => $combinedData,
         ]);
+    }
+
+    private function coachScheduleItemsForDate(Coach $coach, int $coachId, string $date): array
+    {
+        $occurrences = app(BatchOccurrenceService::class);
+        $dayName = Carbon::parse($date)->format('l');
+        $items = [];
+
+        $batches = Batch::with(['batchSchedules' => function ($query) use ($dayName) {
+            $query->where('weekday', $dayName)
+                ->where('status', 'ACTIVE');
+        }])
+            ->withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
+                $query->countableForClassOn($date);
+            }])
+            ->whereHas('studentBatches', function ($query) use ($date) {
+                $query->countableForClassOn($date);
+            })
+            ->where('coach_id', $coachId)
+            ->where('status', 'ACTIVE')
+            ->get();
+
+        foreach ($batches as $batch) {
+            foreach ($batch->batchSchedules as $schedule) {
+                $baseItem = [
+                    'id' => $batch->id,
+                    'name' => $batch->name,
+                    'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                    'active_students' => $batch->active_students_count,
+                    'schedule_date' => $date,
+                    'attendance_date' => $date,
+                    'coverup' => 'No',
+                    'homework_link' => null,
+                    'attendance_exists' => false,
+                    'attendance_time' => null,
+                    'is_one_to_one' => $batch->is_one_to_one,
+                ];
+
+                if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
+                    $items[] = array_merge($baseItem, [
+                        'status' => 'HOLIDAY',
+                        'type' => 'Holiday',
+                        'start_url' => null,
+                        'is_teachable' => false,
+                    ]);
+                    continue;
+                }
+
+                if ($occurrences->approvedLeaveForSchedule($coachId, $date, $schedule->from_time, $schedule->to_time)) {
+                    $items[] = array_merge($baseItem, [
+                        'status' => $occurrences->coverupForOccurrence($batch->id, $schedule->id, $date) ? 'COVERED' : 'ON LEAVE',
+                        'type' => 'Leave',
+                        'start_url' => null,
+                        'is_teachable' => false,
+                    ]);
+                    continue;
+                }
+
+                $latestAttendance = CoachAttendance::where('batch_id', $schedule->batch_id)
+                    ->where('coach_id', $coachId)
+                    ->whereDate('date', $date)
+                    ->orderBy('id', 'desc')
+                    ->first();
+                $status = $latestAttendance ? $latestAttendance->status : $schedule->status;
+
+                $items[] = array_merge($baseItem, [
+                    'status' => $status,
+                    'type' => 'Batch',
+                    'active_students' => StudentBatch::where('batch_id', $batch->id)
+                        ->where('status', 'ACTIVE')
+                        ->where('start_date', '<=', $date)
+                        ->where('end_date', '>=', $date)
+                        ->count(),
+                    'start_url' => $batch->start_url,
+                    'homework_link' => $latestAttendance ? $latestAttendance->homework_link : null,
+                    'attendance_exists' => (bool) $latestAttendance,
+                    'attendance_time' => $latestAttendance ? $latestAttendance->created_at->format('Y-m-d H:i:s') : null,
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
+                ]);
+            }
+        }
+
+        $demoSessions = DemoSession::with(['demolead', 'coach', 'level'])
+            ->where('coach_id', $coachId)
+            ->where('status', 'ACTIVE')
+            ->whereDate('date', $date)
+            ->get();
+
+        foreach ($demoSessions as $session) {
+            $demoAttendance = CoachAttendance::where('demolead_id', $session->demolead_id)
+                ->where('coach_id', $coachId)
+                ->whereDate('date', $date)
+                ->first();
+            [$startTime, $endTime] = explode(' - ', $session->slot);
+
+            $items[] = [
+                'id' => $session->id,
+                'demolead_id' => $session->demolead_id,
+                'name' => trim($session->demolead->first_name . ' ' . $session->demolead->last_name),
+                'slot' => Carbon::createFromFormat('H:i:s', $startTime)->format('h:i A') . ' - ' . Carbon::createFromFormat('H:i:s', $endTime)->format('h:i A'),
+                'status' => $session->demolead->status,
+                'type' => 'Demo',
+                'coverup' => 'No',
+                'active_students' => 1,
+                'start_url' => $session->start_url,
+                'homework_link' => $session->homework_link,
+                'attendance_exists' => (bool) $demoAttendance,
+                'attendance_time' => $demoAttendance ? $demoAttendance->created_at->format('Y-m-d H:i:s') : null,
+                'schedule_date' => $date,
+                'attendance_date' => $date,
+            ];
+        }
+
+        $coverupClasses = Coverupclass::where('new_coach_id', $coachId)
+            ->whereDate('date', $date)
+            ->with(['batch.batchSchedules' => function ($query) use ($dayName) {
+                $query->where('weekday', $dayName)->where('status', 'ACTIVE');
+            }])
+            ->get();
+
+        foreach ($coverupClasses as $coverup) {
+            $batch = $coverup->batch;
+            if (!$batch || $batch->status !== 'ACTIVE') {
+                continue;
+            }
+
+            foreach ($batch->batchSchedules as $schedule) {
+                $latestAttendance = CoachAttendance::where('batch_id', $batch->id)
+                    ->whereDate('date', $date)
+                    ->orderBy('id', 'desc')
+                    ->first();
+                $status = $latestAttendance ? $latestAttendance->status : $schedule->status;
+
+                $items[] = [
+                    'id' => $batch->id,
+                    'name' => $batch->name,
+                    'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
+                    'status' => $status,
+                    'type' => 'COVERUP',
+                    'coverup' => 'Yes',
+                    'active_students' => $batch->studentBatches()
+                        ->where('status', 'ACTIVE')
+                        ->where('start_date', '<=', $date)
+                        ->where('end_date', '>=', $date)
+                        ->count(),
+                    'start_url' => $coverup->start_url ?? $batch->start_url,
+                    'homework_link' => $latestAttendance ? $latestAttendance->homework_link : null,
+                    'attendance_exists' => (bool) $latestAttendance,
+                    'attendance_time' => $latestAttendance ? $latestAttendance->created_at->format('Y-m-d H:i:s') : null,
+                    'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
+                    'schedule_date' => $date,
+                    'attendance_date' => $date,
+                    'is_one_to_one' => $batch->is_one_to_one,
+                ];
+            }
+        }
+
+        return $items;
     }
 
     public function getCoachMasteClass(Request $request)
@@ -1077,17 +1273,18 @@ class DashboardController extends Controller
 
         $id   = $request->input('id');
         $type = $request->input('type');
+        $normalizedType = strtoupper((string) $type);
 
         // IMPORTANT — FIXED
         $attendanceDate = $request->input('attendance_date');
         $attendanceId   = $request->input('attendance_id');
         $attendanceTime = $request->input('attendance_time');
 
-        if (! in_array($type, ['BATCH','Batch', 'Demo', 'COVERUP', 'Yesterday Batch'])) {
+        if (! in_array($type, ['Demo', 'Yesterday Batch'], true) && ! in_array($normalizedType, ['BATCH', 'COVERUP'], true)) {
             return response()->json(['error' => 'Invalid type specified'], 400);
         }
 
-        if ($type === 'BATCH' || $type === 'COVERUP' || $type === 'Yesterday Batch' || $type === 'Batch') {
+        if (in_array($normalizedType, ['BATCH', 'COVERUP'], true) || $type === 'Yesterday Batch') {
 
             // USE PENDING ATTENDANCE DATE — NOT TODAY
             $date = $attendanceDate ?? now()->toDateString();
@@ -1860,6 +2057,7 @@ class DashboardController extends Controller
     {
         $request->validate([
             'batch_id' => 'required|integer|exists:batchs,id',
+            'date' => 'nullable|date',
         ]);
 
         $batch = Batch::find($request->batch_id);
@@ -1890,17 +2088,28 @@ class DashboardController extends Controller
         }
 
 
+        $scheduleDate = Carbon::parse($date);
         $fromTime = Carbon::createFromFormat('H:i:s', $schedule->from_time)->setDate(
-            now()->year, now()->month, now()->day
+            $scheduleDate->year, $scheduleDate->month, $scheduleDate->day
         );  
 
-        if (now()->gt($fromTime->addMinutes(10))) {
+        $canStartFrom = $fromTime->copy()->subMinutes(10);
+        $canStartUntil = $fromTime->copy()->addMinutes(10);
+
+        if (now()->lt($canStartFrom)) {
+            return response()->json(['error' => 'Class can be started only 10 minutes before the scheduled start time.'], 403);
+        }
+
+        if (now()->gt($canStartUntil)) {
             return response()->json(['error' => 'Coach change is not allowed after 10 minutes from batch start.'], 403);
         }
     
         $user = auth()->user();
         $coach = $user->coach;
-        $attendanceDate = Carbon::now()->toDateString();
+        if (! $coach || $coach->status !== 'ACTIVE') {
+            return response()->json(['error' => 'Your coach account is not active. Please contact support.'], 403);
+        }
+        $attendanceDate = $scheduleDate->toDateString();
         $attendanceTime = Carbon::now()->format('H:i:s');
 
         // Check if attendance already exists for this batch and date
@@ -2385,6 +2594,9 @@ class DashboardController extends Controller
 
         $levels   = Level::where('status', 'ACTIVE')->get();
         $coaches  = $coachQuery->get();
+        $inactiveCoaches = $user->hasRole('SuperAdmin')
+            ? Coach::with('user')->whereIn('status', ['STANDBY', 'INACTIVE'])->get()
+            : collect();
         $students = $studentsQuery->get();
         $studentPaymentStatus = 'captured';
 
@@ -2426,7 +2638,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'studentPaymentStatus', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'inactiveCoaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'studentPaymentStatus', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)
@@ -2467,7 +2679,12 @@ class DashboardController extends Controller
             $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
-        if ($request->coach) {
+        if ($request->inactive_coach && $user->hasRole('SuperAdmin')) {
+            $studentIds = StudentBatch::where('coach_id', $request->inactive_coach)
+                ->pluck('student_id')
+                ->unique();
+            $query->whereIn('students.id', $studentIds);
+        } elseif ($request->coach) {
             $studentIds = StudentBatch::where('coach_id', $request->coach)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
@@ -2611,7 +2828,7 @@ class DashboardController extends Controller
         // $endOfMonth    = now()->endOfMonth()->toDateString();
 
         // 1. Get all active coaches
-        $activeCoachIds = Coach::where('status', 'ACTIVE')->pluck('id');
+        $activeCoachIds = Coach::whereIn('status', ['ACTIVE', 'STANDBY'])->pluck('id');
         // 2. Get all active batches under those coaches
         $activeBatchIds = Batch::whereIn('coach_id', $activeCoachIds)
             ->where('status', 'ACTIVE')
@@ -2809,7 +3026,9 @@ class DashboardController extends Controller
                 $query->where('student_id', $request->student);
             });
         }
-        if ($request->has('coach') && $request->coach != '') {
+        if ($request->has('inactive_coach') && $request->inactive_coach != '' && $user->hasRole('SuperAdmin')) {
+            $query->where('coach_id', $request->inactive_coach);
+        } elseif ($request->has('coach') && $request->coach != '') {
             $query->where('coach_id', $request->coach);
         }
         return DataTables::eloquent($query)

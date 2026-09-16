@@ -13,7 +13,6 @@ use App\Models\Student;
 use App\Models\DemoLead;
 use App\Models\Employee;
 use App\Models\DemoSession;
-use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Models\NewEnrollment;
 use Illuminate\Support\Carbon;
@@ -70,7 +69,9 @@ class DemoLeadController extends Controller
     {
         $levels = Level::where('status', 'ACTIVE')->get();
         $coaches = Coach::where('status', 'ACTIVE')->get();
-        $employees = Employee::get();
+        $employees = Employee::whereHas('user', function ($query) {
+            $query->where('status', 'ACTIVE');
+        })->get();
         return view('Admin.DemoLeads.index', compact('levels', 'coaches', 'employees'));
     }
 
@@ -659,13 +660,14 @@ Archer Chess Academy";
     {
         $demolead = DemoLead::findOrFail($demoleadId);
         $levels = Level::where('status', 'ACTIVE')->get();
-        $lastpayment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
-        $employees = Employee::get();
+        $employees = Employee::whereHas('user', function ($query) {
+            $query->where('status', 'ACTIVE');
+        })->get();
         $batches = $this->applyBatchCountryFilter(
             Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
             $demolead->country
         )->get();
-        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'lastpayment_levels', 'employees', 'batches'));
+        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'employees', 'batches'));
     }
 
     /*
@@ -755,8 +757,6 @@ Archer Chess Academy";
         $student->mobile = !empty($demolead->mobile) ? $demolead->mobile : '';
         $student->city = !empty($demolead->city) ? $demolead->city : '';
         $student->country = !empty($demolead->country) ? normalizeCountryValue($demolead->country) : '';
-        // Last Payment Level is no longer collected during demo lead conversion.
-        // $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
 
         $student->status = 'INACTIVE';
         if ($request->has('student_id') && !empty($request->student_id)) {

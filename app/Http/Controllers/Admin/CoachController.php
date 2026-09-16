@@ -92,20 +92,14 @@ class CoachController extends Controller
                 return '<img src="/backend/dist/images/svgs/icon-connect.svg" width="20" height="20" class="" alt="" /> &nbsp; ' . $countries;
             })
             ->editColumn('status', function ($coach) {
-                $statuses = [
-                    'ACTIVE' => 'Active',
-                    'STANDBY' => 'Standby',
-                    'INACTIVE' => 'Inactive',
-                ];
+                $badgeColor = match ($coach->status) {
+                    'ACTIVE' => 'success',
+                    'STANDBY' => 'warning',
+                    'INACTIVE' => 'danger',
+                    default => 'secondary',
+                };
 
-                $html = '<select class="form-select form-select-sm coach-status-select" data-routekey="' . $coach->route_key . '">';
-                foreach ($statuses as $value => $label) {
-                    $selected = $coach->status === $value ? ' selected' : '';
-                    $html .= '<option value="' . $value . '"' . $selected . '>' . $label . '</option>';
-                }
-                $html .= '</select>';
-
-                return $html;
+                return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 coach-status-switch" data-bs-toggle="modal" data-bs-target="#coachStatusChangeModal" data-routekey="' . $coach->route_key . '" data-status="' . $coach->status . '"><i class="ti ti-analyze"></i> &nbsp; ' . $coach->status . '</button>';
             })
             ->addColumn('action', function ($coach) {
                 $edit = '<a href="' . route('admin.coaches.edit', ['coach' => $coach->route_key]) . '" class="badge bg-warning fs-1"><i class="fa fa-edit"></i></a>';

@@ -150,6 +150,42 @@
 </div>
 
 
+<!-- Coach Status Change Modal -->
+<div class="modal fade text-left" id="coachStatusChangeModal" tabindex="-1" role="dialog"
+    aria-labelledby="coachStatusChangeModalLabel" aria-hidden="true" style="z-index: 9999 !important;">
+    <div class="modal-dialog modal-md" role="document">
+        <form id="coachStatusChangeForm" method="POST">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <h4 class="text-dark" id="coachStatusChangeModalLabel">Change Status</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="coachRouteKey" name="route_key">
+                    <div class="col-md-12">
+                        <fieldset class="form-group">
+                            <label for="coach-model-status" class="form-label">Status</label>
+                            <select class="form-select" id="coach-model-status" name="status">
+                                <option selected disabled hidden>Select status ...</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="STANDBY">Standby</option>
+                                <option value="INACTIVE">Inactive</option>
+                            </select>
+                            <div id="coach-status-error" style="color:red"></div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn bg-light-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 <!-- Delete Confirmation Modal -->
 <div class="modal fade text-left" id="deleteConfirmationModal" tabindex="-1" role="dialog"
     aria-labelledby="deleteConfirmationModalLabel" style="z-index: 9999 !important;">
@@ -224,19 +260,23 @@
         });
     });
 
-    $(document).on('change', '.coach-status-select', function(e){
+    $(document).on('click', '.coach-status-switch', function() {
+        $('#coachRouteKey').val($(this).data('routekey'));
+        $('#coach-model-status').val($(this).data('status'));
+        $('#coach-status-error').text('');
+    });
+
+    $('#coachStatusChangeForm').on('submit', function(e){
         e.preventDefault();
-        var $select = $(this);
-        var routeKey = $(this).data('routekey');
-        var status = $(this).val();
-        var previousStatus = $select.data('previous-status') || $select.find('option[selected]').val() || 'ACTIVE';
+        $('#coach-status-error').text('');
+
         $.ajax({
             url: "{{ route('admin.coaches.change.status') }}",
             type: 'POST',
             data: {
                 _token: $('meta[name=csrf-token]').attr('content'),
-                route_key: routeKey,
-                status: status
+                route_key: $('#coachRouteKey').val(),
+                status: $('#coach-model-status').val()
             },
             success: function(data) {
                 if(data.status == 'success'){
@@ -246,6 +286,7 @@
                         timeOut: 1500,
                         closeButton: true,
                     });
+                    $('#coachStatusChangeModal').modal('hide');
                     if($.fn.DataTable.isDataTable("#datatable")){
                         $('#datatable').DataTable().draw();
                     }
@@ -259,7 +300,13 @@
                 }
             },
             error: function(xhr) {
-                $select.val(previousStatus).trigger('change.select2');
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    $.each(xhr.responseJSON.errors, function(key, value) {
+                        if (key === 'status') {
+                            $('#coach-status-error').text(value[0]);
+                        }
+                    });
+                }
 
                 if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.status === 'blocked') {
                     var rows = '';
@@ -277,6 +324,7 @@
                     });
 
                     $('#coachDeactivateBlockedBatches').html(rows);
+                    $('#coachStatusChangeModal').modal('hide');
                     $('#coachDeactivateBlockedModal').modal('show');
                     toastr.error(xhr.responseJSON.message || 'Coach cannot be deactivated.');
                     return;
@@ -285,10 +333,6 @@
                 toastr.error('Something went wrong!');
             }
         });
-    });
-
-    $(document).on('focus', '.coach-status-select', function() {
-        $(this).data('previous-status', $(this).val());
     });
 
 

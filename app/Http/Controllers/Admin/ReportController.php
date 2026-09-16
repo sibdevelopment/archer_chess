@@ -65,6 +65,9 @@ class ReportController extends Controller
         $todayDate       = Carbon::now()->toDateString();
         $todayDayOfWeek  = Carbon::now()->format('l');
         $coaches         = Coach::where('status', 'ACTIVE')->get();
+        $inactiveCoaches = $user->hasRole('SuperAdmin')
+            ? Coach::with('user')->whereIn('status', ['STANDBY', 'INACTIVE'])->get()
+            : collect();
         if (! $user->roles()->where('name', 'SuperAdmin')->exists()) {
             if($isCoach){
                 $coaches = $coaches->where('id', $coachId);
@@ -83,7 +86,7 @@ class ReportController extends Controller
             if ($coach) {$coachId = $coach->id;} else { $coach = Coach::where('status', 'ACTIVE')->first();
                 if ($coach) {$coachId = $coach->id;}}
         }
-        return view('Admin.CoachReports.index', compact('coaches', 'coachId', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek'));
+        return view('Admin.CoachReports.index', compact('coaches', 'inactiveCoaches', 'coachId', 'firstDayOfMonth', 'todayDate', 'todayDayOfWeek'));
     }
 
     public function getCounts(Request $request, $coachId)

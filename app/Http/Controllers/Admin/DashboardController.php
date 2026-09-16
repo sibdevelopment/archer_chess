@@ -2594,9 +2594,6 @@ class DashboardController extends Controller
 
         $levels   = Level::where('status', 'ACTIVE')->get();
         $coaches  = $coachQuery->get();
-        $inactiveCoaches = $user->hasRole('SuperAdmin')
-            ? Coach::with('user')->whereIn('status', ['STANDBY', 'INACTIVE'])->get()
-            : collect();
         $students = $studentsQuery->get();
         $studentPaymentStatus = 'captured';
 
@@ -2638,7 +2635,7 @@ class DashboardController extends Controller
             ->orderBy('status')
             ->pluck('status');
 
-        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'inactiveCoaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'studentPaymentStatus', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
+        return view('Admin.Dashboard.SuperAdmin.index', compact('users', 'coaches', 'roles', 'activeEmployees', 'activeCoaches', 'activeStudents', 'showSuperAdminTotals', 'levels', 'students', 'student_payments', 'studentPaymentStatus', 'paymentReportQuery', 'paymentReportStatuses', 'allowedCountries', 'canViewStudents', 'canViewMissedSessions', 'canViewBatches', 'canViewStudentPayments', 'canViewPaymentReport'));
     }
 
     public function studentData(Request $request)
@@ -2679,12 +2676,7 @@ class DashboardController extends Controller
             $studentIds = StudentBatch::where('batch_id', $request->batch)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
-        if ($request->inactive_coach && $user->hasRole('SuperAdmin')) {
-            $studentIds = StudentBatch::where('coach_id', $request->inactive_coach)
-                ->pluck('student_id')
-                ->unique();
-            $query->whereIn('students.id', $studentIds);
-        } elseif ($request->coach) {
+        if ($request->coach) {
             $studentIds = StudentBatch::where('coach_id', $request->coach)->eligibleOn(Carbon::today())->pluck('student_id');
             $query->whereIn('students.id', $studentIds);
         }
@@ -3026,9 +3018,7 @@ class DashboardController extends Controller
                 $query->where('student_id', $request->student);
             });
         }
-        if ($request->has('inactive_coach') && $request->inactive_coach != '' && $user->hasRole('SuperAdmin')) {
-            $query->where('coach_id', $request->inactive_coach);
-        } elseif ($request->has('coach') && $request->coach != '') {
+        if ($request->has('coach') && $request->coach != '') {
             $query->where('coach_id', $request->coach);
         }
         return DataTables::eloquent($query)

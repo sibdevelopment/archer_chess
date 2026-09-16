@@ -13,6 +13,7 @@
         }
         $isCoach = in_array('Coach', $role);
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
+        $isSuperAdmin = in_array('SuperAdmin', $role);
         // Get the countries the user can see
         $allowedCountries = [];
         if (!$isAdminOrSuperAdmin) {
@@ -107,8 +108,23 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                @if ($isSuperAdmin)
+                                    <div class="col-3 d-flex justify-content-start">
+                                        <select name="inactive_coach" id="inactive-coach"
+                                            class="select2 form-select form-select-sm pure-white"
+                                            aria-label=".form-select-sm example">
+                                            <option value="">Select Standby/Inactive Coach</option>
+                                            @foreach ($inactiveCoaches as $coach)
+                                                <option value="{{ $coach->id }}">
+                                                    {{ $coach->user->first_name }} {{ $coach->user->last_name }}
+                                                    ({{ $coach->status }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
                             @endif
-                            <div class="col-5 d-flex justify-content-end">
+                            <div class="col-{{ $isSuperAdmin && !$isCoach ? '2' : '5' }} d-flex justify-content-end">
                             </div>
                             <div class="col-4 d-flex justify-content-end">
                                 <div class="input-group">
@@ -1249,6 +1265,25 @@
                 });
             }
 
+            function selectedReportCoachId() {
+                return $('#inactive-coach').val() || $('#coach').val();
+            }
+
+            function reloadCoachReport(coachId) {
+                if (!coachId) {
+                    return;
+                }
+
+                const selectedDate = $('#date_Range').data('daterangepicker');
+                const startDate = selectedDate.startDate.format('YYYY-MM-DD');
+                const endDate = selectedDate.endDate.format('YYYY-MM-DD');
+
+                fetchAndUpdateCounts(coachId, startDate, endDate);
+                fetchScheduleData(today, coachId);
+                fetchCalendarData(coachId);
+                fetchAvailabilityData(today, coachId);
+            }
+
             // Initialize the date range picker with default values
             var firstDayOfMonth = @json($firstDayOfMonth);
             var todayDate = @json($todayDate);
@@ -1264,13 +1299,13 @@
             $('#date_Range').on('apply.daterangepicker', function(ev, picker) {
                 var startDate = picker.startDate.format('YYYY-MM-DD');
                 var endDate = picker.endDate.format('YYYY-MM-DD');
-                var selectedCoachId = $('#coach').val();
+                var selectedCoachId = selectedReportCoachId();
                 fetchAndUpdateCounts(selectedCoachId, startDate, endDate);
             });
 
             // Get today's date in YYYY-MM-DD format and fetch schedule for the initially selected coach
             const today = istTime.toISOString().split('T')[0];
-            const initialCoachId = $('#coach').val();
+            const initialCoachId = selectedReportCoachId();
             fetchAndUpdateCounts(initialCoachId, firstDayOfMonth, todayDate);
             fetchScheduleData(today, initialCoachId);
             fetchCalendarData(initialCoachId);
@@ -1278,14 +1313,17 @@
 
             // Event listener for coach selection change
             $('#coach').change(function() {
-                const selectedCoachId = $(this).val();
-                const selectedDate = $('#date_Range').data('daterangepicker');
-                const startDate = selectedDate.startDate.format('YYYY-MM-DD');
-                const endDate = selectedDate.endDate.format('YYYY-MM-DD');
-                fetchAndUpdateCounts(selectedCoachId, startDate, endDate);
-                fetchScheduleData(today, selectedCoachId);
-                fetchCalendarData(selectedCoachId);
-                fetchAvailabilityData(today, selectedCoachId);
+                if ($(this).val()) {
+                    $('#inactive-coach').val('').trigger('change.select2');
+                }
+                reloadCoachReport(selectedReportCoachId());
+            });
+
+            $('#inactive-coach').change(function() {
+                if ($(this).val()) {
+                    $('#coach').val('').trigger('change.select2');
+                }
+                reloadCoachReport(selectedReportCoachId());
             });
 
             // Event listener for month input field change
@@ -1294,14 +1332,14 @@
                 const selectedDate = $(this).val().split('-');
                 const selectedYear = selectedDate[0];
                 const selectedMonth = selectedDate[1];
-                const selectedCoachId = $('#coach').val();
+                const selectedCoachId = selectedReportCoachId();
                 fetchAndUpdateCounts(selectedCoachId, selectedMonth, selectedYear);
             });
 
             // Listen for custom event 'dateSelected'
             document.addEventListener('dateSelected', function(e) {
                 var selectedDate = e.detail.date;
-                var selectedCoachId = $('#coach').val();
+                var selectedCoachId = selectedReportCoachId();
                 fetchScheduleData(selectedDate, selectedCoachId);
                 fetchAvailabilityData(selectedDate, selectedCoachId);
             });
@@ -1335,7 +1373,7 @@
                 var scheduleId = $(this).data('id');
                 var scheduleType = $(this).data('type');
                 var scheduleDate = $(this).data('date');
-                var selectedCoachId = $('#coach').val();
+                var selectedCoachId = selectedReportCoachId();
                 const attendanceDataURL =
                     '{{ route('admin.reports.getAttendanceData', ['coachId' => ':coachId']) }}'.replace(
                         ':coachId', selectedCoachId);
@@ -1480,7 +1518,7 @@
                                 closeButton: true,
                             });
                             var selectedDate = data.date;
-                            var selectedCoachId = $('#coach').val();
+                            var selectedCoachId = selectedReportCoachId();
                             fetchScheduleData(selectedDate, selectedCoachId);
                             fetchAvailabilityData(selectedDate, selectedCoachId);
                             $('#AttendanceModal').modal('hide');
@@ -1530,7 +1568,7 @@
             // -------------------------------------------------------------------- ::
             $('#downloadReport').submit(function(e) {
                 e.preventDefault();
-                var coachId = $('#coach').val();
+                var coachId = selectedReportCoachId();
                 var url = '/admin/reports/' + coachId + '/download';
                 var formData = new FormData(this);
                 formData.append('coachId', coachId);

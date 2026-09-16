@@ -201,10 +201,10 @@
                         <div class="card w-100 position-relative overflow-hidden">
                             <div class="card-header px-4 py-3 border-bottom">
                                 <div class="row">
-                                    <div class="col-{{ $showSuperAdminTotals ? '3' : '5' }} d-flex justify-content-start">
+                                    <div class="col-5 d-flex justify-content-start">
                                         <h5 class="card-title fw-semibold mb-0 lh-sm">Students </h5>
                                     </div>
-                                    <div class="col-{{ $showSuperAdminTotals ? '2' : '3' }}">
+                                    <div class="col-3">
                                         <select name="coach" id="coach"
                                             class="select2 form-select form-select-sm pure-white"
                                             aria-label=".form-select-sm example">x
@@ -215,19 +215,6 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    @if ($showSuperAdminTotals)
-                                        <div class="col-2">
-                                            <select name="inactive_coach" id="inactive-coach"
-                                                class="select2 form-select form-select-sm pure-white"
-                                                aria-label=".form-select-sm example">
-                                                <option value="">Select Standby/Inactive Coach</option>
-                                                @foreach ($inactiveCoaches as $coach)
-                                                    <option value="{{ $coach->id }}">{{ $coach->user->first_name }}
-                                                        {{ $coach->user->last_name }} ({{ $coach->status }})</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    @endif
                                     <div class="col-2 d-flex justify-content-end">
                                         <select name="country" id="country"
                                             class="select2 form-select form-select-sm pure-white"
@@ -269,7 +256,7 @@
                                             <option value="FEESDUE" selected>Fees Due</option>
                                         </select>
                                     </div>
-                                    <div class="col-{{ $showSuperAdminTotals ? '1' : '2' }} d-flex justify-content-start">
+                                    <div class="col-2 d-flex justify-content-start">
                                         <span id="data-count"></span>
                                     </div>
                                 </div>
@@ -375,7 +362,7 @@
                             <div class="card w-100 position-relative overflow-hidden">
                                 <div class="card-header px-4 py-3 border-bottom">
                                     <div class="row">
-                                        <div class="col-{{ $showSuperAdminTotals ? '2' : '4' }} d-flex justify-content-start">
+                                        <div class="col-4 d-flex justify-content-start">
                                             <h5 class="card-title fw-semibold mb-0 lh-sm">Batches </h5>
                                         </div>
                                         <div class="col-2 d-flex justify-content-end">
@@ -409,19 +396,6 @@
                                                 @endforeach
                                             </select>
                                         </div>
-                                        @if ($showSuperAdminTotals)
-                                            <div class="col-2 d-flex justify-content-end">
-                                                <select name="inactive_coach" id="batch-inactive-coach"
-                                                    class="select2 form-select form-select-sm pure-white"
-                                                    aria-label=".form-select-sm example">
-                                                    <option value="">Select Standby/Inactive Coach</option>
-                                                    @foreach ($inactiveCoaches as $coach)
-                                                        <option value="{{ $coach->id }}">{{ $coach->user->first_name }}
-                                                            {{ $coach->user->last_name }} ({{ $coach->status }})</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        @endif
                                         <div class="col-2 d-flex justify-content-end">
                                             <select name="student" id="batch-student"
                                                 class="select2 form-select form-select-sm pure-white"
@@ -698,7 +672,6 @@
                         d.country = $('#country').val();
                         d.batch = $('#batch').val();
                         d.coach = $('#coach').val();
-                        d.inactive_coach = $('#inactive-coach').val();
                     }
                 },
                 columns: [{
@@ -765,15 +738,6 @@
                 dataTable.ajax.reload(null, false);
             });
             $('#coach').on('change', function() {
-                if ($(this).val()) {
-                    $('#inactive-coach').val('').trigger('change.select2');
-                }
-                dataTable.ajax.reload(null, false);
-            });
-            $('#inactive-coach').on('change', function() {
-                if ($(this).val()) {
-                    $('#coach').val('').trigger('change.select2');
-                }
                 dataTable.ajax.reload(null, false);
             });
         });
@@ -886,7 +850,6 @@
                         d._token = $('meta[name=csrf-token]').attr('content');
                         d.status = $('#batch-status').val();
                         d.coach = $('#batch-coach').val();
-                        d.inactive_coach = $('#batch-inactive-coach').val();
                         d.level = $('#batch-level').val();
                         d.student = $('#batch-student').val();
                     }
@@ -948,15 +911,6 @@
                 "btn btn-primary mr-1");
 
             $('#batch-coach').on('change', function() {
-                if ($(this).val()) {
-                    $('#batch-inactive-coach').val('').trigger('change.select2');
-                }
-                dataTable.ajax.reload(null, false);
-            });
-            $('#batch-inactive-coach').on('change', function() {
-                if ($(this).val()) {
-                    $('#batch-coach').val('').trigger('change.select2');
-                }
                 dataTable.ajax.reload(null, false);
             });
             $('#batch-status, #batch-level, #batch-student').on('change', function() {

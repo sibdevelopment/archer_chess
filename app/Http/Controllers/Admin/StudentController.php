@@ -47,7 +47,14 @@ class StudentController extends Controller
     public function getCoaches(Request $request)
     {
         $user  = Auth::user();
-        $query = Coach::with('user')->where('status', 'ACTIVE');
+        $query = Coach::with('user');
+
+        if ($request->input('context') === 'batch_manage') {
+            $query->whereIn('status', ['ACTIVE', 'STANDBY']);
+        } else {
+            $query->where('status', 'ACTIVE');
+        }
+
         if ($user->roles()->where('name', 'Coach')->exists()) {
             $query->where('user_id', $user->id);
         } else {

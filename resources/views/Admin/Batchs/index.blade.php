@@ -335,15 +335,19 @@
             // Fetch coaches
             function fetchCoaches(batchId = null) {
                 var data = batchId ? {
-                    batch_id: batchId
-                } : {};
+                    batch_id: batchId,
+                    context: 'batch_manage'
+                } : {
+                    context: 'batch_manage'
+                };
                 fetchData('{{ route('admin.students.get.coaches') }}', data, function(data) {
                     var coachSelect = $('#coach');
                     populateDropdown(coachSelect, data, 'Select Coach', function(index, coach) {
                         if (coach.user) {
+                            var statusLabel = coach.status === 'STANDBY' ? ' (Standby)' : '';
                             var option = $('<option></option>')
                                 .attr('value', coach.id)
-                                .text(coach.user.first_name + ' ' + coach.user.last_name);
+                                .text(coach.user.first_name + ' ' + coach.user.last_name + statusLabel);
                             if (defaultCoachId && coach.id == defaultCoachId) {
                                 option.attr('selected', 'selected');
                             }

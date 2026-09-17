@@ -13,6 +13,7 @@ use App\Models\Student;
 use App\Models\DemoLead;
 use App\Models\Employee;
 use App\Models\DemoSession;
+use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use App\Models\NewEnrollment;
 use Illuminate\Support\Carbon;
@@ -660,6 +661,7 @@ Archer Chess Academy";
     {
         $demolead = DemoLead::findOrFail($demoleadId);
         $levels = Level::where('status', 'ACTIVE')->get();
+        $paymentlevels = Paymentlevel::with('level')->where('status', 'ACTIVE')->get();
         $employees = Employee::whereHas('user', function ($query) {
             $query->where('status', 'ACTIVE');
         })->get();
@@ -667,7 +669,7 @@ Archer Chess Academy";
             Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
             $demolead->country
         )->get();
-        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'employees', 'batches'));
+        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'paymentlevels', 'employees', 'batches'));
     }
 
     /*
@@ -686,11 +688,14 @@ Archer Chess Academy";
             'receive_date' => 'required|date',
             'fees'          => 'required|numeric|min:0',
             'received_fees' => 'required|numeric|min:0',
+            'payment_level_id' => 'required|exists:paymentlevels,id',
             'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
             'remark'        => 'required',
         ];
         $this->customMessages = [
             'student_id.required' => 'The student ID is required.',
+            'payment_level_id.required' => 'Please select the paid till payment level.',
+            'payment_level_id.exists' => 'Please select a valid payment level.',
         ];
         $request->validate($this->rules, $this->customMessages);
 
@@ -769,6 +774,7 @@ Archer Chess Academy";
         $student->portal_password = !empty($request->portal_password) ? $request->portal_password : '';
         $student->currency = !empty($request->currency) ? $request->currency : '';
         $student->monthly_fees = !empty($request->monthly_fees) ? $request->monthly_fees : '';
+        $student->lastpayment_level_id = $request->payment_level_id;
         $student->timezone = !empty($demolead->kids_time_zone) ? $demolead->kids_time_zone : '';
         $student->user_id = $user->id;
         $student->save();
@@ -781,6 +787,7 @@ Archer Chess Academy";
         $new_enrollment->created_by = Auth::user()->id;
         $new_enrollment->employee_ids    = $request->employee_ids;
         $new_enrollment->batch_id      = $request->batch_id;
+        $new_enrollment->payment_level_id = $request->payment_level_id;
         $new_enrollment->remark        = $request->remark;
         $new_enrollment->start_date    = $request->start_date;
         $new_enrollment->end_date      = $request->end_date;

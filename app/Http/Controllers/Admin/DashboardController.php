@@ -2902,12 +2902,14 @@ class DashboardController extends Controller
             ->editColumn('email', fn($student) => $student->email)
             ->editColumn('address', fn($student) => $student->address)
             ->editColumn('student_id', function ($student) {
-                $message = $student->generateNewStudentMessage();
-                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
-                $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><i class="fab fa-whatsapp my-float"></i></a>';
+                // $message = $student->generateNewStudentMessage();
+                // $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                // $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><i class="fab fa-whatsapp my-float"></i></a>';
+                //
+                // return '<div class="d-flex justify-content-between">' . $student->student_id
+                //     . '<div class="d-flex justify-content-end">' . $whatsappLink . '</div></div>';
 
-                return '<div class="d-flex justify-content-between">' . $student->student_id
-                    . '<div class="d-flex justify-content-end">' . $whatsappLink . '</div></div>';
+                return $student->student_id;
             })
             ->editColumn('batch', function ($student) use ($isCoach) {
                 return $this->dashboardStudentBatchLabel($student, $isCoach);

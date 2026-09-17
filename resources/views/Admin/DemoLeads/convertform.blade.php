@@ -217,6 +217,20 @@
                                         <div id="currency-error" class="text-danger"></div>
                                     </div>
 
+                                    <div class="col-sm-12 col-md-4">
+                                        <label class="control-label col-form-label">Paid Till Payment Level *</label>
+                                        <select class="form-control select2" name="payment_level_id" required>
+                                            <option value="">Select Payment Level</option>
+                                            @foreach ($paymentlevels as $paymentlevel)
+                                                <option value="{{ $paymentlevel->id }}"
+                                                    {{ old('payment_level_id') == $paymentlevel->id ? 'selected' : '' }}>
+                                                    {{ $paymentlevel->name }} ({{ $paymentlevel->level->name ?? 'N/A' }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        <div id="payment_level_id-error" class="text-danger"></div>
+                                    </div>
+
                                     <div class="col-sm-12 col-md-12">
                                         <label class="control-label col-form-label">Remark *</label>
                                         <textarea class="form-control" name="remark"></textarea>

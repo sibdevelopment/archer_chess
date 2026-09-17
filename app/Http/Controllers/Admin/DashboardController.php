@@ -2943,16 +2943,17 @@ class DashboardController extends Controller
                 // $message = "Dear " . $student->first_name . " " . $student->last_name . ", This is to inform you that the Chess Class fee has been due with Archer Chess Academy. Your previous module has ended on " . $endDateFormatted . ". You are requested to pay the fees before the next class to continue enjoying your chess class. The total due amount is " . $totalDueAmount . "  " . $currency . ". Kindly check out Name Archer Chess Academy on the payment gateway before making payment.";
                 // $whatsappUrl = "https://api.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
                 // $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
-                if ($studentFee) {
-                    $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
-                    $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
-                } else {
-                    $whatsappLink = '';
-                }
-
-                // Conditionally include the WhatsApp link based on the user's role
-                $whatsappBadge = ! $isCoach ? ' &nbsp; ' . $whatsappLink : '';
+                // if ($studentFee) {
+                //     $message      = $studentFee->generateFeeDueMessage();
+                //     $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
+                //     $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
+                // } else {
+                //     $whatsappLink = '';
+                // }
+                //
+                // // Conditionally include the WhatsApp link based on the user's role
+                // $whatsappBadge = ! $isCoach ? ' &nbsp; ' . $whatsappLink : '';
+                $whatsappBadge = '';
 
                 // Badge for the StudentFee end_date, only if status is FEESDUE
                 $endDateBadge = '';

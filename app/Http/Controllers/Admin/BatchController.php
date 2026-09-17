@@ -484,7 +484,13 @@ class BatchController extends Controller
         $selectedCoachId = $request->input('coach');
         $latestVersions = Batch::select('parent_id', \DB::raw('MAX(version) as max_version'))
             ->when($selectedCoachId, function ($query) use ($selectedCoachId) {
-                $query->where('coach_id', $selectedCoachId);
+                $query->where(function ($query) use ($selectedCoachId) {
+                    $query->where('coach_id', $selectedCoachId)
+                        ->orWhereHas('studentBatches', function ($query) use ($selectedCoachId) {
+                            $query->where('coach_id', $selectedCoachId)
+                                ->where('status', 'ACTIVE');
+                        });
+                });
             })
             ->groupBy('parent_id');
         $query = Batch::select('batchs.*')
@@ -540,7 +546,13 @@ class BatchController extends Controller
             });
         }
         if ($selectedCoachId) {
-            $query->where('coach_id', $selectedCoachId);
+            $query->where(function ($query) use ($selectedCoachId) {
+                $query->where('batchs.coach_id', $selectedCoachId)
+                    ->orWhereHas('studentBatches', function ($query) use ($selectedCoachId) {
+                        $query->where('coach_id', $selectedCoachId)
+                            ->where('status', 'ACTIVE');
+                    });
+            });
         }
         if ($request->has('weekday') && $request->weekday != '') {
             $weekday = $request->weekday;

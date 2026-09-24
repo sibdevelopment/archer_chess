@@ -73,27 +73,9 @@
                             <select class="form-control select2" name="country">
                                 <option value="">Select Country</option>
                                 @if ($isAdminOrSuperAdmin)
-                                    <option value="USA" {{ (isset($demolead) && strtoupper($demolead->country) == 'USA') ? 'selected' : '' }}>USA</option>
-                                    <option value="CANADA" {{ (isset($demolead) && strtoupper($demolead->country) == 'CANADA') ? 'selected' : '' }}>CANADA</option>
-                                    <option value="AUSTRALIA" {{ (isset($demolead) && strtoupper($demolead->country) == 'AUSTRALIA') ? 'selected' : '' }}>AUSTRALIA</option>
-                                    <option value="NEWZEALAND" {{ (isset($demolead) && strtoupper($demolead->country) == 'NEWZEALAND') ? 'selected' : '' }}>NEW ZEALAND</option>
-                                    <option value="INDIA" {{ (isset($demolead) && strtoupper($demolead->country) == 'INDIA') ? 'selected' : '' }}>INDIA</option>
-                                    <option value="UAE" {{ (isset($demolead) && strtoupper($demolead->country) == 'UAE') ? 'selected' : '' }}>UAE</option>
-                                    <option value="UK" {{ (isset($demolead) && strtoupper($demolead->country) == 'UK') ? 'selected' : '' }}>UK</option>
-                                    <option value="SINGAPORE" {{ (isset($demolead) && strtoupper($demolead->country) == 'SINGAPORE') ? 'selected' : '' }}>SINGAPORE</option>
-                                    <option value="MALAYSIA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'MALAYSIA') ? 'selected' : '' }}>MALAYSIA</option>
-                                    <option value="HONG KONG" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'HONG KONG') ? 'selected' : '' }}>HONG KONG</option>
-                                    <option value="SOUTH AFRICA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'SOUTH AFRICA') ? 'selected' : '' }}>SOUTH AFRICA</option>
-                                    <option value="QATAR" {{ (isset($demolead) && strtoupper($demolead->country) == 'QATAR') ? 'selected' : '' }}>QATAR</option>
-                                    <option value="BAHRAIN" {{ (isset($demolead) && strtoupper($demolead->country) == 'BAHRAIN') ? 'selected' : '' }}>BAHRAIN</option>
-                                    <option value="KUWAIT" {{ (isset($demolead) && strtoupper($demolead->country) == 'KUWAIT') ? 'selected' : '' }}>KUWAIT</option>
-                                    <option value="EUROPEAN UNION" {{ (isset($demolead) && strtoupper($demolead->country) == 'EUROPEAN UNION') ? 'selected' : '' }}>EUROPEAN UNION</option>
-                                    <option value="OMAN" {{ (isset($demolead) && strtoupper($demolead->country) == 'OMAN') ? 'selected' : '' }}>OMAN</option>
-                                    <option value="SAUDI ARABIA" {{ (isset($demolead) && normalizeCountryValue($demolead->country) == 'SAUDI ARABIA') ? 'selected' : '' }}>SAUDI ARABIA</option>
+                                    {!! countryOptionsHtml(isset($demolead) ? $demolead->country : '') !!}
                                 @else
-                                    @foreach ($allowedCountries as $country)
-                                        <option value="{{ $country }}" {{ (isset($demolead) && strtoupper($demolead->country) == $country) ? 'selected' : '' }}>{{ $country }}</option>
-                                    @endforeach
+                                    {!! countryOptionsHtml(isset($demolead) ? $demolead->country : '', $allowedCountries) !!}
                                 @endif
                             </select>
                             <div id="country-error" style="color:red"></div>

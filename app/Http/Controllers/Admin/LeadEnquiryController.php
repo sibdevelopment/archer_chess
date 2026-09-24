@@ -23,17 +23,12 @@ class LeadEnquiryController extends Controller
     {
         $enquiry = DemoLeadEnquiry::findOrFail($id);
 
-        // Allowed countries (reuse your existing logic if needed)
-        $allCountries = [
-            'USA','CANADA','AUSTRALIA','NEWZEALAND','INDIA','UAE','UK','SINGAPORE','MALAYSIA','HONG KONG','SOUTH AFRICA','QATAR','BAHRAIN','KUWAIT','EUROPEAN UNION','OMAN','SAUDI ARABIA'
-        ];
-
         // return a tiny blade partial rendered as string
         return response()->json([
             'success' => true,
             'html' => view('Admin.LeadEnquiries._convert_modal_form', [
                 'enquiry'      => $enquiry,
-                'allCountries' => $allCountries,
+                'allCountries' => array_keys(availableCountryOptions()),
             ])->render()
         ]);
     }

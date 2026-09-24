@@ -54,27 +54,9 @@
                                     aria-label=".form-select-sm example">
                                     <option value="">Select Country</option>
                                     @if ($isAdminOrSuperAdmin)
-                                        <option value="USA">USA</option>
-                                        <option value="CANADA">CANADA</option>
-                                        <option value="AUSTRALIA">AUSTRALIA</option>
-                                        <option value="NEWZEALAND">NEW ZEALAND</option>
-                                        <option value="INDIA">INDIA</option>
-                                        <option value="UAE">UAE</option>
-                                        <option value="UK">UK</option>
-                                        <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                        <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                        <option value="QATAR">QATAR</option>
-                                        <option value="BAHRAIN">BAHRAIN</option>
-                                        <option value="KUWAIT">KUWAIT</option>
-                                        <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                        <option value="OMAN">OMAN</option>
-                                        <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                        {!! countryOptionsHtml() !!}
                                     @else
-                                        @foreach ($allowedCountries as $country)
-                                            <option value="{{ $country }}">{{ $country }}</option>
-                                        @endforeach
+                                        {!! countryOptionsHtml([], $allowedCountries) !!}
                                     @endif
                                 </select>
                             </div>

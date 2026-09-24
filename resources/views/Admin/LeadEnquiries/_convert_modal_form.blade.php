@@ -30,12 +30,7 @@
         <label class="form-label">Country <sup class="text-danger">*</sup></label>
         <select class="form-select" name="convert_country" id="convert_country">
             <option value="">Select Country</option>
-            @foreach ($allCountries as $c)
-                <option value="{{ $c }}"
-                    {{ strtoupper(trim($enquiry->country ?? '')) === strtoupper(trim($c)) ? 'selected' : '' }}>
-                    {{ $c }}
-                </option>
-            @endforeach
+            {!! countryOptionsHtml($enquiry->country ?? '', $allCountries ?? null) !!}
         </select>
 
         <div id="country-error" class="text-danger small"></div>

@@ -92,21 +92,7 @@
                     <label for="country"><i class="fas fa-globe-americas chess-icon"></i> Country*</label>
                     <select class="form-control" id="country" name="country">
                         <option value="">Select Country</option>
-                        <option>USA</option>
-                        <option>CANADA</option>
-                        <option>AUSTRALIA</option>
-                        <option>NEW ZEALAND</option>
-                        <option>INDIA</option>
-                        <option>UAE</option>
-                        <option>UK</option>
-                        <option>SINGAPORE</option>
-                                                <option value="MALAYSIA">MALAYSIA</option>
-                                                <option value="HONG KONG">HONG KONG</option>
-                        <option>SOUTH AFRICA</option>
-                        <option>QATAR</option>
-                        <option>BAHRAIN</option>
-                        <option>KUWAIT</option>
-                        <option>SAUDI ARABIA</option>
+                        {!! countryOptionsHtml() !!}
                     </select>
                 </div>
             </div>
@@ -331,30 +317,7 @@
             });
         });
 
-        const timezones = {
-            'USA': ['Mountain Time', 'Eastern Time', 'Central Time', 'Pacific Time', 'Alaska Time',
-                'Hawaii-Aleutian Time'
-            ],
-            'CANADA': ['Mountain Time', 'Eastern Time', 'Central Time', 'Pacific Time', 'Alaska Time',
-                'Hawaii-Aleutian Time'
-            ],
-            'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-            'NEW ZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-            'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide',
-                'Australia/Sydney'
-            ],
-            'UK': ['British Summer Time', 'Greenwich Mean Time'],
-            'INDIA': ['Indian Standard Time'],
-            'UAE': ['Gulf Standard Time'],
-            'SINGAPORE': ['Singapore Standard Time'],
-            'MALAYSIA': ['Malaysia Time'],
-            'HONG KONG': ['Hong Kong Standard Time'],
-            'SOUTH AFRICA': ['South Africa Standard Time'],
-            'QATAR': ['Arabian Standard Time'],
-            'BAHRAIN': ['Arabian Standard Time'],
-            'KUWAIT': ['Arabian Standard Time'],
-            'SAUDI ARABIA': ['Arabian Standard Time']
-        };
+        const timezones = @json(collect(countryTimezones())->map(fn ($zones) => array_values($zones))->all());
 
         function updateTimezones(country) {
             const $timezone = $('#timezone');

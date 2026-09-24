@@ -5,25 +5,7 @@
 @section('content')
     @php
         $selectedCountries = normalizeCountryValues($holiday->country ?? []);
-        $holidayCountries = [
-            'USA' => 'USA',
-            'CANADA' => 'CANADA',
-            'AUSTRALIA' => 'AUSTRALIA',
-            'NEWZEALAND' => 'NEW ZEALAND',
-            'INDIA' => 'INDIA',
-            'UAE' => 'UAE',
-            'UK' => 'UK',
-            'SINGAPORE' => 'SINGAPORE',
-            'MALAYSIA' => 'MALAYSIA',
-            'HONG KONG' => 'HONG KONG',
-            'SOUTH AFRICA' => 'SOUTH AFRICA',
-            'QATAR' => 'QATAR',
-            'BAHRAIN' => 'BAHRAIN',
-            'KUWAIT' => 'KUWAIT',
-            'EUROPEAN UNION' => 'EUROPEAN UNION',
-            'OMAN' => 'OMAN',
-            'SAUDI ARABIA' => 'SAUDI ARABIA',
-        ];
+        $holidayCountries = availableCountryOptions();
         $holidayFromTime = isset($holiday) && $holiday->from_time ? \Carbon\Carbon::parse($holiday->from_time)->format('H:i') : '00:00';
         $holidayToTime = isset($holiday) && $holiday->to_time ? \Carbon\Carbon::parse($holiday->to_time)->format('H:i') : '23:59';
     @endphp

@@ -41,7 +41,7 @@ class EmployeeLeaveRequestController extends Controller
             ->orderByDesc('from_date')
             ->orderByDesc('id');
 
-        if (! $user->hasRole('SuperAdmin')) {
+        if (! $user->can('employeeleaverequests-update')) {
             $employee = Employee::where('user_id', $user->id)->first();
             if (! $employee) {
                 return DataTables::of([])->toJson();
@@ -117,7 +117,7 @@ class EmployeeLeaveRequestController extends Controller
                     default => 'warning',
                 };
 
-                if ($user->hasRole('SuperAdmin') && $leave->status === 'PENDING') {
+                if ($user->can('employeeleaverequests-update') && $leave->status === 'PENDING') {
                     return '<button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 employeeleave-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-id="' . $leave->id . '">' . $leave->status . '</button>';
                 }
 
@@ -231,7 +231,7 @@ class EmployeeLeaveRequestController extends Controller
             'rejection_reason' => ['required_if:status,REJECTED', 'nullable', 'string', 'max:1000'],
         ]);
 
-        if (! Auth::user()->hasRole('SuperAdmin')) {
+        if (! Auth::user()->can('employeeleaverequests-update')) {
             abort(403);
         }
 
@@ -292,7 +292,7 @@ class EmployeeLeaveRequestController extends Controller
     private function canManage(EmployeeLeaveRequest $leave): bool
     {
         $user = Auth::user();
-        if ($user->hasRole('SuperAdmin')) {
+        if ($user->can('employeeleaverequests-update')) {
             return true;
         }
 

@@ -129,21 +129,7 @@
                                         <label class="form-control-label" for="country">Country *</label>
                                         <select id="feesCountry" class="form-select" name="country">
                                             <option value="">-- Select Country --</option>
-                                            <option value="USA">USA</option>
-                                            <option value="CANADA">CANADA</option>
-                                            <option value="AUSTRALIA">AUSTRALIA</option>
-                                            <option value="NEWZEALAND">NEW ZEALAND</option>
-                                            <option value="INDIA">INDIA</option>
-                                            <option value="UAE">UAE</option>
-                                            <option value="UK">UK</option>
-                                            <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                            <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                            <option value="QATAR">QATAR</option>
-                                            <option value="BAHRAIN">BAHRAIN</option>
-                                            <option value="KUWAIT">KUWAIT</option>
-                                            <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                            {!! countryOptionsHtml() !!}
                                         </select>
                                         <div id="country-error" style="color:red"></div>
                                     </div>

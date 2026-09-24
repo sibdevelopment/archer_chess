@@ -41,64 +41,9 @@
                                         $selectedCountries = isset($tournament) ? ($tournament->country) : [];
                                     @endphp
                                     @if ($isAdminOrSuperAdmin)
-                                        <option value="USA"
-                                            {{ in_array('USA', $selectedCountries) ? 'selected' : '' }}>USA
-                                        </option>
-                                        <option value="CANADA"
-                                            {{ in_array('CANADA', $selectedCountries) ? 'selected' : '' }}>CANADA
-                                        </option>
-                                        <option value="AUSTRALIA"
-                                            {{ in_array('AUSTRALIA', $selectedCountries) ? 'selected' : '' }}>AUSTRALIA
-                                        </option>
-                                        <option value="NEWZEALAND"
-                                            {{ in_array('NEWZEALAND', $selectedCountries) ? 'selected' : '' }}>NEW ZEALAND
-                                        </option>
-                                        <option value="INDIA"
-                                            {{ in_array('INDIA', $selectedCountries) ? 'selected' : '' }}>INDIA
-                                        </option>
-                                        <option value="UAE"
-                                            {{ in_array('UAE', $selectedCountries) ? 'selected' : '' }}>UAE
-                                        </option>
-                                        <option value="UK"
-                                            {{ in_array('UK', $selectedCountries) ? 'selected' : '' }}>UK
-                                        </option>
-                                        <option value="SINGAPORE"
-                                            {{ in_array('SINGAPORE', $selectedCountries) ? 'selected' : '' }}>SINGAPORE
-                                        </option>
-                                        <option value="MALAYSIA"
-                                            {{ in_array('MALAYSIA', $selectedCountries) ? 'selected' : '' }}>MALAYSIA
-                                        </option>
-                                        <option value="HONG KONG"
-                                            {{ in_array('HONG KONG', $selectedCountries) ? 'selected' : '' }}>HONG KONG
-                                        </option>
-                                        <option value="SOUTH AFRICA"
-                                            {{ in_array('SOUTH AFRICA', $selectedCountries) ? 'selected' : '' }}>SOUTH AFRICA
-                                        </option>
-                                        <option value="QATAR"
-                                            {{ in_array('QATAR', $selectedCountries) ? 'selected' : '' }}>QATAR
-                                        </option>
-                                        <option value="BAHRAIN"
-                                            {{ in_array('BAHRAIN', $selectedCountries) ? 'selected' : '' }}>BAHRAIN
-                                        </option>
-                                        <option value="KUWAIT"
-                                            {{ in_array('KUWAIT', $selectedCountries) ? 'selected' : '' }}>KUWAIT
-                                        </option>
-                                        <option value="EUROPEAN UNION"
-                                            {{ in_array('EUROPEAN UNION', $selectedCountries) ? 'selected' : '' }}>EUROPEAN UNION
-                                        </option>
-                                        <option value="OMAN"
-                                            {{ in_array('OMAN', $selectedCountries) ? 'selected' : '' }}>OMAN
-                                        </option>
-                                        <option value="SAUDI ARABIA"
-                                            {{ in_array('SAUDI ARABIA', $selectedCountries) ? 'selected' : '' }}>SAUDI ARABIA
-                                        </option>
+                                        {!! countryOptionsHtml($selectedCountries) !!}
                                     @else
-                                        @foreach ($allowedCountries as $country)
-                                            <option value="{{ $country }}"
-                                                {{ in_array($country, $selectedCountries) ? 'selected' : '' }}>
-                                                {{ $country }}
-                                            </option>
-                                        @endforeach
+                                        {!! countryOptionsHtml($selectedCountries, $allowedCountries) !!}
                                     @endif
                                 </select>
                                 <div id="country-error" style="color:red"></div>

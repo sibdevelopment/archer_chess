@@ -20,16 +20,7 @@
                             <div class="col-sm-12 col-md-6">
                                 <label class="control-label col-form-label">Country <sup class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control select2" name="country[]" multiple="multiple">
-                                    <option value="USA" {{ (isset($holiday) && in_array('USA', $holiday->country ?? [])) ? 'selected' : '' }}>USA</option>
-                                    <option value="CANADA" {{ (isset($holiday) && in_array('CANADA', $holiday->country ?? [])) ? 'selected' : '' }}>CANADA</option>
-                                    <option value="AUSTRALIA" {{ (isset($holiday) && in_array('AUSTRALIA', $holiday->country ?? [])) ? 'selected' : '' }}>AUSTRALIA</option>
-                                    <option value="NEWZEALAND" {{ (isset($holiday) && in_array('NEWZEALAND', $holiday->country ?? [])) ? 'selected' : '' }}>NEW ZEALAND</option>
-                                    <option value="INDIA" {{ (isset($holiday) && in_array('INDIA', $holiday->country ?? [])) ? 'selected' : '' }}>INDIA</option>    
-                                    <option value="UAE" {{ (isset($holiday) && in_array('UAE', $holiday->country ?? [])) ? 'selected' : '' }}>UAE</option>
-                                    <option value="UK" {{ (isset($holiday) && in_array('UK', $holiday->country ?? [])) ? 'selected' : '' }}>UK</option>
-                                    <option value="SINGAPORE" {{ (isset($holiday) && in_array('SINGAPORE', $holiday->country ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
-                                    <option value="MALAYSIA" {{ (isset($holiday) && in_array('MALAYSIA', $holiday->country ?? [])) ? 'selected' : '' }}>MALAYSIA</option>
-                                    <option value="HONG KONG" {{ (isset($holiday) && in_array('HONG KONG', $holiday->country ?? [])) ? 'selected' : '' }}>HONG KONG</option>
+                                    {!! countryOptionsHtml(isset($holiday) ? ($holiday->country ?? []) : []) !!}
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>

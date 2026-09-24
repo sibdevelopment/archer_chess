@@ -580,16 +580,9 @@
                                 <img src="/frontend1/tcul-img/img/india.svg" alt="img">
                                 <select class="border-0 form-select" onchange="openCountrySite(this)">
                                     <option value="">Country</option>
-                                    <option value="https://archerchessacademy.com/online-chess/india">India</option>
-                                    <option value="https://archerchessacademy.com/online-chess/usa">USA</option>
-                                    <option value="https://archerchessacademy.com/online-chess/middle-east">Middle East</option>
-                                    <option value="https://archerchessacademy.com/online-chess/singapore">Singapore</option>
-                                    <option value="https://archerchessacademy.com/online-chess/uae">UAE</option>
-                                    <option value="https://archerchessacademy.com/online-chess/united-kingdom">United Kingdom</option>
-                                    <option value="https://archerchessacademy.com/online-chess/australia">Australia</option>
-                                    <option value="https://archerchessacademy.com/online-chess/canada">Canada</option>
-                                    <option value="https://archerchessacademy.com/online-chess/new-zealand">New Zealand</option>
-                                    <option value="https://archerchessacademy.com/online-chess/european-union">European Union</option>
+                                    @foreach (countryLandingOptions(true) as $countryLandingOption)
+                                        <option value="{{ $countryLandingOption['url'] }}">{{ $countryLandingOption['label'] }}</option>
+                                    @endforeach
                                 </select>
 
                             </div>
@@ -1199,23 +1192,9 @@
                                 <label class="text-neutral-950 ">Country*</label>
                                 <select name="country" class="form-control border-0 tw-py-3 revamp-country" required>
                                     <option value="">Select Country</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CANADA">Canada</option>
-                                    <option value="AUSTRALIA">Australia</option>
-                                    <option value="NEWZEALAND">New Zealand</option>
-                                    <option value="INDIA">India</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="UK">UK</option>
-                                    <option value="SINGAPORE">Singapore</option>
-                                    <option value="MALAYSIA">Malaysia</option>
-                                    <option value="HONG KONG">Hong Kong</option>
-                                    <option value="SOUTH AFRICA">South Africa</option>
-                                    <option value="QATAR">Qatar</option>
-                                    <option value="EUROPEAN UNION">European Union</option>
-                                    <option value="OMAN">Oman</option>
-                                    <option value="BAHRAIN">Bahrain</option>
-                                    <option value="KUWAIT">Kuwait</option>
-                                    <option value="SAUDI ARABIA">Saudi Arabia</option>
+                                    @foreach (availableCountryOptions() as $countryValue => $countryLabel)
+                                        <option value="{{ $countryValue }}">{{ $countryLabel }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -1777,45 +1756,8 @@
                 });
             }
 
-            const timezonesByCountry = {
-                'USA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
-                'CANADA': ['Mountain Standard Time', 'Eastern Standard Time', 'Central Standard Time', 'Pacific Standard Time', 'Alaska Standard Time', 'Hawaii-Aleutian Standard Time'],
-                'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide', 'Australia/Sydney'],
-                'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-                'INDIA': ['Indian Standard Time'],
-                'UAE': ['Gulf Standard Time'],
-                'UK': ['British Summer Time', 'Greenwich Mean Time'],
-                'SINGAPORE': ['Singapore Standard Time'],
-                'MALAYSIA': ['Malaysia Time'],
-                'HONG KONG': ['Hong Kong Standard Time'],
-                'SOUTH AFRICA': ['South Africa Standard Time'],
-                'QATAR': ['Arabian Standard Time'],
-                'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
-                'OMAN': ['Gulf Standard Time'],
-                'BAHRAIN': ['Arabian Standard Time'],
-                'KUWAIT': ['Arabian Standard Time'],
-                'SAUDI ARABIA': ['Arabian Standard Time']
-            };
-
-            const dialCodeByCountry = {
-                'USA': '+1',
-                'CANADA': '+1',
-                'AUSTRALIA': '+61',
-                'NEWZEALAND': '+64',
-                'INDIA': '+91',
-                'UAE': '+971',
-                'UK': '+44',
-                'SINGAPORE': '+65',
-                'MALAYSIA': '+60',
-                'HONG KONG': '+852',
-                'SOUTH AFRICA': '+27',
-                'QATAR': '+974',
-                'EUROPEAN UNION': '+358',
-                'OMAN': '+968',
-                'BAHRAIN': '+973',
-                'KUWAIT': '+965',
-                'SAUDI ARABIA': '+966'
-            };
+            const timezonesByCountry = @json(collect(countryTimezones())->map(fn ($zones) => array_values($zones))->all());
+            const dialCodeByCountry = @json(countryDialCodes());
 
             function setMessage($form, selector, message, isError) {
                 const $message = $form.find(selector);

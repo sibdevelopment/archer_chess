@@ -1,3 +1,11 @@
+   @php
+       $countryPageCountries = match ($country_slug ?? '') {
+           'middle-east' => ['QATAR', 'BAHRAIN', 'KUWAIT', 'SAUDI ARABIA'],
+           'uae' => ['UAE', 'OMAN'],
+           'singapore' => ['SINGAPORE', 'MALAYSIA', 'HONG KONG'],
+           default => [$country ?? ''],
+       };
+   @endphp
    <!DOCTYPE html>
    <html lang="en">
    <!-- Added by HTTrack -->
@@ -316,21 +324,7 @@
                                                 <div class="col-lg-6 pe-lg-2">
                                                     <div class="itemForm my-0">
                                                         <select id="country" name="country">
-                                                            @if($country_slug === 'middle-east')
-                                                                <option value="QATAR">QATAR</option>
-                                                                <option value="BAHRAIN">BAHRAIN</option>
-                                                                <option value="KUWAIT">KUWAIT</option>
-                                                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
-                                                            @elseif($country_slug === 'uae')
-                                                                <option value="UAE">UAE</option>
-                                                                <option value="OMAN">OMAN</option>
-                                                            @elseif($country_slug === 'singapore')
-                                                                <option value="SINGAPORE">Singapore</option>
-                                                                <option value="MALAYSIA">Malaysia</option>
-                                                                <option value="HONG KONG">Hong Kong</option>
-                                                            @else
-                                                                <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
-                                                            @endif
+                                                            {!! countryOptionsHtml([], $countryPageCountries) !!}
                                                         </select>
                                                         <div id="country-error-head" class="text-danger"></div>
                                                         <i class="fa fa-angle-down"></i>
@@ -1568,21 +1562,7 @@
                                    <div class="col-lg-6 pe-lg-2">
                                        <div class="itemForm my-0">
                                            <select id="country" name="country">
-                                                @if($country_slug === 'middle-east')
-                                                    <option value="QATAR">QATAR</option>
-                                                    <option value="BAHRAIN">BAHRAIN</option>
-                                                    <option value="KUWAIT">KUWAIT</option>
-                                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
-                                                @elseif($country_slug === 'uae')
-                                                    <option value="UAE">UAE</option>
-                                                    <option value="OMAN">OMAN</option>
-                                                @elseif($country_slug === 'singapore')
-                                                    <option value="SINGAPORE">Singapore</option>
-                                                    <option value="MALAYSIA">Malaysia</option>
-                                                    <option value="HONG KONG">Hong Kong</option>
-                                                @else
-                                                    <option value="{{ $country }}">{{ $country_label ?? $country }}</option>
-                                                @endif
+                                                {!! countryOptionsHtml([], $countryPageCountries) !!}
                                            </select>
                                            <div id="country-error" class="text-danger"></div>
                                            <i class="fa fa-angle-down"></i>
@@ -1872,11 +1852,7 @@
                 'SAUDI ARABIA': 'sa'
             };
 
-            const countryPageTimezones = {
-                'SINGAPORE': ['Singapore Standard Time'],
-                'MALAYSIA': ['Malaysia Time'],
-                'HONG KONG': ['Hong Kong Standard Time']
-            };
+            const countryPageTimezones = @json(collect(countryTimezones())->map(fn ($zones) => array_values($zones))->all());
 
             function syncCountryPageTimezone($form) {
                 const country = $form.find('select[name="country"]').val();

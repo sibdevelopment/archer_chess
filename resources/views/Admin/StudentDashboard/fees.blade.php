@@ -119,27 +119,7 @@
     @if ($nextPaymentLevel)
         @php
             $student_country = normalizeCountryValue($student->country);
-            $paymentCountryMap = [
-                'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
-                'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],
-                'AUSTRALIA' => ['column' => 'australia_fees', 'currency' => 'AUD'],
-                'NEW ZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
-                'NEWZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
-                'INDIA' => ['column' => 'india_fees', 'currency' => 'INR'],
-                'UAE' => ['column' => 'uae_fees', 'currency' => 'AED'],
-                'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
-                'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
-                'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
-                'MALAYSIA' => ['column' => 'malaysia_fees', 'currency' => 'MYR'],
-                'HONG KONG' => ['column' => 'hong_kong_fees', 'currency' => 'HKD'],
-                'SOUTH AFRICA' => ['column' => 'south_africa_fees', 'currency' => 'ZAR'],
-                'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
-                'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
-                'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
-                'BAHRAIN' => ['column' => 'bahrain_fees', 'currency' => 'BHD'],
-                'SAUDI ARABIA' => ['column' => 'saudi_arabia_fees', 'currency' => 'SAR'],
-            ];
-            $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
+            $paymentCountry = countryPaymentConfigs()[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];
             $currency = $paymentCountry['currency'];
             $nextPaymentLevelAmount = $nextPaymentPlan['amount'] ?? ($feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0);

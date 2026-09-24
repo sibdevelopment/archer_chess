@@ -50,44 +50,7 @@
                                         class="tcul-star-restrict">*</sup></label>
                                 <select class="form-control" name="country">
                                     <option value="">Select Country</option>
-                                    <option value="USA"
-                                        {{ isset($timezone) && $timezone->country == 'USA' ? 'selected' : '' }}>
-                                        USA</option>
-                                    <option value="CANADA"
-                                        {{ isset($timezone) && $timezone->country == 'CANADA' ? 'selected' : '' }}>
-                                        CANADA</option>
-                                    <option value="AUSTRALIA"
-                                        {{ isset($timezone) && $timezone->country == 'AUSTRALIA' ? 'selected' : '' }}>
-                                        AUSTRALIA</option>
-                                    <option value="NEWZEALAND"
-                                        {{ isset($timezone) && $timezone->country == 'NEWZEALAND' ? 'selected' : '' }}>
-                                        NEW ZEALAND</option>
-                                    <option value="INDIA"
-                                        {{ isset($timezone) && $timezone->country == 'INDIA' ? 'selected' : '' }}>
-                                        INDIA</option>
-                                    <option value="UAE"
-                                        {{ isset($timezone) && $timezone->country == 'UAE' ? 'selected' : '' }}>
-                                        UAE</option>
-                                    <option value="UK"
-                                        {{ isset($timezone) && $timezone->country == 'UK' ? 'selected' : '' }}>UK
-                                    </option>
-                                    <option value="SINGAPORE"
-                                        {{ isset($timezone) && $timezone->country == 'SINGAPORE' ? 'selected' : '' }}>
-                                        SINGAPORE</option>
-                                    <option value="MALAYSIA"
-                                        {{ isset($timezone) && $timezone->country == 'MALAYSIA' ? 'selected' : '' }}>
-                                        MALAYSIA</option>
-                                    <option value="HONG KONG"
-                                        {{ isset($timezone) && $timezone->country == 'HONG KONG' ? 'selected' : '' }}>
-                                        HONG KONG</option>
-                                        <option value="QATAR" {{ (isset($timezone) && in_array('QATAR', $timezone->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
-                                        <option value="BAHRAIN" {{ (isset($timezone) && in_array('BAHRAIN', $timezone->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
-                                        <option value="KUWAIT" {{ (isset($timezone) && in_array('KUWAIT', $timezone->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>    
-                                    <option value="EUROPEAN UNION"
-                                        {{ isset($timezone) && $timezone->country == 'EUROPEAN UNION' ? 'selected' : '' }}>
-                                        EUROPEAN UNION</option>    
-                                        <option value="OMAN" {{ (isset($timezone) && in_array('OMAN', $timezone->countries ?? [])) ? 'selected' : '' }}>OMAN</option>   
-                                        <option value="SAUDI ARABIA" {{ (isset($timezone) && in_array('SAUDI ARABIA', $timezone->countries ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
+                                    {!! countryOptionsHtml(isset($timezone) ? $timezone->country : '') !!}
                                 </select>
                                 <div id="country-error" style="color:red"></div>
                             </div>

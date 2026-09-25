@@ -1326,8 +1326,6 @@ class PermissionSeeder extends Seeder
 
         #Create Roles
         $this->createRoles();
-        $this->grantEmployeeLeavePermissionsToEmployeeRoles();
-
         #Create Users
         $this->createUsers();
     }
@@ -1407,20 +1405,6 @@ class PermissionSeeder extends Seeder
             $permission_ids = Permission::whereIn('name', $permissions)->pluck('id');
             $role->syncPermissions($permission_ids);
         }
-    }
-
-    private function grantEmployeeLeavePermissionsToEmployeeRoles()
-    {
-        $permissionIds = Permission::whereIn('name', [
-            'employeeleaverequests-view',
-            'employeeleaverequests-store',
-        ])->pluck('id');
-
-        Role::whereNotIn('name', array_merge(getSystemRoles(), ['Coach']))
-            ->get()
-            ->each(function ($role) use ($permissionIds) {
-                $role->permissions()->syncWithoutDetaching($permissionIds);
-            });
     }
 
     private function createUsers()

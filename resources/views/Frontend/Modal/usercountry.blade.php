@@ -41,20 +41,7 @@
                         <label for="country">Country</label>
                         <select id="country" name="country" class="form-control">
                             <option value="" disabled selected>Select your country</option>
-                            <option value="AUSTRALIA" @if ($country == 'AUSTRALIA') selected @endif>AUSTRALIA</option>
-                            <option value="CANADA" @if ($country == 'CANADA') selected @endif>CANADA</option>
-                            <option value="INDIA" @if ($country == 'INDIA') selected @endif>INDIA</option>
-                            <option value="NEWZEALAND" @if ($country == 'NEWZEALAND') selected @endif>NEW ZEALAND</option>
-                            <option value="SINGAPORE" @if ($country == 'SINGAPORE') selected @endif>SINGAPORE</option>
-                            <option value="MALAYSIA" @if ($country == 'MALAYSIA') selected @endif>MALAYSIA</option>
-                            <option value="HONG KONG" @if ($country == 'HONG KONG') selected @endif>HONG KONG</option>
-                            <option value="UAE" @if ($country == 'UAE') selected @endif>UAE</option>
-                            <option value="UK" @if ($country == 'UK') selected @endif>UK</option>   
-                            <option value="USA" @if ($country == 'USA') selected @endif>USA</option>
-                            <option value="QATAR" @if ($country == 'QATAR') selected @endif>QATAR</option>
-                            <option value="BAHRAIN" @if ($country == 'BAHRAIN') selected @endif>BAHRAIN</option>
-                            <option value="KUWAIT" @if ($country == 'KUWAIT') selected @endif>KUWAIT</option>
-                            <option value="SAUDI ARABIA" @if ($country == 'SAUDI ARABIA') selected @endif>SAUDI ARABIA</option>
+                            {!! countryOptionsHtml($country ?? '') !!}
                         </select>
                         <div id="country-error" style="color:red"></div>
                     </div>

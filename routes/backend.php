@@ -7,6 +7,7 @@ use Razorpay\Api\Api;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentBatch;
+use App\Services\PaymentLevelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\DataController;
@@ -422,14 +423,35 @@ Route::post('/razorpay/initiate', function (Request $request) {
     ]);
 
     try {
+        $student = Student::findOrFail($data['student_id']);
+        $paymentPlan = app(PaymentLevelService::class)->planForTarget($student, $data['payment_level_id'] ?? null);
+
+        if (! $paymentPlan['ok']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $paymentPlan['message'],
+            ], 422);
+        }
+
+        if (
+            abs((float) $data['amount'] - (float) $paymentPlan['amount']) > 0.01
+            || strtoupper($data['currency']) !== $paymentPlan['currency']
+        ) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment amount does not match the next payment level sequence.',
+            ], 422);
+        }
+
         $order = new Order();
         $order->student_id = $data['student_id'];
-        $order->amount = $data['amount'];
-        $order->currency = strtoupper($data['currency']);
+        $order->amount = $paymentPlan['amount'];
+        $order->currency = $paymentPlan['currency'];
         $order->status = 'CREATED';
         $order->razorpay_data = json_encode([
             'source' => 'checkout_initiated',
-            'payment_level_id' => $data['payment_level_id'] ?? null,
+            'payment_level_id' => $paymentPlan['target_level']->id,
+            'payment_level_ids' => $paymentPlan['level_ids'],
         ]);
         $order->save();
 
@@ -473,6 +495,45 @@ Route::post('/razorpay/verify', function (Request $request) {
         $localOrder = $request->filled('local_order_id')
             ? Order::where('id', $request->local_order_id)->where('student_id', $student->id)->first()
             : null;
+
+        if ($localOrder && $localOrder->student_fee_id && in_array(strtoupper((string) $localOrder->status), ['CAPTURED', 'PAID', 'COMPLETED'], true)) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment already processed successfully.',
+            ]);
+        }
+
+        $orderMeta = $localOrder && $localOrder->razorpay_data
+            ? json_decode($localOrder->razorpay_data, true)
+            : [];
+        $paymentLevelId = $orderMeta['payment_level_id'] ?? $request->payment_level_id;
+        $paymentPlan = app(PaymentLevelService::class)->planForTarget($student, $paymentLevelId);
+
+        if (! $paymentPlan['ok']) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $paymentPlan['message'],
+            ], 422);
+        }
+
+        if (
+            abs((float) $request->amount - (float) $paymentPlan['amount']) > 0.01
+            || strtoupper((string) $request->currency) !== $paymentPlan['currency']
+        ) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment amount does not match the next payment level sequence.',
+            ], 422);
+        }
+
+        $threeDecimalCurrencies = ['BHD', 'KWD', 'OMR'];
+        $expectedGatewayAmount = (int) round($paymentPlan['amount'] * (in_array($paymentPlan['currency'], $threeDecimalCurrencies, true) ? 1000 : 100));
+        if ((int) $payment->amount !== $expectedGatewayAmount) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gateway payment amount does not match the next payment level sequence.',
+            ], 422);
+        }
 
         if ($studentCountry !== 'INDIA' && $paymentMethod !== 'card') {
             $order = $localOrder ?: Order::firstOrNew(['razorpay_payment_id' => $payment->id]);
@@ -539,21 +600,22 @@ Route::post('/razorpay/verify', function (Request $request) {
         $order = $localOrder ?: new Order();
         $order->student_id          = $student->id;
         $order->razorpay_payment_id = $payment->id;
-        $order->amount              = $request->amount;   // usually in rupees (your choice)
-        $order->currency            = $payment->currency;
+        $order->amount              = $paymentPlan['amount'];
+        $order->currency            = $paymentPlan['currency'];
 
-        $order->razorpay_data       = json_encode($payment->toArray());
+        $order->razorpay_data       = json_encode(array_merge($orderMeta, ['payment' => $payment->toArray()]));
         $order->status              = $payment->status;   // 'captured'
         $order->save();
 
         // Create StudentFee
         $studentfee = new StudentFee();
         $studentfee->student_id        = $student->id;
+        $studentfee->payment_level_id  = $paymentPlan['target_level']->id;
         $studentfee->start_date        = date('Y-m-d');
         $studentfee->end_date          = date('Y-m-d', strtotime('+24 days'));
-        $studentfee->monthly_fees      = $request->amount;
-        $studentfee->total_amount_paid = $request->amount;
-        $studentfee->currency          = $payment->currency ?? $request->currency;
+        $studentfee->monthly_fees      = $paymentPlan['amount'];
+        $studentfee->total_amount_paid = $paymentPlan['amount'];
+        $studentfee->currency          = $paymentPlan['currency'];
         $studentfee->receive_date      = date('Y-m-d');
         $studentfee->status            = 'ACTIVE';
         $studentfee->save();
@@ -565,7 +627,7 @@ Route::post('/razorpay/verify', function (Request $request) {
         $old_status                    = $student->status;
 
         // Student updates
-        $student->lastpayment_level_id = $request->payment_level_id;
+        $student->lastpayment_level_id = $paymentPlan['target_level']->id;
         $student->status               = 'ACTIVE';
         $student->save();
 

@@ -1611,23 +1611,7 @@
                                                 Country*</label>
                                             <select class="form-control" id="country" name="country">
                                                 <option value="">Select Country</option>
-                                                <option>USA</option>
-                                                <option>CANADA</option>
-                                                <option>AUSTRALIA</option>
-                                                <option>NEW ZEALAND</option>
-                                                <option>INDIA</option>
-                                                <option>UAE</option>
-                                                <option>UK</option>
-                                                <option>SINGAPORE</option>
-                                                <option value="MALAYSIA">MALAYSIA</option>
-                                                <option value="HONG KONG">HONG KONG</option>
-                                                <option>SOUTH AFRICA</option>
-                                                <option>QATAR</option>
-                                                <option>BAHRAIN</option>
-                                                <option>KUWAIT</option>
-                                                <option>EUROPEAN UNION</option>
-                                                <option>OMAN</option>
-                                                <option>SAUDI ARABIA</option>
+                                                {!! countryOptionsHtml() !!}
                                             </select>
                                         </div>
                                     </div>
@@ -2041,23 +2025,7 @@
                                 <label for="feesCountry" class="form-label fw-semibold"> Country</label>
                                 <select id="feesCountry" class="form-select" name="country">
                                     <option value="">-- Select Country --</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CANADA">CANADA</option>
-                                    <option value="AUSTRALIA">AUSTRALIA</option>
-                                    <option value="NEWZEALAND">NEW ZEALAND</option>
-                                    <option value="INDIA">INDIA</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="UK">UK</option>
-                                    <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                    <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                    <option value="QATAR">QATAR</option>
-                                    <option value="BAHRAIN">BAHRAIN</option>
-                                    <option value="KUWAIT">KUWAIT</option>
-                                    <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                    <option value="OMAN">OMAN</option>
-                                    <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                    {!! countryOptionsHtml() !!}
                                 </select>
                                 <div id="country-error" class="text-danger mt-1">
                                 </div>
@@ -2418,32 +2386,7 @@
         
 
 
-        const timezones = {
-            'USA': ['Mountain Time', 'Eastern Time', 'Central Time', 'Pacific Time', 'Alaska Time',
-                'Hawaii-Aleutian Time'
-            ],
-            'CANADA': ['Mountain Time', 'Eastern Time', 'Central Time', 'Pacific Time', 'Alaska Time',
-                'Hawaii-Aleutian Time'
-            ],
-            'NEWZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-            'NEW ZEALAND': ['New Zealand Daylight Time', 'New Zealand Standard Time'],
-            'AUSTRALIA': ['Australia/Perth', 'Australia/Darwin', 'Australia/Brisbane', 'Australia/Adelaide',
-                'Australia/Sydney'
-            ],
-            'UK': ['British Summer Time', 'Greenwich Mean Time'],
-            'INDIA': ['Indian Standard Time'],
-            'UAE': ['Gulf Standard Time'],
-            'SINGAPORE': ['Singapore Standard Time'],
-            'MALAYSIA': ['Malaysia Time'],
-            'HONG KONG': ['Hong Kong Standard Time'],
-            'SOUTH AFRICA': ['South Africa Standard Time'],
-            'QATAR': ['Arabian Standard Time'],
-            'BAHRAIN': ['Arabian Standard Time'],
-            'KUWAIT': ['Arabian Standard Time'],
-            'EUROPEAN UNION': ['Central European Time', 'Eastern European Time', 'Western European Time'],
-            'OMAN': ['Gulf Standard Time'],
-            'SAUDI ARABIA': ['Arabian Standard Time']
-        };
+        const timezones = @json(collect(countryTimezones())->map(fn ($zones) => array_values($zones))->all());
 
 
         $(document).ready(function() {

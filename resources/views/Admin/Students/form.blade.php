@@ -99,63 +99,9 @@
                                 <select class="form-control" name="country" id="country-select">
                                     <option value="">Select Country</option>
                                     @if ($isAdminOrSuperAdmin)
-                                        <option value="USA"
-                                            {{ isset($student) && $student->country == 'USA' ? 'selected' : '' }}>USA
-                                        </option>
-                                        <option value="CANADA"
-                                            {{ isset($student) && $student->country == 'CANADA' ? 'selected' : '' }}>
-                                            CANADA</option>
-                                        <option value="AUSTRALIA"
-                                            {{ isset($student) && $student->country == 'AUSTRALIA' ? 'selected' : '' }}>
-                                            AUSTRALIA</option>
-                                        <option value="NEWZEALAND"
-                                            {{ isset($student) && $student->country == 'NEWZEALAND' ? 'selected' : '' }}>
-                                            NEW ZEALAND</option>
-                                        <option value="INDIA"
-                                            {{ isset($student) && $student->country == 'INDIA' ? 'selected' : '' }}>INDIA
-                                        </option>
-                                        <option value="UAE"
-                                            {{ isset($student) && $student->country == 'UAE' ? 'selected' : '' }}>UAE
-                                        </option>
-                                        <option value="UK"
-                                            {{ isset($student) && $student->country == 'UK' ? 'selected' : '' }}>UK
-                                        </option>
-                                        <option value="SINGAPORE"
-                                            {{ isset($student) && $student->country == 'SINGAPORE' ? 'selected' : '' }}>
-                                            SINGAPORE</option>
-                                        <option value="MALAYSIA"
-                                            {{ isset($student) && $student->country == 'MALAYSIA' ? 'selected' : '' }}>
-                                            MALAYSIA</option>
-                                        <option value="HONG KONG"
-                                            {{ isset($student) && $student->country == 'HONG KONG' ? 'selected' : '' }}>
-                                            HONG KONG</option>
-                                        <option value="SOUTH AFRICA"
-                                            {{ isset($student) && $student->country == 'SOUTH AFRICA' ? 'selected' : '' }}>
-                                            SOUTH AFRICA</option>
-                                        <option value="QATAR"
-                                            {{ isset($student) && $student->country == 'QATAR' ? 'selected' : '' }}>
-                                            QATAR</option>
-                                        <option value="BAHRAIN"
-                                            {{ isset($student) && $student->country == 'BAHRAIN' ? 'selected' : '' }}>
-                                            BAHRAIN</option>
-                                        <option value="KUWAIT"
-                                            {{ isset($student) && $student->country == 'KUWAIT' ? 'selected' : '' }}>
-                                            KUWAIT</option>
-                                        <option value="EUROPEAN UNION"
-                                            {{ isset($student) && $student->country == 'EUROPEAN UNION' ? 'selected' : '' }}>
-                                            EUROPEAN UNION</option>
-                                            <option value="OMAN"
-                                            {{ isset($student) && $student->country == 'OMAN' ? 'selected' : '' }}>
-                                            OMAN</option>
-                                        <option value="SAUDI ARABIA"
-                                            {{ isset($student) && $student->country == 'SAUDI ARABIA' ? 'selected' : '' }}>
-                                            SAUDI ARABIA</option>
+                                        {!! countryOptionsHtml(isset($student) ? $student->country : '') !!}
                                     @else
-                                        @foreach ($allowedCountries as $country)
-                                            <option value="{{ $country }}"
-                                                {{ isset($student) && $student->country == $country ? 'selected' : '' }}>
-                                                {{ $country }}</option>
-                                        @endforeach
+                                        {!! countryOptionsHtml(isset($student) ? $student->country : '', $allowedCountries) !!}
                                     @endif
                                 </select>
                                 <div id="country-error" style="color:red"></div>

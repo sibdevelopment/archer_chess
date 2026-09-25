@@ -447,22 +447,9 @@
                             <label for="feesCountry" class="form-label">Select Country</label>
                             <select id="feesCountry" class="form-select" required>
                                 <option value="">-- Select Country --</option>
-                                <option value="ALL">ALL</option>
-                                <option value="USA">USA</option>
-                                <option value="CANADA">CANADA</option>
-                                <option value="AUSTRALIA">AUSTRALIA</option>
-                                <option value="NEWZEALAND">NEW ZEALAND</option>
-                                <option value="INDIA">INDIA</option>
-                                <option value="UAE">UAE</option>
-                                <option value="UK">UK</option>
-                                <option value="SINGAPORE">SINGAPORE</option>
-                                <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                <option value="QATAR">QATAR</option>
-                                <option value="BAHRAIN">BAHRAIN</option>
-                                <option value="KUWAIT">KUWAIT</option>
-                                <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                <option value="OMAN">OMAN</option>
-                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                @foreach (availableCountryOptions(true) as $countryValue => $countryLabel)
+                                    <option value="{{ $countryValue }}">{{ $countryLabel }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -511,22 +498,9 @@
                             <label for="zeroFeesCountry" class="form-label">Select Country</label>
                             <select id="zeroFeesCountry" class="form-select" required>
                                 <option value="">-- Select Country --</option>
-                                <option value="ALL">ALL</option>
-                                <option value="USA">USA</option>
-                                <option value="CANADA">CANADA</option>
-                                <option value="AUSTRALIA">AUSTRALIA</option>
-                                <option value="NEWZEALAND">NEW ZEALAND</option>
-                                <option value="INDIA">INDIA</option>
-                                <option value="UAE">UAE</option>
-                                <option value="UK">UK</option>
-                                <option value="SINGAPORE">SINGAPORE</option>
-                                <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                <option value="QATAR">QATAR</option>
-                                <option value="BAHRAIN">BAHRAIN</option>
-                                <option value="KUWAIT">KUWAIT</option>
-                                <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                <option value="OMAN">OMAN</option>
-                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                @foreach (availableCountryOptions(true) as $countryValue => $countryLabel)
+                                    <option value="{{ $countryValue }}">{{ $countryLabel }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -614,22 +588,9 @@
                             <label for="collectionCountry" class="form-label">Country (optional)</label>
                             <select id="collectionCountry" class="form-select">
                                 <option value="">-- Select Country --</option>
-                                <option value="USA">USA</option>
-                                <option value="CANADA">CANADA</option>
-                                <option value="AUSTRALIA">AUSTRALIA</option>
-                                <option value="NEWZEALAND">NEW ZEALAND</option>
-                                <option value="INDIA">INDIA</option>
-                                <option value="UAE">UAE</option>
-                                <option value="UK">UK</option>
-                                <option value="SINGAPORE">SINGAPORE</option>
-                                <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                <option value="QATAR">QATAR</option>
-                                <option value="BAHRAIN">BAHRAIN</option>
-                                <option value="KUWAIT">KUWAIT</option>
-                                <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                <option value="OMAN">OMAN</option>
-                                <option value="SAUDI ARABIA">SAUDI ARABIA</option>
-                                <!-- Add more as needed -->
+                                @foreach (availableCountryOptions() as $countryValue => $countryLabel)
+                                    <option value="{{ $countryValue }}">{{ $countryLabel }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

@@ -39,22 +39,7 @@ Coach
                         <div class="col-sm-12 col-md-6">
                             <label class="control-label col-form-label">Country <sup class="tcul-star-restrict">*</sup></label>
                             <select class="form-control select2" name="country[]" multiple="multiple">
-                                <option value="USA" {{ (isset($coach) && in_array('USA', $coach->country ?? [])) ? 'selected' : '' }}>USA</option>
-                                <option value="CANADA" {{ (isset($coach) && in_array('CANADA', $coach->country ?? [])) ? 'selected' : '' }}>CANADA</option>
-                                <option value="AUSTRALIA" {{ (isset($coach) && in_array('AUSTRALIA', $coach->country ?? [])) ? 'selected' : '' }}>AUSTRALIA</option>
-                                <option value="NEWZEALAND" {{ (isset($coach) && in_array('NEWZEALAND', $coach->country ?? [])) ? 'selected' : '' }}>NEW ZEALAND</option>
-                                <option value="INDIA" {{ (isset($coach) && in_array('INDIA', $coach->country ?? [])) ? 'selected' : '' }}>INDIA</option>
-                                <option value="UAE" {{ (isset($coach) && in_array('UAE', $coach->country ?? [])) ? 'selected' : '' }}>UAE</option>
-                                <option value="UK" {{ (isset($coach) && in_array('UK', $coach->country ?? [])) ? 'selected' : '' }}>UK</option>
-                                <option value="SINGAPORE" {{ (isset($coach) && in_array('SINGAPORE', $coach->country ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
-                                <option value="MALAYSIA" {{ (isset($coach) && in_array('MALAYSIA', $coach->country ?? [])) ? 'selected' : '' }}>MALAYSIA</option>
-                                <option value="HONG KONG" {{ (isset($coach) && in_array('HONG KONG', $coach->country ?? [])) ? 'selected' : '' }}>HONG KONG</option>
-                                <option value="QATAR" {{ (isset($coach) && in_array('QATAR', $coach->country ?? [])) ? 'selected' : '' }}>QATAR</option>
-                                <option value="BAHRAIN" {{ (isset($coach) && in_array('BAHRAIN', $coach->country ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
-                                <option value="KUWAIT" {{ (isset($coach) && in_array('KUWAIT', $coach->country ?? [])) ? 'selected' : '' }}>KUWAIT</option>
-                                <option value="EUROPEAN UNION" {{ (isset($coach) && in_array('EUROPEAN UNION', $coach->country ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
-                                <option value="OMAN" {{ (isset($coach) && in_array('OMAN', $coach->country ?? [])) ? 'selected' : '' }}>OMAN</option>
-                                <option value="SAUDI ARABIA" {{ (isset($coach) && in_array('SAUDI ARABIA', $coach->country ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
+                                {!! countryOptionsHtml(isset($coach) ? ($coach->country ?? []) : []) !!}
                             </select>
                             <div id="country-error" style="color:red"></div>
                         </div>
@@ -129,17 +114,9 @@ Coach
                             <label class="control-label col-form-label">Status</label>
                             <select class="form-control" name="status">
                                 <option value="">Select</option>
-                                @if(isset($coach) && $coach->user->status == 'ACTIVE')
-                                <option value="ACTIVE" selected>Active</option>
-                                @else
-                                <option value="ACTIVE">Active</option>
-                                @endif
-
-                                @if(isset($coach) && $coach->user->status == 'INACTIVE')
-                                <option value="INACTIVE" selected>Inactive</option>
-                                @else
-                                <option value="INACTIVE">Inactive</option>
-                                @endif
+                                <option value="ACTIVE" {{ isset($coach) && $coach->status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                                <option value="STANDBY" {{ isset($coach) && $coach->status == 'STANDBY' ? 'selected' : '' }}>Standby</option>
+                                <option value="INACTIVE" {{ isset($coach) && $coach->status == 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
                             </select>
                             <div id="status-error" style="color:red"></div>
                         </div>

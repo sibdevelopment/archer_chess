@@ -5,7 +5,7 @@
 @section('content')
     @php
         $user = auth()->user();
-        $isSuperAdmin = $user->hasRole('SuperAdmin');
+        $canManageEmployeeLeave = $user->can('employeeleaverequests-update');
     @endphp
     <section>
         <div class="row">
@@ -17,7 +17,7 @@
                                 <h5 class="card-title fw-semibold mb-0 lh-sm">Employee Leave</h5>
                             </div>
                             <div class="col-md-2">
-                                @if ($isSuperAdmin)
+                                @if ($canManageEmployeeLeave)
                                     <select name="employee_id" id="employee_id" class="select2 form-select form-select-sm pure-white">
                                         <option value="">Select Employee</option>
                                         @foreach ($employees as $employee)
@@ -27,7 +27,7 @@
                                 @endif
                             </div>
                             <div class="col-md-2">
-                                @if ($isSuperAdmin)
+                                @if ($canManageEmployeeLeave)
                                     <select name="role" id="role" class="select2 form-select form-select-sm pure-white">
                                         <option value="">Select Role</option>
                                         @foreach ($roles as $role)
@@ -72,7 +72,7 @@
                             </div>
                         </div>
                     </div>
-                    @if ($isSuperAdmin)
+                    @canany(['leaverequests-view', 'employeeleaverequests-view'])
                         <div class="px-4 pt-3">
                             <ul class="nav nav-pills gap-2">
                                 @can('leaverequests-view')
@@ -89,7 +89,7 @@
                                 </li>
                             </ul>
                         </div>
-                    @endif
+                    @endcanany
                     <div class="card-body p-4">
                         <div class="table-responsive rounded-2 mb-4">
                             <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle" id="datatable">

@@ -22,23 +22,7 @@
                     <select name="order_country" id="order_country" class="form-select form-control">
                         aria-label=".form-select-sm example">
                         <option value="">Select Country</option>
-                        <option value="USA">USA</option>
-                        <option value="CANADA">CANADA</option>
-                        <option value="AUSTRALIA">AUSTRALIA</option>
-                        <option value="NEWZEALAND">NEW ZEALAND</option>
-                        <option value="INDIA">INDIA</option>
-                        <option value="UAE">UAE</option>
-                        <option value="UK">UK</option>
-                        <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                        <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                        <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                        <option value="QATAR">QATAR</option>
-                        <option value="BAHRAIN">BAHRAIN</option>
-                        <option value="KUWAIT">KUWAIT</option>
-                        <option value="OMAN">OMAN</option>
-                        <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                        {!! countryOptionsHtml() !!}
                     </select>
                 </div>
             </form>
@@ -156,17 +140,7 @@
                                 <select name="order_country" id="order_country" class="form-select form-control"
                                     style="max-width: 150px;">
                                     <option value="">Country</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CANADA">CANADA</option>
-                                    <option value="AUSTRALIA">AUSTRALIA</option>
-                                    <option value="NEWZEALAND">NEW ZEALAND</option>
-                                    <option value="INDIA">INDIA</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="UK">UK</option>
-                                    <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                    <option value="SOUTH AFRICA">SOUTH AFRICA</option>
+                                    {!! countryOptionsHtml() !!}
                                 </select>
                             </div>
                         </div>
@@ -195,17 +169,7 @@
                                 <select name="order_country" id="order_country" class="form-select form-control"
                                     style="max-width: 150px;">
                                     <option value="">Country</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CANADA">CANADA</option>
-                                    <option value="AUSTRALIA">AUSTRALIA</option>
-                                    <option value="NEWZEALAND">NEW ZEALAND</option>
-                                    <option value="INDIA">INDIA</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="UK">UK</option>
-                                    <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                    <option value="SOUTH AFRICA">SOUTH AFRICA</option>
+                                    {!! countryOptionsHtml() !!}
                                 </select>
                             </div>
                         </div>

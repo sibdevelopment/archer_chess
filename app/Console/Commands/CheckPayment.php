@@ -9,6 +9,7 @@ use App\Models\Batch;
 use App\Models\Order;
 use App\Models\Student;
 use App\Models\StudentBatch;
+use App\Services\PaymentLevelService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -83,14 +84,22 @@ class CheckPayment extends Command
                 $order->save();
 
                 $student = Student::where('id', $order->student_id)->first();
+                $orderMeta = $order->razorpay_data ? json_decode($order->razorpay_data, true) : [];
+                $paymentPlan = app(PaymentLevelService::class)->planForTarget($student, $orderMeta['payment_level_id'] ?? null);
+
+                if (! $paymentPlan['ok']) {
+                    $errors[] = "Order {$order->id} payment level validation failed: {$paymentPlan['message']}";
+                    continue;
+                }
 
                 $studentfee = new StudentFee();
                 $studentfee->student_id = $student->id;
+                $studentfee->payment_level_id = $paymentPlan['target_level']->id;
                 $studentfee->start_date = date('Y-m-d');
                 $studentfee->end_date = date('Y-m-d', strtotime('+24 days'));
-                $studentfee->monthly_fees = $order->amount;
-                $studentfee->total_amount_paid = $order->amount;
-                $studentfee->currency = $payment['currency'] ?? $order->currency;
+                $studentfee->monthly_fees = $paymentPlan['amount'];
+                $studentfee->total_amount_paid = $paymentPlan['amount'];
+                $studentfee->currency = $paymentPlan['currency'];
                 $studentfee->receive_date = date('Y-m-d');
                 $studentfee->status = 'ACTIVE';
                 $studentfee->save();
@@ -173,6 +182,7 @@ class CheckPayment extends Command
                     }
                 }
                 $student->status = 'ACTIVE';
+                $student->lastpayment_level_id = $paymentPlan['target_level']->id;
                 $student->save();
             } elseif ($status === 'failed') {
                 $order->razorpay_payment_id = $payment['id'];

@@ -47,7 +47,14 @@ class StudentController extends Controller
     public function getCoaches(Request $request)
     {
         $user  = Auth::user();
-        $query = Coach::with('user')->where('status', 'ACTIVE');
+        $query = Coach::with('user');
+
+        if ($request->input('context') === 'batch_manage') {
+            $query->whereIn('status', ['ACTIVE', 'STANDBY']);
+        } else {
+            $query->where('status', 'ACTIVE');
+        }
+
         if ($user->roles()->where('name', 'Coach')->exists()) {
             $query->where('user_id', $user->id);
         } else {
@@ -405,6 +412,11 @@ class StudentController extends Controller
 
                 $studentFee = $student->studentFees()->orderBy('end_date', 'desc')->first();
 
+                $reasonIcon = '';
+                if (in_array($student->status, ['INACTIVE', 'STANDBY'], true) && ! empty($student->status_reason)) {
+                    $reasonIcon = ' <button type="button" class="btn btn-link p-0 ms-1 text-warning student-status-reason" data-reason="' . e($student->status_reason) . '" title="View reason"><i class="ti ti-alert-circle fs-4"></i></button>';
+                }
+
                 if ($studentFee) {
                     $message      = $studentFee->generateFeeDueMessage();
                     $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
@@ -412,14 +424,14 @@ class StudentController extends Controller
                     return '<div class="d-flex justify-content-between">
                             <button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 student-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $student->id . '" data-id="' . $student->id . '"  data-status="' . $student->status . '">
                                 <i class="ti ti-analyze"></i> &nbsp; ' . $student->status . '
-                            </button>
+                            </button>' . $reasonIcon . '
                             <div class="d-flex justify-content-end">' . $whatsappBadge . '</div>
                         </div>';
                 } else {
                     return '<div class="d-flex justify-content-between">
                             <button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 student-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $student->id . '" data-id="' . $student->id . '" data-status="' . $student->status . '">
                                 <i class="ti ti-analyze"></i> &nbsp; ' . $student->status . '
-                            </button>
+                            </button>' . $reasonIcon . '
                         </div>';
                 }
             })
@@ -762,7 +774,7 @@ class StudentController extends Controller
             'student_id' => 'required|exists:students,id',
             'status'     => 'required',
             'employee_id' => 'required_if:status,CHANGECLASS',
-            'remark'     => 'required_if:status,CHANGECLASS',
+            'remark'     => 'required_if:status,CHANGECLASS,INACTIVE,STANDBY',
         ];
 
         $customMessages = [
@@ -772,7 +784,7 @@ class StudentController extends Controller
             'status.in'           => 'The selected status is invalid.',
             'employee_id.required_if' => 'Please select employee.',
             'employee_id.exists'  => 'The selected employee does not exist.',
-            'remark.required_if'  => 'Please enter remark.',
+            'remark.required_if'  => 'Please enter reason.',
         ];
 
         $request->validate($rules, $customMessages);
@@ -800,6 +812,9 @@ class StudentController extends Controller
             // }
         // }
         $student->status = $request->status;
+        $student->status_reason = in_array($request->status, ['INACTIVE', 'STANDBY'], true)
+            ? $request->remark
+            : null;
         $student->save();
 
         if ($request->status === 'CHANGECLASS') {

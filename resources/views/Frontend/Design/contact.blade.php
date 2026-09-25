@@ -160,21 +160,7 @@
                                 <select name="country" required
                                     class="tw-py-3 tw-px-5 bg-main-two-50 border-neutral-100 border tw-rounded-md fw-normal tw-text-4 text-neutral-600 w-100 focus-visible-border-main-600">
                                     <option value="">Select Country</option>
-                                    <option value="India">India</option>
-                                    <option value="USA">USA</option>
-                                    <option value="Canada">Canada</option>
-                                    <option value="Australia">Australia</option>
-                                    <option value="New Zealand">New Zealand</option>
-                                    <option value="UAE">UAE</option>
-                                    <option value="UK">UK</option>
-                                    <option value="Singapore">Singapore</option>
-                                    <option value="Malaysia">Malaysia</option>
-                                    <option value="Hong Kong">Hong Kong</option>
-                                    <option value="South Africa">South Africa</option>
-                                    <option value="Qatar">Qatar</option>
-                                    <option value="Bahrain">Bahrain</option>
-                                    <option value="Kuwait">Kuwait</option>
-                                    <option value="Saudi Arabia">Saudi Arabia</option>
+                                    {!! countryOptionsHtml() !!}
                                 </select>
                             </div>
                             <div class="col-sm-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">

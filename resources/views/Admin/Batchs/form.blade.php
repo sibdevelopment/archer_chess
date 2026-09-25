@@ -91,80 +91,9 @@
                                 <select class="form-control select2" id="country" name="country[]" multiple="multiple">
                                     <option value="">Select Country</option>
                                     @if ($isAdminOrSuperAdmin)
-                                        <option value="USA"
-                                            {{ isset($batch) && in_array('USA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            USA
-                                        </option>
-                                        <option value="CANADA"
-                                            {{ isset($batch) && in_array('CANADA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            CANADA
-                                        </option>
-                                        <option value="AUSTRALIA"
-                                            {{ isset($batch) && in_array('AUSTRALIA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            AUSTRALIA
-                                        </option>
-                                        <option value="NEWZEALAND"
-                                            {{ isset($batch) && in_array('NEWZEALAND', $batch->country ?? []) ? 'selected' : '' }}>
-                                            NEW ZEALAND
-                                        </option>
-                                        <option value="INDIA"
-                                            {{ isset($batch) && in_array('INDIA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            INDIA
-                                        </option>
-                                        <option value="UAE"
-                                            {{ isset($batch) && in_array('UAE', $batch->country ?? []) ? 'selected' : '' }}>
-                                            UAE
-                                        </option>
-                                        <option value="UK"
-                                            {{ isset($batch) && in_array('UK', $batch->country ?? []) ? 'selected' : '' }}>
-                                            UK
-                                        </option>
-                                        <option value="SINGAPORE"
-                                            {{ isset($batch) && in_array('SINGAPORE', $batch->country ?? []) ? 'selected' : '' }}>
-                                            SINGAPORE
-                                        </option>
-                                        <option value="MALAYSIA"
-                                            {{ isset($batch) && in_array('MALAYSIA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            MALAYSIA
-                                        </option>
-                                        <option value="HONG KONG"
-                                            {{ isset($batch) && in_array('HONG KONG', $batch->country ?? []) ? 'selected' : '' }}>
-                                            HONG KONG
-                                        </option>
-                                        <option value="SOUTH AFRICA"
-                                            {{ isset($batch) && in_array('SOUTH AFRICA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            SOUTH AFRICA
-                                        </option>
-                                        <option value="QATAR"
-                                            {{ isset($batch) && in_array('QATAR', $batch->country ?? []) ? 'selected' : '' }}>
-                                            QATAR
-                                        </option>
-                                        <option value="BAHRAIN"
-                                            {{ isset($batch) && in_array('BAHRAIN', $batch->country ?? []) ? 'selected' : '' }}>
-                                            BAHRAIN
-                                        </option>
-                                        <option value="KUWAIT"
-                                            {{ isset($batch) && in_array('KUWAIT', $batch->country ?? []) ? 'selected' : '' }}>
-                                            KUWAIT
-                                        </option>
-                                        <option value="EUROPEAN UNION"
-                                            {{ isset($batch) && in_array('EUROPEAN UNION', $batch->country ?? []) ? 'selected' : '' }}>
-                                            EUROPEAN UNION
-                                        </option>
-                                        <option value="OMAN"
-                                            {{ isset($batch) && in_array('OMAN', $batch->country ?? []) ? 'selected' : '' }}>
-                                            OMAN
-                                        </option>
-                                        <option value="SAUDI ARABIA"
-                                            {{ isset($batch) && in_array('SAUDI ARABIA', $batch->country ?? []) ? 'selected' : '' }}>
-                                            SAUDI ARABIA
-                                        </option>
+                                        {!! countryOptionsHtml(isset($batch) ? ($batch->country ?? []) : []) !!}
                                     @else
-                                        @foreach ($allowedCountries as $country)
-                                            <option value="{{ $country }}"
-                                                {{ isset($batch) && in_array($country, $batch->country ?? []) ? 'selected' : '' }}>
-                                                {{ $country }}</option>
-                                        @endforeach
+                                        {!! countryOptionsHtml(isset($batch) ? ($batch->country ?? []) : [], $allowedCountries) !!}
                                     @endif
                                 </select>
                                 <div id="country-error" style="color:red"></div>

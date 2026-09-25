@@ -12,7 +12,6 @@
             $coachId = $user->coach->id;
         }
         $isCoach = in_array('Coach', $role);
-        $isSuperAdmin = in_array('SuperAdmin', $role);
         $isAdminOrSuperAdmin = in_array('Admin', $role) || in_array('SuperAdmin', $role);
         // Get the countries the user can see
         $allowedCountries = [];
@@ -80,22 +79,26 @@
                             </div>
                         </div>
                     </div>
-                    @if ($isSuperAdmin)
+                    @canany(['leaverequests-view', 'employeeleaverequests-view'])
                         <div class="px-4 pt-3">
                             <ul class="nav nav-pills gap-2">
-                                <li class="nav-item">
-                                    <a class="nav-link active" href="{{ route('admin.leaverequests.index') }}">
-                                        Coach Leave
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('admin.employeeleaverequests.index') }}">
-                                        Employee Leave
-                                    </a>
-                                </li>
+                                @can('leaverequests-view')
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="{{ route('admin.leaverequests.index') }}">
+                                            Coach Leave
+                                        </a>
+                                    </li>
+                                @endcan
+                                @can('employeeleaverequests-view')
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="{{ route('admin.employeeleaverequests.index') }}">
+                                            Employee Leave
+                                        </a>
+                                    </li>
+                                @endcan
                             </ul>
                         </div>
-                    @endif
+                    @endcanany
                     <div class="card-body p-4">
                         <div class="table-responsive rounded-2 mb-4">
                             <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle"

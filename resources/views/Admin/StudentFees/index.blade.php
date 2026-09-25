@@ -166,6 +166,9 @@
                                             <h6 class="fs-3 fw-semibold mb-0">Currency</h6>
                                         </th>
                                         <th width="">
+                                            <h6 class="fs-3 fw-semibold mb-0">Paid Till Level</h6>
+                                        </th>
+                                        <th width="">
                                             <h6 class="fs-3 fw-semibold mb-0">Monthly Fees</h6>
                                         </th>
                                         <th width="">
@@ -271,6 +274,11 @@
                     {
                         data: 'currency',
                         name: 'student_fees.currency',
+                        orderable: false
+                    },
+                    {
+                        data: 'payment_level_id',
+                        name: 'student_fees.payment_level_id',
                         orderable: false
                     },
                     {

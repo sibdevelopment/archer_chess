@@ -70,7 +70,9 @@ class DemoLeadController extends Controller
     {
         $levels = Level::where('status', 'ACTIVE')->get();
         $coaches = Coach::where('status', 'ACTIVE')->get();
-        $employees = Employee::get();
+        $employees = Employee::whereHas('user', function ($query) {
+            $query->where('status', 'ACTIVE');
+        })->get();
         return view('Admin.DemoLeads.index', compact('levels', 'coaches', 'employees'));
     }
 
@@ -659,13 +661,15 @@ Archer Chess Academy";
     {
         $demolead = DemoLead::findOrFail($demoleadId);
         $levels = Level::where('status', 'ACTIVE')->get();
-        $lastpayment_levels = Paymentlevel::where('status', 'ACTIVE')->get();
-        $employees = Employee::get();
+        $paymentlevels = Paymentlevel::with('level')->where('status', 'ACTIVE')->get();
+        $employees = Employee::whereHas('user', function ($query) {
+            $query->where('status', 'ACTIVE');
+        })->get();
         $batches = $this->applyBatchCountryFilter(
             Batch::whereIn('status', ['ACTIVE', 'STANDBY', 'UPCOMING'])->orderBy('name', 'asc'),
             $demolead->country
         )->get();
-        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'lastpayment_levels', 'employees', 'batches'));
+        return view('Admin.DemoLeads.convertform', compact('demolead', 'levels', 'paymentlevels', 'employees', 'batches'));
     }
 
     /*
@@ -684,11 +688,14 @@ Archer Chess Academy";
             'receive_date' => 'required|date',
             'fees'          => 'required|numeric|min:0',
             'received_fees' => 'required|numeric|min:0',
+            'payment_level_id' => 'required|exists:paymentlevels,id',
             'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
             'remark'        => 'required',
         ];
         $this->customMessages = [
             'student_id.required' => 'The student ID is required.',
+            'payment_level_id.required' => 'Please select the paid till payment level.',
+            'payment_level_id.exists' => 'Please select a valid payment level.',
         ];
         $request->validate($this->rules, $this->customMessages);
 
@@ -755,8 +762,6 @@ Archer Chess Academy";
         $student->mobile = !empty($demolead->mobile) ? $demolead->mobile : '';
         $student->city = !empty($demolead->city) ? $demolead->city : '';
         $student->country = !empty($demolead->country) ? normalizeCountryValue($demolead->country) : '';
-        // Last Payment Level is no longer collected during demo lead conversion.
-        // $student->lastpayment_level_id = !empty($request->lastpayment_level_id) ? $request->lastpayment_level_id : null;
 
         $student->status = 'INACTIVE';
         if ($request->has('student_id') && !empty($request->student_id)) {
@@ -769,6 +774,7 @@ Archer Chess Academy";
         $student->portal_password = !empty($request->portal_password) ? $request->portal_password : '';
         $student->currency = !empty($request->currency) ? $request->currency : '';
         $student->monthly_fees = !empty($request->monthly_fees) ? $request->monthly_fees : '';
+        $student->lastpayment_level_id = $request->payment_level_id;
         $student->timezone = !empty($demolead->kids_time_zone) ? $demolead->kids_time_zone : '';
         $student->user_id = $user->id;
         $student->save();
@@ -781,6 +787,7 @@ Archer Chess Academy";
         $new_enrollment->created_by = Auth::user()->id;
         $new_enrollment->employee_ids    = $request->employee_ids;
         $new_enrollment->batch_id      = $request->batch_id;
+        $new_enrollment->payment_level_id = $request->payment_level_id;
         $new_enrollment->remark        = $request->remark;
         $new_enrollment->start_date    = $request->start_date;
         $new_enrollment->end_date      = $request->end_date;

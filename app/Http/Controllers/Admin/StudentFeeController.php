@@ -8,6 +8,7 @@ use App\Models\Coach;
 use App\Models\Student;
 use App\Models\StudentFee;
 use App\Models\StudentBatch;
+use App\Models\Paymentlevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Mail;
 
 class StudentFeeController extends Controller
 {
+    private const ADVANCE_FEE_DAYS = 5;
+
     private function syncActiveStudentBatchFeeWindow(Student $student, StudentFee $studentFee): void
     {
         if ($studentFee->status !== 'ACTIVE' || ! $studentFee->start_date) {
@@ -25,6 +28,10 @@ class StudentFeeController extends Controller
         }
 
         $feeStartDate = Carbon::parse($studentFee->start_date)->toDateString();
+        if (Carbon::parse($feeStartDate)->gt(Carbon::today())) {
+            return;
+        }
+
         $feeEndDate = $studentFee->end_date
             ? Carbon::parse($studentFee->end_date)->toDateString()
             : null;
@@ -63,7 +70,7 @@ class StudentFeeController extends Controller
 
     public function data(Student $student, Request $request)
     {
-        $query = StudentFee::where('student_id', $student->id)->orderBy('created_at');
+        $query = StudentFee::with('paymentLevel')->where('student_id', $student->id)->orderBy('created_at');
 
         return DataTables::eloquent($query)
             ->editColumn('student_id', function ($student_fee) {
@@ -83,6 +90,13 @@ class StudentFeeController extends Controller
             })
             ->editColumn('currency', function ($student_fee) {
                 return $student_fee->currency;
+            })
+            ->editColumn('payment_level_id', function ($student_fee) {
+                if (! $student_fee->paymentLevel) {
+                    return '<span class="badge bg-light-danger text-danger">N/A</span>';
+                }
+
+                return e($student_fee->paymentLevel->name);
             })
             ->editColumn('monthly_fees', function ($student_fee) {
                 return $student_fee->monthly_fees;
@@ -136,7 +150,7 @@ class StudentFeeController extends Controller
                 return '<a href="' . route('admin.students.student_fees.invoice', ['student' => $student->id, 'student_fee' => $student_fee->id]) . '" class="badge bg-danger fs-1" title="Download Invoice"><i class="ti ti-file-text"></i></a>';
             })
             ->addIndexColumn()
-            ->rawColumns(['student_id', 'action', 'status', 'to_period', 'from_period', 'day_of_week', 'coach_id', 'monthly_fees', 'total_amount_paid', 'remark', 'created_by', 'date', 'updated_by', 'receive_date', 'pdf'])
+            ->rawColumns(['student_id', 'action', 'status', 'to_period', 'from_period', 'day_of_week', 'coach_id', 'payment_level_id', 'monthly_fees', 'total_amount_paid', 'remark', 'created_by', 'date', 'updated_by', 'receive_date', 'pdf'])
             ->setRowId('id')
             ->make(true);
     }
@@ -178,7 +192,11 @@ class StudentFeeController extends Controller
     {
         $coaches = Coach::where('status', 'ACTIVE')->with('user')->get();
         $slots = CoachAvailability::where('status', 'ACTIVE')->get();
-        return view('Admin.StudentFees.form', compact('student', 'coaches', 'slots'));
+        $paymentlevels = Paymentlevel::where('status', 'ACTIVE')
+            ->with('level')
+            ->orderByRaw('CAST(sequence AS UNSIGNED) ASC')
+            ->get();
+        return view('Admin.StudentFees.form', compact('student', 'coaches', 'slots', 'paymentlevels'));
     }
 
     public function store(Request $request)
@@ -186,19 +204,37 @@ class StudentFeeController extends Controller
         $request->validate($this->rules(), $this->customMessages);
 
         $activeFeeExists = StudentFee::where('student_id', $request->student_id)
+            ->where('status', 'ACTIVE')
             ->orderBy('end_date', 'desc')
+            ->orderBy('id', 'desc')
             ->first();
 
 
-        if ($activeFeeExists && $activeFeeExists->end_date >= Carbon::today()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An active fee record already exists for this student until '
-                    . $activeFeeExists->end_date
-                    . '. Please update the existing record or wait until it expires before creating a new one.',
-            ], 400);
-        }
+        if ($activeFeeExists && $activeFeeExists->end_date) {
+            $today = Carbon::today();
+            $activeFeeEndDate = Carbon::parse($activeFeeExists->end_date)->startOfDay();
+            $newFeeStartDate = Carbon::parse($request->input('start_date'))->startOfDay();
 
+            if ($activeFeeEndDate->gt($today->copy()->addDays(self::ADVANCE_FEE_DAYS))) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'An active fee record already exists for this student until '
+                        . $activeFeeExists->end_date
+                        . '. Advance fee can be added only within '
+                        . self::ADVANCE_FEE_DAYS
+                        . ' days of the current fee end date.',
+                ], 400);
+            }
+
+            if ($activeFeeEndDate->gte($today) && $newFeeStartDate->lte($activeFeeEndDate)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Advance fee start date must be after the current active fee end date '
+                        . $activeFeeExists->end_date
+                        . '.',
+                ], 400);
+            }
+        }
 
         $student = Student::find($request->student_id);
         $student_fee = new StudentFee;
@@ -301,6 +337,8 @@ class StudentFeeController extends Controller
 
 
         $student_fee->save();
+        $student->lastpayment_level_id = $student_fee->payment_level_id;
+        $student->save();
         $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         if ($student->user->email) {
@@ -319,8 +357,12 @@ class StudentFeeController extends Controller
     {
         $students = Student::all();
         $coaches = Coach::where('status', 'ACTIVE')->with('user')->get();
+        $paymentlevels = Paymentlevel::where('status', 'ACTIVE')
+            ->with('level')
+            ->orderByRaw('CAST(sequence AS UNSIGNED) ASC')
+            ->get();
 
-        return view('Admin.StudentFees.form', compact('student_fee', 'students', 'student', 'coaches'));
+        return view('Admin.StudentFees.form', compact('student_fee', 'students', 'student', 'coaches', 'paymentlevels'));
     }
 
     public function update(Student $student, Request $request, StudentFee $student_fee)
@@ -375,6 +417,11 @@ class StudentFeeController extends Controller
         }
         $student_fee->updated_at = Carbon::now();
         $student_fee->save();
+        $latestFeeId = StudentFee::where('student_id', $student->id)->latest('id')->value('id');
+        if ((int) $latestFeeId === (int) $student_fee->id) {
+            $student->lastpayment_level_id = $student_fee->payment_level_id;
+            $student->save();
+        }
         $this->syncActiveStudentBatchFeeWindow($student, $student_fee);
 
         return response()->json([
@@ -425,6 +472,7 @@ class StudentFeeController extends Controller
     {
         return [
             'student_id' => 'required',
+            'payment_level_id' => 'required|exists:paymentlevels,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'receive_date' => 'required|date',
@@ -437,6 +485,8 @@ class StudentFeeController extends Controller
 
     private $customMessages = [
         'student_id.required' => 'StudentFee ID is required',
+        'payment_level_id.required' => 'Payment level is required',
+        'payment_level_id.exists' => 'Please select a valid payment level',
         'start_date.required' => 'Start date is required',
         'end_date.required' => 'End date is required',
         'end_date.after_or_equal' => 'End date must be after or equal to start date',

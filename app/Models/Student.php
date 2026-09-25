@@ -33,6 +33,7 @@ class Student extends BaseModel
         'currency',
         'image',
         'status',
+        'status_reason',
         'created_by',
         'updated_by',
         'portal_password',

@@ -138,27 +138,9 @@
                                         aria-label=".form-select-sm example">
                                         <option value="">Select Country</option>
                                         @if ($isAdminOrSuperAdmin)
-                                            <option value="USA">USA</option>
-                                            <option value="CANADA">CANADA</option>
-                                            <option value="AUSTRALIA">AUSTRALIA</option>
-                                            <option value="NEWZEALAND">NEW ZEALAND</option>
-                                            <option value="INDIA">INDIA</option>
-                                            <option value="UAE">UAE</option>
-                                            <option value="UK">UK</option>
-                                            <option value="SINGAPORE">SINGAPORE</option>
-                                        <option value="MALAYSIA">MALAYSIA</option>
-                                        <option value="HONG KONG">HONG KONG</option>
-                                            <option value="SOUTH AFRICA">SOUTH AFRICA</option>
-                                            <option value="QATAR">QATAR</option>
-                                            <option value="BAHRAIN">BAHRAIN</option>
-                                            <option value="KUWAIT">KUWAIT</option>
-                                            <option value="EUROPEAN UNION">EUROPEAN UNION</option>
-                                            <option value="OMAN">OMAN</option>
-                                            <option value="SAUDI ARABIA">SAUDI ARABIA</option>
+                                            {!! countryOptionsHtml() !!}
                                         @else
-                                            @foreach ($allowedCountries as $country)
-                                                <option value="{{ $country }}">{{ $country }}</option>
-                                            @endforeach
+                                            {!! countryOptionsHtml([], $allowedCountries) !!}
                                         @endif
                                     </select>
                                 </div>
@@ -358,8 +340,8 @@
                         <br>
                         <div class="col-md-12" id="remark_div">
                             <fieldset class="form-group">
-                                <label for="employee" class="form-label">Remark</label>
-                                <textarea name="remark" id="remark" placeholder="Enter remark" class="form-control" cols="30"
+                                <label for="remark" class="form-label">Reason</label>
+                                <textarea name="remark" id="remark" placeholder="Enter reason" class="form-control" cols="30"
                                     rows="3"></textarea>
                                 <div id="remark-error" style="color:red"></div>
                             </fieldset>
@@ -377,6 +359,24 @@
     </div>
 
     <!-- ------------------------------------------------------------------- :: -->
+
+    <div class="modal fade text-left" id="studentStatusReasonModal" tabindex="-1" role="dialog"
+        aria-labelledby="studentStatusReasonModalLabel" aria-hidden="true" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <h4 class="text-dark" id="studentStatusReasonModalLabel">Status Reason</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="studentStatusReasonText" class="mb-0"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn bg-light-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <!-- Delete Confirmation Modal -->
@@ -473,6 +473,9 @@
                 var selectedValue = $(this).val();
                 if (selectedValue == 'CHANGECLASS') {
                     $('#employee_div').show();
+                    $('#remark_div').show();
+                } else if (selectedValue == 'INACTIVE' || selectedValue == 'STANDBY') {
+                    $('#employee_div').hide();
                     $('#remark_div').show();
                 } else {
                     $('#employee_div').hide();
@@ -726,6 +729,18 @@
             var status = $(this).data('status');
             $('#studentId').val(id);
             $('#routeKey').val(routeKey);
+            $('#model-status').val('');
+            $('#remark').val('');
+            $('#employee_id').val('');
+            $('#employee_div').hide();
+            $('#remark_div').hide();
+        });
+
+        $(document).on('click', '.student-status-reason', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $('#studentStatusReasonText').text($(this).data('reason') || 'N/A');
+            $('#studentStatusReasonModal').modal('show');
         });
 
         $('#statusChangeForm').on('submit', function(e) {

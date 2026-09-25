@@ -22,23 +22,7 @@
                         <div class="col-sm-12 col-md-6">
                             <label class="control-label col-form-label">Countries <sup class="tcul-star-restrict">*</sup></label>
                             <select class="form-control" name="countries[]" multiple id="countries-select">
-                                <option value="USA" {{ (isset($role) && in_array('USA', $role->countries ?? [])) ? 'selected' : '' }}>USA</option>
-                                <option value="CANADA" {{ (isset($role) && in_array('CANADA', $role->countries ?? [])) ? 'selected' : '' }}>CANADA</option>
-                                <option value="AUSTRALIA" {{ (isset($role) && in_array('AUSTRALIA', $role->countries ?? [])) ? 'selected' : '' }}>AUSTRALIA</option>
-                                <option value="NEWZEALAND" {{ (isset($role) && in_array('NEWZEALAND', $role->countries ?? [])) ? 'selected' : '' }}>NEW ZEALAND</option>
-                                <option value="INDIA" {{ (isset($role) && in_array('INDIA', $role->countries ?? [])) ? 'selected' : '' }}>INDIA</option>
-                                <option value="UAE" {{ (isset($role) && in_array('UAE', $role->countries ?? [])) ? 'selected' : '' }}>UAE</option>
-                                <option value="UK" {{ (isset($role) && in_array('UK', $role->countries ?? [])) ? 'selected' : '' }}>UK</option>
-                                <option value="SINGAPORE" {{ (isset($role) && in_array('SINGAPORE', $role->countries ?? [])) ? 'selected' : '' }}>SINGAPORE</option>
-                                <option value="MALAYSIA" {{ (isset($role) && in_array('MALAYSIA', $role->countries ?? [])) ? 'selected' : '' }}>MALAYSIA</option>
-                                <option value="HONG KONG" {{ (isset($role) && in_array('HONG KONG', $role->countries ?? [])) ? 'selected' : '' }}>HONG KONG</option>
-                                <option value="SOUTH AFRICA" {{ (isset($role) && in_array('SOUTH AFRICA', $role->countries ?? [])) ? 'selected' : '' }}>SOUTH AFRICA</option>
-                                <option value="QATAR" {{ (isset($role) && in_array('QATAR', $role->countries ?? [])) ? 'selected' : '' }}>QATAR</option>
-                                <option value="BAHRAIN" {{ (isset($role) && in_array('BAHRAIN', $role->countries ?? [])) ? 'selected' : '' }}>BAHRAIN</option>
-                                <option value="KUWAIT" {{ (isset($role) && in_array('KUWAIT', $role->countries ?? [])) ? 'selected' : '' }}>KUWAIT</option>
-                                <option value="EUROPEAN UNION" {{ (isset($role) && in_array('EUROPEAN UNION', $role->countries ?? [])) ? 'selected' : '' }}>EUROPEAN UNION</option>
-                                <option value="OMAN" {{ (isset($role) && in_array('OMAN', $role->countries ?? [])) ? 'selected' : '' }}>OMAN</option>
-                                <option value="SAUDI ARABIA" {{ (isset($role) && in_array('SAUDI ARABIA', $role->countries ?? [])) ? 'selected' : '' }}>SAUDI ARABIA</option>
+                                {!! countryOptionsHtml(isset($role) ? ($role->countries ?? []) : []) !!}
                             </select>
                             <div id="countries-error" style="color:red"></div>
                         </div>

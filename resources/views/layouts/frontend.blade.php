@@ -732,7 +732,7 @@
             </a>
         </div>
         <div class="tcul-floating_btn_whatsapp" style="right: 110px !important;">
-            <a target="_blank" href="https://web.whatsapp.com/send?phone=9152734675&text=hii">
+            <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon">
                     <i class="fab fa-whatsapp my-float"></i>
                     <h6 class="mt-2" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</h6>
@@ -752,7 +752,7 @@
             </a>
         </div>
         <div class="tcul-floating_btn_whatsapp_mobile" style="right: 5px !important;">
-            <a target="_blank" href="https://web.whatsapp.com/send?phone=9152734675&text=hii">
+            <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon_mobile">
                     <i class="fab fa-whatsapp my-float"></i>
                     <h6 class="mt-2" style="color: #fff;"></h6>
@@ -925,16 +925,9 @@
                             <div class="footer-widget footer-menu">
                                 <h2 class="footer-title">Online Chess</h2>
                                 <ul>
-                                    <li><a href="/online-chess/india" target="_blank">INDIA</a></li>
-                                    <li><a href="/online-chess/usa" target="_blank">USA</a></li>
-                                    <li><a href="/online-chess/middle-east" target="_blank">MIDDLE EAST</a></li>
-                                    <li><a href="/online-chess/singapore" target="_blank">SINGAPORE</a></li>
-                                    <li><a href="/online-chess/uae" target="_blank">UAE</a></li>
-                                    <li><a href="/online-chess/united-kingdom" target="_blank">UNITED KINGDOM</a></li>
-                                    <li><a href="/online-chess/australia" target="_blank">AUSTRALIA</a></li>
-                                    <li><a href="/online-chess/canada" target="_blank">CANADA</a></li>
-                                    <li><a href="/online-chess/new-zealand" target="_blank">NEW ZEALAND</a></li>
-                                    <li><a href="/online-chess/european-union" target="_blank">EUROPEAN UNION</a></li>
+                                    @foreach (countryLandingOptions() as $countryLandingOption)
+                                        <li><a href="{{ $countryLandingOption['url'] }}" target="_blank">{{ strtoupper($countryLandingOption['label']) }}</a></li>
+                                    @endforeach
                                 </ul>
                             </div>
                         </div>

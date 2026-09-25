@@ -61,9 +61,15 @@ class MarkFeesDueBySchedule extends Command
                 ->chunkById(100, function ($students) use ($dryRun, $bufferMinutes, $noClassCutoff, $now, $today, &$marked, &$skipped, &$errors) {
                     foreach ($students as $student) {
                         try {
-                            $studentFee = $this->latestActiveFee($student);
+                            $studentFee = $this->currentActiveFee($student, $today) ?: $this->latestExpiredActiveFee($student, $today);
 
                             if (! $studentFee) {
+                                if ($this->nextActiveFeeAfter($student, Carbon::parse($today, 'Asia/Kolkata')->subDay()->toDateString())) {
+                                    $skipped++;
+                                    $this->logDecision('SKIPPED_FUTURE_ADVANCE_FEE_PENDING', $student);
+                                    continue;
+                                }
+
                                 $skipped++;
                                 $this->logDecision('SKIPPED_NO_ACTIVE_FEE', $student);
                                 continue;
@@ -148,11 +154,13 @@ class MarkFeesDueBySchedule extends Command
                     $feesDue->where('s.status', 'FEESDUE')
                         ->whereDate('sf.end_date', '<', $today);
                 })
-                    ->orWhereExists(function ($exists) {
+                    ->orWhereExists(function ($exists) use ($today) {
                         $exists->selectRaw('1')
                             ->from('student_fees as newer_sf')
                             ->whereColumn('newer_sf.student_id', 'sf.student_id')
                             ->where('newer_sf.status', 'ACTIVE')
+                            ->whereDate('newer_sf.start_date', '<=', $today)
+                            ->whereDate('sf.end_date', '<', $today)
                             ->whereColumn('newer_sf.id', '>', 'sf.id');
                     });
             });
@@ -184,11 +192,32 @@ class MarkFeesDueBySchedule extends Command
         return $count;
     }
 
-    private function latestActiveFee(Student $student): ?StudentFee
+    private function currentActiveFee(Student $student, string $today): ?StudentFee
     {
         return StudentFee::where('student_id', $student->id)
             ->where('status', 'ACTIVE')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
             ->orderBy('id', 'desc')
+            ->first();
+    }
+
+    private function latestExpiredActiveFee(Student $student, string $today): ?StudentFee
+    {
+        return StudentFee::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->whereDate('end_date', '<', $today)
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+
+    private function nextActiveFeeAfter(Student $student, string $feeEndDate): ?StudentFee
+    {
+        return StudentFee::where('student_id', $student->id)
+            ->where('status', 'ACTIVE')
+            ->whereDate('start_date', '>', $feeEndDate)
+            ->orderBy('start_date')
+            ->orderBy('id')
             ->first();
     }
 
@@ -247,6 +276,7 @@ class MarkFeesDueBySchedule extends Command
             ->where('status', 'ACTIVE')
             ->latest('id')
             ->first();
+        $nextFee = $this->nextActiveFeeAfter($student, $feeEndDate);
 
         $logContext = array_merge([
             'reason' => $reason,
@@ -257,6 +287,9 @@ class MarkFeesDueBySchedule extends Command
             'fee_end_date' => $feeEndDate,
             'student_batch_id' => optional($activeBatch)->id,
             'batch_id' => optional($activeBatch)->batch_id,
+            'next_fee_id' => optional($nextFee)->id,
+            'next_fee_start_date' => optional($nextFee)->start_date,
+            'next_fee_end_date' => optional($nextFee)->end_date,
         ], $context);
 
         if ($dryRun) {
@@ -265,8 +298,8 @@ class MarkFeesDueBySchedule extends Command
             return;
         }
 
-        DB::transaction(function () use ($student, $activeBatch, $feeEndDate) {
-            $student->status = 'FEESDUE';
+        DB::transaction(function () use ($student, $activeBatch, $feeEndDate, $nextFee) {
+            $student->status = $nextFee ? 'ACTIVE' : 'FEESDUE';
             $student->save();
 
             StudentFee::where('student_id', $student->id)
@@ -275,13 +308,44 @@ class MarkFeesDueBySchedule extends Command
                 ->update(['status' => 'INACTIVE']);
 
             if ($activeBatch) {
-                $activeBatch->status = 'INACTIVE';
-                $activeBatch->is_fees_due = 1;
-                $activeBatch->end_date = $feeEndDate;
-                $activeBatch->end_time = Carbon::now('Asia/Kolkata')->format('H:i:s');
+                if ($nextFee) {
+                    $batchStartDate = $activeBatch->batch && $activeBatch->batch->start_date
+                        ? Carbon::parse($activeBatch->batch->start_date, 'Asia/Kolkata')->toDateString()
+                        : null;
+                    $batchEndDate = $activeBatch->batch && $activeBatch->batch->end_date
+                        ? Carbon::parse($activeBatch->batch->end_date, 'Asia/Kolkata')->toDateString()
+                        : null;
+                    $nextFeeStartDate = Carbon::parse($nextFee->start_date, 'Asia/Kolkata')->toDateString();
+                    $nextFeeEndDate = $nextFee->end_date
+                        ? Carbon::parse($nextFee->end_date, 'Asia/Kolkata')->toDateString()
+                        : null;
+
+                    $activeBatch->status = 'ACTIVE';
+                    $activeBatch->is_fees_due = 0;
+                    $activeBatch->start_date = $batchStartDate && Carbon::parse($batchStartDate)->gt(Carbon::parse($nextFeeStartDate))
+                        ? $batchStartDate
+                        : $nextFeeStartDate;
+                    if ($nextFeeEndDate) {
+                        $activeBatch->end_date = $batchEndDate && Carbon::parse($batchEndDate)->lt(Carbon::parse($nextFeeEndDate))
+                            ? $batchEndDate
+                            : $nextFeeEndDate;
+                    }
+                    $activeBatch->end_time = null;
+                } else {
+                    $activeBatch->status = 'INACTIVE';
+                    $activeBatch->is_fees_due = 1;
+                    $activeBatch->end_date = $feeEndDate;
+                    $activeBatch->end_time = Carbon::now('Asia/Kolkata')->format('H:i:s');
+                }
                 $activeBatch->save();
             }
         });
+
+        if ($nextFee) {
+            Log::info('Schedule based fees due advanced fee activated', $logContext);
+            $this->info("Activated advance fee {$nextFee->id} for {$student->student_id} ({$reason})");
+            return;
+        }
 
         Log::info('Schedule based fees due marked', $logContext);
         $this->info("Marked {$student->student_id} as FEESDUE ({$reason})");

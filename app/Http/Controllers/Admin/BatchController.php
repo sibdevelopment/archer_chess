@@ -481,7 +481,17 @@ class BatchController extends Controller
                 $allowedCountries = json_decode($userRole->countries);
             }
         }
+        $selectedCoachId = $request->input('coach');
         $latestVersions = Batch::select('parent_id', \DB::raw('MAX(version) as max_version'))
+            ->when($selectedCoachId, function ($query) use ($selectedCoachId) {
+                $query->where(function ($query) use ($selectedCoachId) {
+                    $query->where('coach_id', $selectedCoachId)
+                        ->orWhereHas('studentBatches', function ($query) use ($selectedCoachId) {
+                            $query->where('coach_id', $selectedCoachId)
+                                ->where('status', 'ACTIVE');
+                        });
+                });
+            })
             ->groupBy('parent_id');
         $query = Batch::select('batchs.*')
             ->joinSub($latestVersions, 'latest_versions', function ($join) {
@@ -535,8 +545,14 @@ class BatchController extends Controller
                 $query->where('student_id', $request->student);
             });
         }
-        if ($request->has('coach') && $request->coach != '') {
-            $query->where('coach_id', $request->coach);
+        if ($selectedCoachId) {
+            $query->where(function ($query) use ($selectedCoachId) {
+                $query->where('batchs.coach_id', $selectedCoachId)
+                    ->orWhereHas('studentBatches', function ($query) use ($selectedCoachId) {
+                        $query->where('coach_id', $selectedCoachId)
+                            ->where('status', 'ACTIVE');
+                    });
+            });
         }
         if ($request->has('weekday') && $request->weekday != '') {
             $weekday = $request->weekday;

@@ -646,7 +646,91 @@ function countryDisplayName($country): string
 {
     $country = normalizeCountryValue($country);
 
-    return $country === 'NEWZEALAND' ? 'NEW ZEALAND' : $country;
+    return config("countries.countries.{$country}.label", $country === 'NEWZEALAND' ? 'NEW ZEALAND' : $country);
+}
+
+function availableCountryOptions(bool $includeAll = false): array
+{
+    $options = collect(config('countries.countries', []))
+        ->mapWithKeys(fn ($config, $country) => [$country => $config['label'] ?? countryDisplayName($country)])
+        ->all();
+
+    return $includeAll ? ['ALL' => 'ALL'] + $options : $options;
+}
+
+function countryLandingOptions(bool $absolute = false): array
+{
+    return collect(config('countries.landing_pages', []))
+        ->map(function ($option) use ($absolute) {
+            $path = $option['path'] ?? '';
+            $url = $absolute && $path
+                ? rtrim(config('countries.landing_base_url', 'https://archerchessacademy.com'), '/') . '/' . ltrim($path, '/')
+                : $path;
+
+            return [
+                'label' => $option['label'] ?? $path,
+                'url' => $url,
+            ];
+        })
+        ->filter(fn ($option) => !empty($option['url']))
+        ->values()
+        ->all();
+}
+
+function countryOptionsHtml($selected = [], ?array $countries = null, bool $includeAll = false): string
+{
+    $selectedValues = normalizeCountryValues($selected);
+    if (is_string($selected) && strtoupper(trim($selected)) === 'ALL') {
+        $selectedValues[] = 'ALL';
+    }
+
+    $options = $countries
+        ? collect(normalizeCountryValues($countries))->mapWithKeys(fn ($country) => [$country => countryDisplayName($country)])->all()
+        : availableCountryOptions($includeAll);
+
+    return collect($options)
+        ->map(function ($label, $value) use ($selectedValues) {
+            $selected = in_array(normalizeCountryValue($value), $selectedValues, true) || in_array($value, $selectedValues, true)
+                ? ' selected'
+                : '';
+
+            return '<option value="' . e($value) . '"' . $selected . '>' . e($label) . '</option>';
+        })
+        ->implode("\n");
+}
+
+function countryTimezones(): array
+{
+    return collect(config('countries.countries', []))
+        ->mapWithKeys(function ($config, $country) {
+            $timezones = collect($config['timezones'] ?? [])
+                ->mapWithKeys(fn ($timezone) => [$timezone => $timezone])
+                ->all();
+
+            return [$country => $timezones];
+        })
+        ->all();
+}
+
+function countryDialCodes(): array
+{
+    return collect(config('countries.countries', []))
+        ->mapWithKeys(fn ($config, $country) => [$country => $config['dial_code'] ?? '+91'])
+        ->all();
+}
+
+function countryPaymentConfigs(): array
+{
+    return collect(config('countries.countries', []))
+        ->mapWithKeys(function ($config, $country) {
+            return [
+                $country => [
+                    'column' => $config['payment_column'] ?? null,
+                    'currency' => $config['currency'] ?? '',
+                ],
+            ];
+        })
+        ->all();
 }
 
 function availableCurrencyCodes(): array
@@ -674,92 +758,8 @@ function availableCurrencyCodes(): array
 
 function getTimezones()
 {
-    return [
-        'USA'         => [
-            'Eastern Daylight Time'         => 'Eastern Daylight Time',
-            'Central Daylight Time'         => 'Central Daylight Time',
-            'Mountain Daylight Time'        => 'Mountain Daylight Time',
-            'Pacific Daylight Time'         => 'Pacific Daylight Time',
-            'Alaska Daylight Time'          => 'Alaska Daylight Time',
-            'Mountain Standard Time'        => 'Mountain Standard Time',
-            'Eastern Standard Time'         => 'Eastern Standard Time',
-            'Central Standard Time'         => 'Central Standard Time',
-            'Pacific Standard Time'         => 'Pacific Standard Time',
-            'Alaska Standard Time'          => 'Alaska Standard Time',
-            'Hawaii-Aleutian Standard Time' => 'Hawaii-Aleutian Standard Time',
-            'Hawaii-Aleutian Daylight Time' => 'Hawaii-Aleutian Daylight Time',
-        ],
-        'CANADA'      => [
-            'Eastern Daylight Time'         => 'Eastern Daylight Time',
-            'Central Daylight Time'         => 'Central Daylight Time',
-            'Mountain Daylight Time'        => 'Mountain Daylight Time',
-            'Pacific Daylight Time'         => 'Pacific Daylight Time',
-            'Alaska Daylight Time'          => 'Alaska Daylight Time',
-            'Mountain Standard Time'        => 'Mountain Standard Time',
-            'Eastern Standard Time'         => 'Eastern Standard Time',
-            'Central Standard Time'         => 'Central Standard Time',
-            'Pacific Standard Time'         => 'Pacific Standard Time',
-            'Alaska Standard Time'          => 'Alaska Standard Time',
-            'Hawaii-Aleutian Standard Time' => 'Hawaii-Aleutian Standard Time',
-            'Hawaii-Aleutian Daylight Time' => 'Hawaii-Aleutian Daylight Time',
-        ],
-        'AUSTRALIA'   => [
-            'Australia/Perth'    => 'Australia/Perth',
-            'Australia/Darwin'   => 'Australia/Darwin',
-            'Australia/Brisbane' => 'Australia/Brisbane',
-            'Australia/Adelaide' => 'Australia/Adelaide',
-            'Australia/Sydney'   => 'Australia/Sydney',
-        ],
-        'NEWZEALAND'  => [
-            'New Zealand Daylight Time' => 'New Zealand Daylight Time',
-            'New Zealand Standard Time' => 'New Zealand Standard Time',
-        ],
-        'UK'          => [
-            'British Summer Time' => 'British Summer Time',
-            'Greenwich Mean Time' => 'Greenwich Mean Time',
-        ],
-        'INDIA'       => [
-            'Indian Standard Time' => 'Indian Standard Time',
-        ],
-        'UAE'         => [
-            'Gulf Standard Time' => 'Gulf Standard Time',
-        ],
-        'SINGAPORE'   => [
-            'Singapore Standard Time' => 'Singapore Standard Time',
-        ],
-        'MALAYSIA'   => [
-            'Malaysia Time' => 'Malaysia Time',
-        ],
-        'HONG KONG'   => [
-            'Hong Kong Standard Time' => 'Hong Kong Standard Time',
-        ],
-
-        'QATAR'   => [
-            'Arabian Standard Time' => 'Arabian Standard Time',
-        ],
-        'SOUTH AFRICA' => [
-            'South Africa Standard Time' => 'South Africa Standard Time',
-        ],
-        'SOUTHAFRICA' => [
-            'South Africa Standard Time' => 'South Africa Standard Time',
-        ],
-        'EUROPEAN UNION' => [
-            'Central European Time' => 'Central European Time',
-            'Eastern European Time' => 'Eastern European Time',
-            'Western European Time' => 'Western European Time',
-        ],
-        'KUWAIT'   => [
-            'Arabian Standard Time' => 'Arabian Standard Time',
-        ],
-        'BAHRAIN'   => [
-            'Arabian Standard Time' => 'Arabian Standard Time',
-        ],
-        'SAUDI ARABIA'   => [
-            'Arabian Standard Time' => 'Arabian Standard Time',
-        ],
-        'OMAN'   => [
-            'Gulf Standard Time' => 'Gulf Standard Time',
-        ],
+    return countryTimezones() + [
+        'SOUTHAFRICA' => countryTimezones()['SOUTH AFRICA'] ?? [],
     ];
 }
 

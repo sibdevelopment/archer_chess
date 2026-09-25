@@ -427,6 +427,7 @@
                 var scheduleType = $(this).data('type');
                 var coachId = '{{ $coach->id }}';
                 var dataBtn = $(this).data('btn');
+                var scheduleDate = $(this).data('date');
 
                 const attendanceDataURL =
                     '{{ route('admin.dashboard.getAttendanceData', ['coachId' => $coach->id]) }}';
@@ -436,6 +437,8 @@
                     data: {
                         id: scheduleId,
                         type: scheduleType,
+                        date: scheduleDate,
+                        attendance_date: scheduleDate,
                     },
                     success: function(response) {
                         $('#AttendanceModal .modal-body').html(response);
@@ -534,6 +537,7 @@
                                 batch_id: schedule.id,
                                 demosession_id: schedule.id,
                                 type: type,
+                                date: schedule.schedule_date,
                                 _token: $('meta[name="csrf-token"]').attr('content')
                             },
                             success: function(response) {

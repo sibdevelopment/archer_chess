@@ -13,6 +13,16 @@
     To ensure that your child’s participation in the upcoming module is not affected, we kindly request that the payment be completed <em>at your earliest convenience</em>.
 </p>
 
+@if(!empty($fee_due_amount) && !empty($fee_due_currency))
+<p style="font-size: 16px; color: #555;">
+    The total due amount is <em>{{ $fee_due_currency }} {{ $fee_due_amount }}</em>
+    @if(!empty($fee_due_payment_level))
+        for <em>{{ $fee_due_payment_level }}</em>
+    @endif
+    .
+</p>
+@endif
+
 <p style="font-size: 16px; color: #555;">
     Please use the student portal to make the payment:
 </p>

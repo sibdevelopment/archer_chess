@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\StudentBatch;
+use App\Models\Paymentlevel;
 use App\Mail\EnrollmentMail;
 use Illuminate\Http\Request;
 use App\Models\NewEnrollment;
@@ -390,7 +391,9 @@ class NewEnrollmentController extends Controller
 
         $batches = $batches->get();
 
-        return view('Admin.NewEnrollments.show', compact('new_enrollment', 'employees', 'batches'));
+        $paymentlevels = Paymentlevel::with('level')->where('status', 'ACTIVE')->get();
+
+        return view('Admin.NewEnrollments.show', compact('new_enrollment', 'employees', 'batches', 'paymentlevels'));
     }
 
     /*
@@ -406,6 +409,7 @@ class NewEnrollmentController extends Controller
                 'employee_ids'    => 'required', 
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
+                'payment_level_id' => 'required|exists:paymentlevels,id',
                 'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'nullable',
             ], [
@@ -421,6 +425,8 @@ class NewEnrollmentController extends Controller
                 'received_fees.required'  => 'Please enter the received fees amount.',
                 'received_fees.numeric'   => 'The received fees must be a valid number.',
                 'received_fees.min'       => 'Received fees cannot be negative.',
+                'payment_level_id.required' => 'Please select the paid till payment level.',
+                'payment_level_id.exists' => 'Please select a valid payment level.',
                 'currency.required'       => 'Please enter the currency.',
             ]);
 
@@ -434,6 +440,7 @@ class NewEnrollmentController extends Controller
             $new_enrollment->receive_date = $request->receive_date;
             $new_enrollment->fees          = $request->fees;
             $new_enrollment->received_fees = $request->received_fees;
+            $new_enrollment->payment_level_id = $request->payment_level_id;
             $new_enrollment->currency      = $request->currency;
             $new_enrollment->save();
 
@@ -452,6 +459,7 @@ class NewEnrollmentController extends Controller
                 'receive_date' => 'required|date',
                 'fees'          => 'required|numeric|min:0',
                 'received_fees' => 'required|numeric|min:0',
+                'payment_level_id' => 'required|exists:paymentlevels,id',
                 'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'required',
             ], [
@@ -467,6 +475,8 @@ class NewEnrollmentController extends Controller
                 'received_fees.required'  => 'Please enter the received fees amount.',
                 'received_fees.numeric'   => 'The received fees must be a valid number.',
                 'received_fees.min'       => 'Received fees cannot be negative.',
+                'payment_level_id.required' => 'Please select the paid till payment level.',
+                'payment_level_id.exists' => 'Please select a valid payment level.',
                 'currency.required'       => 'Please enter the currency.',
             ]);
 
@@ -487,6 +497,7 @@ class NewEnrollmentController extends Controller
                 $new_enrollment->receive_date = $request->receive_date;
                 $new_enrollment->fees          = $request->fees;
                 $new_enrollment->received_fees = $request->received_fees;
+                $new_enrollment->payment_level_id = $request->payment_level_id;
                 $new_enrollment->currency      = $request->currency;
                 $new_enrollment->save();
 
@@ -497,9 +508,13 @@ class NewEnrollmentController extends Controller
                 $student_fee->receive_date      = $request->receive_date;
                 $student_fee->monthly_fees      = $request->fees;
                 $student_fee->total_amount_paid = $request->received_fees;
+                $student_fee->payment_level_id  = $request->payment_level_id;
                 $student_fee->currency          = $request->currency;
                 $student_fee->status            = 'ACTIVE';
                 $student_fee->save();
+
+                $student->lastpayment_level_id = $request->payment_level_id;
+                $student->save();
 
                 $batch = Batch::findOrFail($request->batch_id);
                 $assignmentResult = $this->directAssignStudentToRealBatch($student, $batch, $student_fee);

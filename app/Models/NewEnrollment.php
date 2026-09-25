@@ -6,6 +6,7 @@ use App\Models\Batch;
 use App\Models\Student;
 use App\Models\Employee;
 use App\Models\BaseModel;
+use App\Models\Paymentlevel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -23,6 +24,7 @@ class NewEnrollment extends BaseModel
         'remark',
         'employee_id',
         'student_id',
+        'payment_level_id',
         'batch_id',
         'employee_ids'
     ];
@@ -45,5 +47,10 @@ class NewEnrollment extends BaseModel
     public function employee()
     {
         return $this->belongsTo(Employee::class, 'employee_id');
+    }
+
+    public function paymentLevel()
+    {
+        return $this->belongsTo(Paymentlevel::class, 'payment_level_id');
     }
 }

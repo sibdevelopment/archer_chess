@@ -116,33 +116,13 @@
     @php
         // dd($nextPaymentLevel);
     @endphp
-    @if ($nextPaymentLevel && $nextThreePaymentLevels->count() > 0)
+    @if ($nextPaymentLevel)
         @php
             $student_country = normalizeCountryValue($student->country);
-            $paymentCountryMap = [
-                'USA' => ['column' => 'usa_fees', 'currency' => 'USD'],
-                'CANADA' => ['column' => 'canada_fees', 'currency' => 'CAD'],
-                'AUSTRALIA' => ['column' => 'australia_fees', 'currency' => 'AUD'],
-                'NEW ZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
-                'NEWZEALAND' => ['column' => 'newzealand_fees', 'currency' => 'NZD'],
-                'INDIA' => ['column' => 'india_fees', 'currency' => 'INR'],
-                'UAE' => ['column' => 'uae_fees', 'currency' => 'AED'],
-                'UK' => ['column' => 'uk_fees', 'currency' => 'GBP'],
-                'QATAR' => ['column' => 'qatar_fees', 'currency' => 'QAR'],
-                'SINGAPORE' => ['column' => 'singapore_fees', 'currency' => 'SGD'],
-                'MALAYSIA' => ['column' => 'malaysia_fees', 'currency' => 'MYR'],
-                'HONG KONG' => ['column' => 'hong_kong_fees', 'currency' => 'HKD'],
-                'SOUTH AFRICA' => ['column' => 'south_africa_fees', 'currency' => 'ZAR'],
-                'EUROPEAN UNION' => ['column' => 'european_union_fees', 'currency' => 'EUR'],
-                'OMAN' => ['column' => 'oman_fees', 'currency' => 'OMR'],
-                'KUWAIT' => ['column' => 'kuwait_fees', 'currency' => 'KWD'],
-                'BAHRAIN' => ['column' => 'bahrain_fees', 'currency' => 'BHD'],
-                'SAUDI ARABIA' => ['column' => 'saudi_arabia_fees', 'currency' => 'SAR'],
-            ];
-            $paymentCountry = $paymentCountryMap[$student_country] ?? ['column' => null, 'currency' => ''];
+            $paymentCountry = countryPaymentConfigs()[$student_country] ?? ['column' => null, 'currency' => ''];
             $feeColumn = $paymentCountry['column'];
             $currency = $paymentCountry['currency'];
-            $nextPaymentLevelAmount = $feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0;
+            $nextPaymentLevelAmount = $nextPaymentPlan['amount'] ?? ($feeColumn ? ($nextPaymentLevel->{$feeColumn} ?? 0) : 0);
             $canPayNextPaymentLevel = $currency && (float) $nextPaymentLevelAmount > 0;
 
         @endphp
@@ -179,52 +159,66 @@
             </div>
 
             <!-- Next 3 Payment Levels Section -->
-            @php
-                $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
-                $nextThreePaymentLevelsAmount = $feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0;
-                $canPayNextThreePaymentLevels = $currency && (float) $nextThreePaymentLevelsAmount > 0;
-            @endphp
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+            @if ($nextThreePaymentLevels->count() > 0)
+                @php
+                    $nextThreePaymentLastLevelId = $nextThreePaymentLevels->last()->id;
+                    $nextThreePaymentLevelsOriginalAmount = $nextThreePaymentPlan['original_amount'] ?? ($feeColumn ? $nextThreePaymentLevels->sum($feeColumn) : 0);
+                    $nextThreePaymentLevelsDiscountPercent = $nextThreePaymentPlan['discount_percent'] ?? 0;
+                    $nextThreePaymentLevelsDiscountAmount = $nextThreePaymentPlan['discount_amount'] ?? 0;
+                    $nextThreePaymentLevelsAmount = $nextThreePaymentPlan['amount'] ?? $nextThreePaymentLevelsOriginalAmount;
+                    $canPayNextThreePaymentLevels = $currency && (float) $nextThreePaymentLevelsAmount > 0;
+                @endphp
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="fw-bold text-primary">Next {{ $nextThreePaymentLevels->count() }} Payment Levels</h3>
+                                @if ($nextThreePaymentLevelsDiscountPercent > 0)
+                                    <p class="mb-0 text-success">
+                                        {{ $nextThreePaymentLevelsDiscountPercent }}% discount applied:
+                                        <span class="text-decoration-line-through">{{ $nextThreePaymentLevelsOriginalAmount }} {{ $currency }}</span>
+                                        - {{ $nextThreePaymentLevelsDiscountAmount }} {{ $currency }}
+                                    </p>
+                                @endif
+                            </div>
 
-                        {{-- <button class="btn btn-primary pay-now-btn hdfc-btn"
-                            data-amount="{{ $nextThreePaymentLevelsAmount }}">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
-                            {{ $currency }}
-                        </button> --}}
-                        @if ($canPayNextThreePaymentLevels)
-                            <button class="btn btn-primary pay-now-btn"
-                                onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+                            {{-- <button class="btn btn-primary pay-now-btn hdfc-btn"
+                                data-amount="{{ $nextThreePaymentLevelsAmount }}">
                                 <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
                                 {{ $currency }}
-                            </button>
-                        @else
-                            <div class="text-danger text-end">
-                                Payment amount is not configured for {{ $student->country }}.
-                            </div>
-                        @endif
-                        {{-- <button class="btn btn-primary pay-now-btn hdfc-btn" data-amount="{{ $nextThreePaymentLevelsAmount }}">
-                            <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
-                            {{ $currency }}
-                        </button> --}}
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
-                            @php
-                                $amount = $feeColumn ? ($nextThreePaymentLevel->{$feeColumn} ?? 0) : 0;
-                            @endphp
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="mb-1"><strong>Level:</strong> {{ $nextThreePaymentLevel->name }}</p>
-                                    <p class="mb-0"><strong>Amount:</strong> {{ $amount }} {{ $currency }}</p>
+                            </button> --}}
+                            @if ($canPayNextThreePaymentLevels)
+                                <button class="btn btn-primary pay-now-btn"
+                                    onclick="payWithRazorpay({{ $nextThreePaymentLevelsAmount }}, 'Next {{ $nextThreePaymentLevels->count() }} Payment Levels Fees', '{{ $currency }}', {{ $nextThreePaymentLastLevelId }})">
+                                    <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                                    {{ $currency }}
+                                </button>
+                            @else
+                                <div class="text-danger text-end">
+                                    Payment amount is not configured for {{ $student->country }}.
                                 </div>
-                            </li>
-                        @endforeach
-                    </ul>
+                            @endif
+                            {{-- <button class="btn btn-primary pay-now-btn hdfc-btn" data-amount="{{ $nextThreePaymentLevelsAmount }}">
+                                <i class="fas fa-credit-card me-2"></i> Pay {{ $nextThreePaymentLevelsAmount }}
+                                {{ $currency }}
+                            </button> --}}
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            @foreach ($nextThreePaymentLevels as $nextThreePaymentLevel)
+                                @php
+                                    $amount = $feeColumn ? ($nextThreePaymentLevel->{$feeColumn} ?? 0) : 0;
+                                @endphp
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-1"><strong>Level:</strong> {{ $nextThreePaymentLevel->name }}</p>
+                                        <p class="mb-0"><strong>Amount:</strong> {{ $amount }} {{ $currency }}</p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
-            </div> 
+            @endif
         </div>
     @endif
 

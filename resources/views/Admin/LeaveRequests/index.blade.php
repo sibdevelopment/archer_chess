@@ -79,7 +79,7 @@
                             </div>
                         </div>
                     </div>
-                    @canany(['leaverequests-view', 'employeeleaverequests-view'])
+                    @if ($user->can('leaverequests-view') || (!$isCoach && $user->can('employeeleaverequests-view')))
                         <div class="px-4 pt-3">
                             <ul class="nav nav-pills gap-2">
                                 @can('leaverequests-view')
@@ -89,16 +89,16 @@
                                         </a>
                                     </li>
                                 @endcan
-                                @can('employeeleaverequests-view')
+                                @if (!$isCoach && $user->can('employeeleaverequests-view'))
                                     <li class="nav-item">
                                         <a class="nav-link" href="{{ route('admin.employeeleaverequests.index') }}">
                                             Employee Leave
                                         </a>
                                     </li>
-                                @endcan
+                                @endif
                             </ul>
                         </div>
-                    @endcanany
+                    @endif
                     <div class="card-body p-4">
                         <div class="table-responsive rounded-2 mb-4">
                             <table class="table border table-bordered table-sm text-nowrap mb-0 align-middle"

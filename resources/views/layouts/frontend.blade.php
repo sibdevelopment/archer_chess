@@ -688,26 +688,6 @@
         <meta name="Googlebot" content="noindex, nofollow">
     @endif
 
-    <!-- Google Tag Manager -->
-    <script>
-        (function(w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({
-                'gtm.start': new Date().getTime(),
-                event: 'gtm.js'
-            });
-            var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s),
-                dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src =
-                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
-    </script>
-    <!-- End Google Tag Manager -->
-
-
     <!-- ------------------------------------------------------------------ :: -->
     <!-- ------------------------------------------------------------------ :: -->
     @if (desktop())
@@ -764,10 +744,6 @@
 </head>
 
 <body>
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <div class="cursor"></div>
 
 
@@ -912,8 +888,10 @@
                                     <li><a href="/#trail_form">Book A Trial Class</a></li>
                                     <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
                                     <li><a href="{{ route('shipping.policy') }}">Shipping Policy</a></li>
+                                    <li><a href="{{ route('cookie.policy') }}">Cookie Policy</a></li>
                                     <li><a href="{{ route('terms') }}">Terms Of Service</a></li>
                                     <li><a href="{{ route('refund.policy') }}">Refund & Cancellation</a></li>
+                                    <li><a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a></li>
                                     <li><a href="{{ route('blog') }}">Blog</a></li>
                                     <li><a href="{{ route('event') }}">Event</a></li>
                                 </ul>
@@ -1144,6 +1122,8 @@
         });
     </script>
 
+
+@include('Frontend.partials.cookie-consent')
 
 </body>
 

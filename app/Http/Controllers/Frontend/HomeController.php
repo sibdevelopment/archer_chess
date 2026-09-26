@@ -107,6 +107,10 @@ class HomeController extends Controller
     {
         return view('Frontend.Design.Policy.privacy');
     }
+    public function cookiePolicy()
+    {
+        return view('Frontend.Design.Policy.cookie');
+    }
     public function newTerms()
     {
         return view('Frontend.Design.Policy.terms');

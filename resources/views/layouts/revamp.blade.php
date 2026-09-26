@@ -14,24 +14,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Title -->
     <title>@yield('title', config('app.name'))</title>
-    <!-- Google Tag Manager -->
-    <script>
-        (function(w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({
-                'gtm.start': new Date().getTime(),
-                event: 'gtm.js'
-            });
-            var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s),
-                dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src =
-                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
-    </script>
-    <!-- End Google Tag Manager -->
     @yield('head')
     <!-- Favicon -->
     <link rel="icon" href="/frontend/tcul_img/home/archer_favicon.png" type="image/png">
@@ -410,11 +392,6 @@
 </head>
 
 <body style="overflow-x: hidden;">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-
     <div class="tcul-floating_btn_contact" style="right: 130px;">
         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal">
             <div class="book-class-online">
@@ -960,6 +937,14 @@
                                         Shipping Policy
                                     </a>
 
+                                    <a href="{{ route('cookie.policy') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Cookie Policy
+                                    </a>
+
                                     <a href="{{ route('terms') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
@@ -974,6 +959,14 @@
                                             <i class="ph-bold ph-caret-double-right"></i>
                                         </span>
                                         Refund & Cancellation
+                                    </a>
+
+                                    <a href="javascript:void(0)" data-cookie-settings
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Cookie Settings
                                     </a>
 
                                     <a href="{{ route('blog') }}"
@@ -1055,6 +1048,14 @@
                                         Shipping Policy
                                     </a>
 
+                                    <a href="{{ route('cookie.policy') }}"
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Cookie Policy
+                                    </a>
+
                                     <a href="{{ route('terms') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
@@ -1069,6 +1070,14 @@
                                             <i class="ph-bold ph-caret-double-right"></i>
                                         </span>
                                         Refund & Cancellation
+                                    </a>
+
+                                    <a href="javascript:void(0)" data-cookie-settings
+                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
+                                        <span class="tw-text-405">
+                                            <i class="ph-bold ph-caret-double-right"></i>
+                                        </span>
+                                        Cookie Settings
                                     </a>
 
                                     <a href="{{ route('blog') }}"
@@ -1894,6 +1903,8 @@
     <script src="/frontend1/assets/js/main.js"></script>
 
     @stack('scripts')
+
+    @include('Frontend.partials.cookie-consent')
 
 </body>
 

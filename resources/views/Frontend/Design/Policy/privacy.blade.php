@@ -270,11 +270,11 @@
                                 Yes, Cookies are small files that a site or its service provider transfers to your computer
                                 hard drive through your Web browser (if you allow), enabling the sites or service providers’
                                 systems to recognize your browser and capture and remember certain information. We use
-                                cookies to help us remember and process the items in your shopping cart, understand and save
-                                your preferences for future visits and keep track of advertisements. If you prefer, you can
-                                choose to have your computer warn you each time a cookie is being sent, or you can choose to
-                                turn off all cookies via your browser settings. Like most websites, some of our services may
-                                not function properly if you turn your cookies off.
+                                cookies for essential website functions. Analytics and marketing cookies are used only after
+                                your consent. You can review the details in our
+                                <a href="{{ route('cookie.policy') }}">Cookie Policy</a> and change your choice anytime from
+                                <a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a>. Like most websites,
+                                some services may not function properly if essential cookies are blocked in your browser.
                             </p>
                         </div>
                     </div>

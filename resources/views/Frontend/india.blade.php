@@ -56,31 +56,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css" />
-    <!-- Google Tag Manager -->
-    <script>
-        (function(w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({
-                'gtm.start': new Date().getTime(),
-                event: 'gtm.js'
-            });
-            var f = d.getElementsByTagName(s)[0],
-                j = d.createElement(s),
-                dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
-    </script>
-    <!-- End Google Tag Manager -->
-
 </head>
 
 <body onload="createCaptcha();">
-    <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ" height="0" width="0"
-            style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
     <div class="wrapper">
         <header class="header stricky">
             <div class="containerFull">
@@ -1803,8 +1781,10 @@
                         <a href="#" class="headerBtn">Get a free Quote</a>
                     </div> -->
                             <div class="d-flex gap-3 flex-wrap mt-4">
-                                <p><a href="#">Privacy Policy</a></p>
-                                <p><a href="#">Terms & Conditions</a></p>
+                                <p><a href="{{ route('privacy') }}">Privacy Policy</a></p>
+                                <p><a href="{{ route('cookie.policy') }}">Cookie Policy</a></p>
+                                <p><a href="{{ route('terms') }}">Terms & Conditions</a></p>
+                                <p><a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a></p>
                             </div>
                         </div>
                     </div>
@@ -1858,6 +1838,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
     <script type="text/javascript" src="js/custom.js"></script>
+
+    @include('Frontend.partials.cookie-consent')
 
 </body>
 

@@ -464,7 +464,10 @@ class StudentController extends Controller
 
     public function sendFeeDueWhatsapp(Request $request, Student $student, PaymentLevelService $paymentLevelService)
     {
-        abort_if(auth()->user()?->hasRole('Coach'), 403);
+        $role = auth()->user()?->getRoleNames()->toArray() ?? [];
+        if (in_array('Coach', $role, true)) {
+            return response()->json(['message' => 'Coaches cannot send fee due WhatsApp notifications.'], 403);
+        }
 
         if ($student->status !== 'FEESDUE') {
             return response()->json(['message' => 'Fee due WhatsApp can be sent only for fees due students.'], 422);

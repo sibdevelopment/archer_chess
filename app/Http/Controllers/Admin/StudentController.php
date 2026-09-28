@@ -417,7 +417,7 @@ class StudentController extends Controller
                     if ($notification) {
                         $sentBy = trim(($notification->sentBy?->first_name ?? '') . ' ' . ($notification->sentBy?->last_name ?? '')) ?: 'N/A';
                         $sentAt = $notification->sent_at ? $notification->sent_at->format('d-M-Y h:i A') : 'N/A';
-                        $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-secondary fs-1 border-0 fee-due-whatsapp-sent-btn opacity-75" data-sent-by="' . e($sentBy) . '" data-sent-at="' . e($sentAt) . '" title="Fee due WhatsApp already sent"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                        $whatsappBadge = ' &nbsp; <button type="button" class="badge fs-1 border-0 fee-due-whatsapp-sent-btn" style="background:#d1d5db;color:#6b7280;opacity:.65;" data-sent-by="' . e($sentBy) . '" data-sent-at="' . e($sentAt) . '" title="Fee due WhatsApp already sent"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
                     } else {
                         $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-success fs-1 border-0 fee-due-whatsapp-btn" data-student-id="' . $student->id . '" title="Send fee due WhatsApp"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
                     }

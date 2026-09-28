@@ -729,7 +729,7 @@
                 var whatsappWindow = window.open('', '_blank');
 
                 $.ajax({
-                    url: "{{ route('admin.students.fee-due-whatsapp', ['student' => ':student']) }}".replace(':student', studentId),
+                    url: "{{ url('admin/students') }}/" + studentId + "/fee-due-whatsapp",
                     type: 'POST',
                     data: {
                         _token: $('meta[name=csrf-token]').attr('content')

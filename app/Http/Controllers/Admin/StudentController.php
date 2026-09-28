@@ -465,7 +465,8 @@ class StudentController extends Controller
     public function sendFeeDueWhatsapp(Request $request, Student $student, PaymentLevelService $paymentLevelService)
     {
         $role = auth()->user()?->getRoleNames()->toArray() ?? [];
-        if (in_array('Coach', $role, true)) {
+        $hasAllowedAdminRole = (bool) array_intersect($role, ['SuperAdmin', 'Admin', 'Employee']);
+        if (in_array('Coach', $role, true) && ! $hasAllowedAdminRole) {
             return response()->json(['message' => 'Coaches cannot send fee due WhatsApp notifications.'], 403);
         }
 

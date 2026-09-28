@@ -409,11 +409,17 @@ class StudentController extends Controller
                 $studentFee = $student->studentFees()->orderBy('end_date', 'desc')->first();
                 $whatsappBadge = '';
                 if (! $isCoach && $student->status === 'FEESDUE' && $studentFee) {
-                    $alreadySent = FeeDueWhatsappNotification::where('student_id', $student->id)
+                    $notification = FeeDueWhatsappNotification::with('sentBy')
+                        ->where('student_id', $student->id)
                         ->where('student_fee_id', $studentFee->id)
-                        ->exists();
+                        ->first();
 
-                    if (! $alreadySent) {
+                    if ($notification) {
+                        $sentBy = trim(($notification->sentBy?->first_name ?? '') . ' ' . ($notification->sentBy?->last_name ?? '')) ?: 'N/A';
+                        $sentByShort = strlen($sentBy) > 12 ? substr($sentBy, 0, 12) . '..' : $sentBy;
+                        $sentAt = $notification->sent_at ? $notification->sent_at->format('d-M-Y h:i A') : 'N/A';
+                        $whatsappBadge = ' &nbsp; <span class="badge bg-light-success text-success fs-1" title="Fee due WhatsApp sent by ' . e($sentBy) . ' on ' . e($sentAt) . '"><i class="fab fa-whatsapp"></i> ' . e($sentByShort) . '</span>';
+                    } else {
                         $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-success fs-1 border-0 fee-due-whatsapp-btn" data-student-id="' . $student->id . '" title="Send fee due WhatsApp"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
                     }
                 }

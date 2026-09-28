@@ -716,6 +716,57 @@
             $('#user_id').on('keyup', function() {
                 dataTable.ajax.reload(null, false);
             });
+
+            $(document).on('click', '.fee-due-whatsapp-btn', function() {
+                var button = $(this);
+                var studentId = button.data('student-id');
+
+                if (!studentId || button.prop('disabled')) {
+                    return;
+                }
+
+                button.prop('disabled', true);
+                var whatsappWindow = window.open('', '_blank');
+
+                $.ajax({
+                    url: "{{ route('admin.students.fee-due-whatsapp', ['student' => ':student']) }}".replace(':student', studentId),
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name=csrf-token]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.whatsapp_url) {
+                            if (whatsappWindow) {
+                                whatsappWindow.location = response.whatsapp_url;
+                            } else {
+                                window.open(response.whatsapp_url, '_blank');
+                            }
+                        }
+
+                        toastr.success(response.message || 'Fee due WhatsApp notification recorded.', '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 1500,
+                            closeButton: true,
+                        });
+
+                        dataTable.ajax.reload(null, false);
+                    },
+                    error: function(xhr) {
+                        button.prop('disabled', false);
+                        if (whatsappWindow) {
+                            whatsappWindow.close();
+                        }
+                        toastr.error(xhr.responseJSON?.message || 'Unable to record fee due WhatsApp notification.', '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 2000,
+                            closeButton: true,
+                        });
+                        dataTable.ajax.reload(null, false);
+                    }
+                });
+            });
             // Trigger the data table reload on page load if a coach is selected
             // if (defaultCoachId) {
             //     dataTable.ajax.reload();

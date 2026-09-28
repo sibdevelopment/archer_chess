@@ -166,6 +166,7 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('students/list', [StudentController::class, 'list'])->name('students.list');
         Route::post('students/masterclass_tounament/list', [StudentController::class, 'masterclassTounamentlist'])->name('students.masterclassTounamentlist');
         Route::post('students/change-status', [StudentController::class, 'changeStatus'])->name('students.change.status');
+        Route::post('students/{student}/fee-due-whatsapp', [StudentController::class, 'sendFeeDueWhatsapp'])->name('students.fee-due-whatsapp');
         Route::get('students/get/coaches', [StudentController::class, 'getCoaches'])->name('students.get.coaches');
         Route::get('students/get/batches', [StudentController::class, 'getBatches'])->name('students.get.batches');
         Route::post('students/delete/attendance', [StudentController::class, 'deleteStudentAtendance'])->name('students.delete.attendance');

@@ -93,7 +93,7 @@
         <input type="hidden" name="demolead_id" value="{{ $data->demolead->id }}">
         <input type="hidden" name="slot" value="{{ $data->slot }}">
         <div class="col-2">
-            <input type="date" class="form-control" name="date" value="{{ date('Y-m-d') }}" readonly/>
+            <input type="date" class="form-control" name="date" value="{{ $attendanceDate ?? \Carbon\Carbon::parse($data->date)->toDateString() }}" readonly/>
             <div id="date-error" style="color:red"></div>
         </div>
         <div class="col-2">

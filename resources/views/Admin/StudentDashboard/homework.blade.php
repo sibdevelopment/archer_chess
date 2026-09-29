@@ -54,6 +54,21 @@
                                     ->where('coach_id', $attendance->coach_id)
                                     ->first();
                                 $masterclassdata = App\Models\MasterclassData::where('student_id', $attendance->student_id)->first();
+                                $homeworkLink = trim($attendance->homework_link ?? '');
+                                $hasHomeworkLink = !empty($homeworkLink) && $homeworkLink !== '#';
+                                $lowerHomeworkLink = strtolower($homeworkLink);
+                                $isInternalAdminLink = str_starts_with($lowerHomeworkLink, '/admin')
+                                    || str_starts_with($lowerHomeworkLink, 'admin/')
+                                    || str_contains($lowerHomeworkLink, 'archerchessacademy.com/admin/')
+                                    || str_contains($lowerHomeworkLink, 'dev.archerchessacademy.com/admin/');
+
+                                if ($hasHomeworkLink && $isInternalAdminLink) {
+                                    $hasHomeworkLink = false;
+                                }
+
+                                if ($hasHomeworkLink && !preg_match('/^https?:\/\//i', $homeworkLink)) {
+                                    $homeworkLink = 'https://' . ltrim($homeworkLink, '/');
+                                }
                             @endphp
 
                             <tr>
@@ -124,12 +139,12 @@
                                     </p>
                                 </td>
                                 <td>
-                                    @if(!empty($attendance->homework_link))
-                                    <a href="{{ !empty($attendance->homework_link) ? $attendance->homework_link : '#' }}" target="_blank">
+                                    @if($hasHomeworkLink)
+                                    <a href="{{ $homeworkLink }}" target="_blank" rel="noopener noreferrer">
                                         <button class="btn btn-outline-danger py-1 px-2 ms-auto">Solve Quize</button>
                                     </a>
                                     @else
-                                        <p class="fs-3 text-dark mb-0">No Homework Solve Quize</p>
+                                        <p class="fs-3 text-dark mb-0">Homework link unavailable</p>
                                     @endif
                                 </td>
                             </tr>

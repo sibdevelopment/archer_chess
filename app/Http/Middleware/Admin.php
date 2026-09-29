@@ -34,6 +34,10 @@ class Admin
             return $next($request);
         }
 
+        if ($controller == 'Admin\StudentController' && $method == 'sendFeeDueWhatsapp') {
+            return $next($request);
+        }
+
         $permissions = \Auth::user()->getAllPermissions()->pluck('id');
         // dd($permissions);
         $permissions = \App\Models\Permission::whereIn('id',$permissions)->get();

@@ -1896,7 +1896,7 @@ class DashboardController extends Controller
             }
             $coachAttendance->save();
 
-            $actualAt = $this->actualAttendanceDateTime($attendanceDate, $request->input('time'));
+            $actualAt = $this->actualAttendanceDateTime($attendanceDate, $request->input('time'), $scheduledStart);
 
             if ($actualAt->gt($scheduledStart->copy()->addMinutes(3))) {
                 $attendanceType = strtoupper($request->input('type', 'BATCH'));
@@ -2300,9 +2300,9 @@ class DashboardController extends Controller
                 $demoStart = trim(explode(' - ', $demoSession->slot)[0]);
             }
             if ($demoStart) {
-                $actualAt = Carbon::parse($date . ' ' . $demoStartEvidenceTime);
-                $submittedAt = Carbon::parse($date . ' ' . $request->input('time'));
                 $scheduledStart = Carbon::parse($date . ' ' . $demoStart);
+                $actualAt = $this->actualAttendanceDateTime($date, $demoStartEvidenceTime, $scheduledStart);
+                $submittedAt = $this->actualAttendanceDateTime($date, $request->input('time'), $scheduledStart);
                 $lateAt = $scheduledStart->copy()->addMinutes(5);
                 $cancelAt = $scheduledStart->copy()->addMinutes(9);
                 $delayedDemoKey = [
@@ -3340,13 +3340,30 @@ class DashboardController extends Controller
     }
 
     /**
-     * Time submitted on the attendance form, on the same calendar day as the session.
+     * Time submitted on the attendance form, normalized around midnight.
+     *
+     * A 12:00 AM session can be started before midnight, so the stored attendance date can be
+     * the scheduled date while the time is still 23:xx from the previous calendar day.
      */
-    private function actualAttendanceDateTime(string $attendanceDate, $timeRaw): Carbon
+    private function actualAttendanceDateTime(string $attendanceDate, $timeRaw, ?Carbon $scheduledStart = null): Carbon
     {
         $time = Carbon::parse($timeRaw)->format('H:i:s');
 
-        return Carbon::parse(trim($attendanceDate) . ' ' . $time);
+        $actualAt = Carbon::parse(trim($attendanceDate) . ' ' . $time);
+
+        if (! $scheduledStart) {
+            return $actualAt;
+        }
+
+        if ($actualAt->greaterThan($scheduledStart->copy()->addHours(12))) {
+            return $actualAt->subDay();
+        }
+
+        if ($actualAt->lessThan($scheduledStart->copy()->subHours(12))) {
+            return $actualAt->addDay();
+        }
+
+        return $actualAt;
     }
 
 }

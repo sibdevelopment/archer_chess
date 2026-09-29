@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\StudentFee;
 use App\Models\CameraCheck;
 use App\Models\Changeclass;
+use App\Models\FeeDueWhatsappNotification;
 use Illuminate\Support\Str;
 use App\Models\Paymentlevel;
 use App\Models\StudentBatch;
@@ -21,6 +22,7 @@ use App\Models\StudentStatus;
 use Illuminate\Support\Carbon;
 use App\Exports\StudentsExport;
 use App\Models\StudentAttendance;
+use App\Services\PaymentLevelService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
@@ -404,13 +406,22 @@ class StudentController extends Controller
 
 
 
-                $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
-                $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></a>';
-
-                // Conditionally include the WhatsApp link based on the user's role
-                $whatsappBadge = ! $isCoach ? ' &nbsp; ' . $whatsappLink : '';
-
                 $studentFee = $student->studentFees()->orderBy('end_date', 'desc')->first();
+                $whatsappBadge = '';
+                if (! $isCoach && $student->status === 'FEESDUE' && $studentFee) {
+                    $notification = FeeDueWhatsappNotification::with('sentBy')
+                        ->where('student_id', $student->id)
+                        ->where('student_fee_id', $studentFee->id)
+                        ->first();
+
+                    if ($notification) {
+                        $sentBy = trim(($notification->sentBy?->first_name ?? '') . ' ' . ($notification->sentBy?->last_name ?? '')) ?: 'N/A';
+                        $sentAt = $notification->sent_at ? $notification->sent_at->format('d-M-Y h:i A') : 'N/A';
+                        $whatsappBadge = ' &nbsp; <button type="button" class="badge fs-1 border-0 fee-due-whatsapp-sent-btn" style="background:#d1d5db;color:#6b7280;opacity:.65;" data-sent-by="' . e($sentBy) . '" data-sent-at="' . e($sentAt) . '" title="Fee due WhatsApp already sent"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                    } else {
+                        $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-success fs-1 border-0 fee-due-whatsapp-btn" data-student-id="' . $student->id . '" title="Send fee due WhatsApp"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                    }
+                }
 
                 $reasonIcon = '';
                 if (in_array($student->status, ['INACTIVE', 'STANDBY'], true) && ! empty($student->status_reason)) {
@@ -418,9 +429,6 @@ class StudentController extends Controller
                 }
 
                 if ($studentFee) {
-                    $message      = $studentFee->generateFeeDueMessage();
-                    $whatsappUrl  = "https://web.whatsapp.com/send?phone=" . $student->mobile . "&text=" . urlencode($message);
-                    $whatsappLink = '<a target="_blank" class="badge bg-success fs-1" href="' . $whatsappUrl . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></a>';
                     return '<div class="d-flex justify-content-between">
                             <button type="button" class="btn badge bg-' . $badgeColor . ' fs-1 student-status-switch" data-bs-toggle="modal" data-bs-target="#statusChangeModal" data-routekey="' . $student->id . '" data-id="' . $student->id . '"  data-status="' . $student->status . '">
                                 <i class="ti ti-analyze"></i> &nbsp; ' . $student->status . '
@@ -457,6 +465,56 @@ class StudentController extends Controller
             ->rawColumns(['first_name', 'age', 'mobile', 'email', 'address', 'student_id', 'status', 'action', 'student_fees', 'batch', 'created_by', 'updated_by', 'batch_schedule'])
             ->setRowId('id')
             ->make(true);
+    }
+
+    public function sendFeeDueWhatsapp(Request $request, Student $student, PaymentLevelService $paymentLevelService)
+    {
+        $user = auth()->user();
+        $role = $user?->getRoleNames()->toArray() ?? [];
+        $hasAllowedAdminRole = (bool) array_intersect($role, ['SuperAdmin', 'Admin', 'Employee']);
+        if (in_array('Coach', $role, true) && ! $hasAllowedAdminRole) {
+            return response()->json(['message' => 'Coaches cannot send fee due WhatsApp notifications.'], 403);
+        }
+
+        if (! $hasAllowedAdminRole && ! $user?->can('students-view')) {
+            return response()->json(['message' => 'You do not have permission to send fee due WhatsApp notifications.'], 403);
+        }
+
+        if ($student->status !== 'FEESDUE') {
+            return response()->json(['message' => 'Fee due WhatsApp can be sent only for fees due students.'], 422);
+        }
+
+        $studentFee = $student->studentFees()->orderByDesc('id')->first();
+        if (! $studentFee) {
+            return response()->json(['message' => 'Student fee row not found.'], 422);
+        }
+
+        $notification = FeeDueWhatsappNotification::where('student_id', $student->id)
+            ->where('student_fee_id', $studentFee->id)
+            ->first();
+
+        if ($notification) {
+            return response()->json(['message' => 'Fee due WhatsApp has already been recorded for this fee row.'], 409);
+        }
+
+        $dueSummary = $paymentLevelService->dueAmountSummary($student);
+        $message = $studentFee->generateFeeDueMessage();
+
+        FeeDueWhatsappNotification::create([
+            'student_id' => $student->id,
+            'student_fee_id' => $studentFee->id,
+            'sent_by' => auth()->id(),
+            'fee_amount' => $dueSummary['amount'] ?? null,
+            'currency' => $dueSummary['currency'] ?? null,
+            'message' => $message,
+            'sent_at' => now(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Fee due WhatsApp notification recorded.',
+            'whatsapp_url' => 'https://web.whatsapp.com/send?phone=' . $student->mobile . '&text=' . urlencode($message),
+        ]);
     }
 
     public function list(Request $request)

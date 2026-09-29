@@ -379,6 +379,23 @@
     </div>
 
 
+    <div class="modal fade text-left" id="feeDueWhatsappSentModal" tabindex="-1" role="dialog"
+        aria-labelledby="feeDueWhatsappSentModalLabel" aria-hidden="true" style="z-index: 9999 !important;">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <h4 class="text-dark" id="feeDueWhatsappSentModalLabel">WhatsApp Sent</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong>Sent By:</strong> <span id="feeDueWhatsappSentBy">N/A</span></p>
+                    <p class="mb-0"><strong>Sent At:</strong> <span id="feeDueWhatsappSentAt">N/A</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Delete Confirmation Modal -->
     <div class="modal fade text-left" id="deleteConfirmationModal" tabindex="-1" role="dialog"
         aria-labelledby="deleteConfirmationModalLabel" style="z-index: 9999 !important;">
@@ -715,6 +732,65 @@
             });
             $('#user_id').on('keyup', function() {
                 dataTable.ajax.reload(null, false);
+            });
+
+            $(document).on('click', '.fee-due-whatsapp-btn', function() {
+                var button = $(this);
+                var studentId = button.data('student-id');
+
+                if (!studentId || button.prop('disabled')) {
+                    return;
+                }
+
+                button.prop('disabled', true);
+                var whatsappWindow = window.open('', '_blank');
+
+                $.ajax({
+                    url: "{{ url('admin/students') }}/" + studentId + "/fee-due-whatsapp",
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name=csrf-token]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.whatsapp_url) {
+                            if (whatsappWindow) {
+                                whatsappWindow.location = response.whatsapp_url;
+                            } else {
+                                window.open(response.whatsapp_url, '_blank');
+                            }
+                        }
+
+                        toastr.success(response.message || 'Fee due WhatsApp notification recorded.', '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 1500,
+                            closeButton: true,
+                        });
+
+                        dataTable.ajax.reload(null, false);
+                    },
+                    error: function(xhr) {
+                        button.prop('disabled', false);
+                        if (whatsappWindow) {
+                            whatsappWindow.close();
+                        }
+                        toastr.error(xhr.responseJSON?.message || 'Unable to record fee due WhatsApp notification.', '', {
+                            showMethod: "slideDown",
+                            hideMethod: "slideUp",
+                            timeOut: 2000,
+                            closeButton: true,
+                        });
+                        dataTable.ajax.reload(null, false);
+                    }
+                });
+            });
+
+            $(document).on('click', '.fee-due-whatsapp-sent-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#feeDueWhatsappSentBy').text($(this).data('sent-by') || 'N/A');
+                $('#feeDueWhatsappSentAt').text($(this).data('sent-at') || 'N/A');
+                $('#feeDueWhatsappSentModal').modal('show');
             });
             // Trigger the data table reload on page load if a coach is selected
             // if (defaultCoachId) {

@@ -35,11 +35,20 @@ class CoachAvailabilityController extends Controller
             ->editColumn('periods', function ($coachavailability) {
                 $periodsHtml = '';
                 foreach ($coachavailability->periods as $period) {
-                    $fromTime = \Carbon\Carbon::createFromFormat('H:i:s', $period->from_period)->format('g:i A');
-                    $toTime = \Carbon\Carbon::createFromFormat('H:i:s', $period->to_period)->format('g:i A');
+                    if (empty($period->from_period) || empty($period->to_period)) {
+                        continue;
+                    }
+
+                    $fromTime = $this->formatAvailabilityPeriodTime($period->from_period);
+                    $toTime = $this->formatAvailabilityPeriodTime($period->to_period);
+
+                    if (!$fromTime || !$toTime) {
+                        continue;
+                    }
+
                     $periodsHtml .= "<div>{$fromTime} - {$toTime}</div>";
                 }
-                return $periodsHtml;
+                return $periodsHtml ?: '<span class="text-muted">No period added</span>';
             })
             ->editColumn('status', function ($coachavailability) {
                 if ($coachavailability->status == 'ACTIVE') {
@@ -264,6 +273,15 @@ class CoachAvailabilityController extends Controller
                     ]);
                 }
             }
+        }
+    }
+
+    private function formatAvailabilityPeriodTime($time): ?string
+    {
+        try {
+            return Carbon::parse($time)->format('g:i A');
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 

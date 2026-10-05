@@ -2027,26 +2027,7 @@ class DashboardController extends Controller
                     $studentBatch->save();
                 }
 
-                // Update StudentFee end_date
-                $studentLatestFee = StudentFee::where('student_id', $studentId)->orderBy('id', 'desc')->first();
-                if ($studentLatestFee) {
-                    $feeEndDate = Carbon::parse($studentLatestFee->end_date);
-                    $nextFeeDate = null;
-                    foreach ($scheduledDays as $day) {
-                        $dayDiff = (Carbon::parse($day)->dayOfWeek - $feeEndDate->dayOfWeek + 7) % 7;
-                        if ($dayDiff > 0) {
-                            $nextFeeDate = $feeEndDate->copy()->addDays($dayDiff);
-                            break;
-                        }
-                    }
-                    if (! $nextFeeDate) {
-                        $nextFeeDate = $feeEndDate->copy()->addDays(
-                            (Carbon::parse($scheduledDays[0])->dayOfWeek - $feeEndDate->dayOfWeek + 7) % 7
-                        );
-                    }
-                    $studentLatestFee->end_date = $nextFeeDate->toDateString();
-                    $studentLatestFee->save();
-                }
+                app(BatchOccurrenceService::class)->compensateStudentFeeWindow($studentId, $attendanceDate, $scheduledDays);
             }
         }
 

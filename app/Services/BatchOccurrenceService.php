@@ -344,19 +344,69 @@ class BatchOccurrenceService
             $studentBatch->end_date = $batch->end_date;
             $studentBatch->save();
 
-            $studentLatestFee = StudentFee::where('student_id', $studentBatch->student_id)
-                ->where('status', 'ACTIVE')
-                ->orderByDesc('id')
-                ->first();
-
-            if ($studentLatestFee) {
-                $studentLatestFee->end_date = $this->nextScheduledDate(
-                    Carbon::parse($studentLatestFee->end_date),
-                    $scheduledDays
-                )->toDateString();
-                $studentLatestFee->save();
-            }
+            $this->compensateStudentFeeWindow($studentBatch->student_id, $date, $scheduledDays);
         }
+    }
+
+    public function compensateStudentFeeWindow(int $studentId, string $cancelledDate, array $scheduledDays): void
+    {
+        $scheduledDays = collect($scheduledDays)
+            ->map(fn ($day) => strtolower($day))
+            ->filter()
+            ->values()
+            ->toArray();
+
+        if (empty($scheduledDays)) {
+            return;
+        }
+
+        $fee = StudentFee::where('student_id', $studentId)
+            ->where('status', 'ACTIVE')
+            ->whereDate('start_date', '<=', $cancelledDate)
+            ->whereDate('end_date', '>=', $cancelledDate)
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $fee) {
+            $fee = StudentFee::where('student_id', $studentId)
+                ->where('status', 'ACTIVE')
+                ->whereDate('end_date', '>=', $cancelledDate)
+                ->orderBy('start_date')
+                ->orderBy('id')
+                ->first();
+        }
+
+        if (! $fee || ! $fee->end_date) {
+            return;
+        }
+
+        $oldEndDate = Carbon::parse($fee->end_date);
+        $newEndDate = $this->nextScheduledDate($oldEndDate, $scheduledDays);
+        $shiftDays = $oldEndDate->diffInDays($newEndDate, false);
+
+        if ($shiftDays <= 0) {
+            return;
+        }
+
+        $fee->end_date = $newEndDate->toDateString();
+        $fee->save();
+
+        StudentFee::where('student_id', $studentId)
+            ->where('status', 'ACTIVE')
+            ->where('id', '!=', $fee->id)
+            ->whereDate('start_date', '>', $oldEndDate->toDateString())
+            ->orderBy('start_date')
+            ->orderBy('id')
+            ->get()
+            ->each(function (StudentFee $futureFee) use ($shiftDays) {
+                if ($futureFee->start_date) {
+                    $futureFee->start_date = Carbon::parse($futureFee->start_date)->addDays($shiftDays)->toDateString();
+                }
+                if ($futureFee->end_date) {
+                    $futureFee->end_date = Carbon::parse($futureFee->end_date)->addDays($shiftDays)->toDateString();
+                }
+                $futureFee->save();
+            });
     }
 
     public function timeRangesOverlap(?string $fromA, ?string $toA, ?string $fromB, ?string $toB): bool

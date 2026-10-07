@@ -5,6 +5,11 @@
            'singapore' => ['SINGAPORE', 'MALAYSIA', 'HONG KONG'],
            default => [$country ?? ''],
        };
+       $requiresCookieConsent = in_array(
+           $country_slug ?? '',
+           ['united-kingdom', 'european-union'],
+           true
+       );
    @endphp
    <!DOCTYPE html>
    <html lang="en">
@@ -174,9 +179,35 @@
        </style>
 
 
+       @unless ($requiresCookieConsent)
+           <!-- Google Tag Manager -->
+           <script>
+               (function(w, d, s, l, i) {
+                   w[l] = w[l] || [];
+                   w[l].push({
+                       'gtm.start': new Date().getTime(),
+                       event: 'gtm.js'
+                   });
+                   var firstScript = d.getElementsByTagName(s)[0];
+                   var script = d.createElement(s);
+                   var dataLayerParam = l !== 'dataLayer' ? '&l=' + l : '';
+
+                   script.async = true;
+                   script.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dataLayerParam;
+                   firstScript.parentNode.insertBefore(script, firstScript);
+               })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
+           </script>
+           <!-- End Google Tag Manager -->
+       @endunless
    </head>
 
    <body>
+       @unless ($requiresCookieConsent)
+           <!-- Google Tag Manager (noscript) -->
+           <noscript><iframe src='https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ' height='0' width='0'
+                   style='display:none;visibility:hidden'></iframe></noscript>
+           <!-- End Google Tag Manager (noscript) -->
+       @endunless
        <div class="wrapper">
            <header class="header stricky">
                <div class="containerFull">
@@ -1650,7 +1681,9 @@
                                <p><a href="{{ route('privacy') }}">Privacy Policy</a></p>
                                <p><a href="{{ route('cookie.policy') }}">Cookie Policy</a></p>
                                <p><a href="{{ route('terms') }}">Terms & Conditions</a></p>
-                               <p><a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a></p>
+                               @if ($requiresCookieConsent)
+                                   <p><a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a></p>
+                               @endif
                            </div>
                        </div>
                    </div>
@@ -2078,7 +2111,9 @@
            
        </script>
 
-       @include('Frontend.partials.cookie-consent')
+       @if ($requiresCookieConsent)
+           @include('Frontend.partials.cookie-consent')
+       @endif
 
    </body>
 

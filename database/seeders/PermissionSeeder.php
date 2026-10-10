@@ -518,6 +518,14 @@ class PermissionSeeder extends Seeder
                 ],
             ],
         ],
+        'PersonalFollowUp' => [
+            'controller' => 'Admin\PersonalFollowUpController',
+            'permissions' => [
+                'personal-follow-ups-view' => ['index'],
+                'personal-follow-ups-store' => ['create', 'store'],
+                'personal-follow-ups-update' => ['edit', 'update'],
+            ],
+        ],
         'ShiftHandover' => [
             'controller' => 'Admin\WorkAssignmentController',
             'permissions' => [
@@ -1142,6 +1150,11 @@ class PermissionSeeder extends Seeder
             'employeeleaverequests-view',
             'employeeleaverequests-store',
             'employeeleaverequests-update',
+
+            #Personal Follow-up
+            'personal-follow-ups-view',
+            'personal-follow-ups-store',
+            'personal-follow-ups-update',
 
             #Shift Handover
             'shift-handovers-view',

@@ -179,7 +179,7 @@
             @endcan
 
 
-            @canany(['leaverequests-view', 'employeeleaverequests-view', 'reports-view', 'shift-handovers-view', 'task-assignments-view'])
+            @canany(['leaverequests-view', 'employeeleaverequests-view', 'reports-view', 'personal-follow-ups-view', 'shift-handovers-view', 'task-assignments-view'])
                 <li class="nav-small-cap mt-2">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Actions</span>
@@ -207,6 +207,16 @@
                             <i class="ti ti-calendar"></i>
                         </span>
                         <span class="hide-menu capitalize">Leave Requests</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('personal-follow-ups-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.personal-follow-ups.*')) active @endif"
+                        href="{{ route('admin.personal-follow-ups.index') }}" aria-expanded="false">
+                        <span><i class="ti ti-list-check"></i></span>
+                        <span class="hide-menu">Personal Follow-Up</span>
                     </a>
                 </li>
             @endcan

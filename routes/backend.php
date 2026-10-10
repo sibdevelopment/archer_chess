@@ -50,6 +50,7 @@ use App\Http\Controllers\Admin\NewEnrollmentController;
 use App\Http\Controllers\Admin\EmployeeLeaveRequestController;
 use App\Http\Controllers\Admin\StudentDashboardController;
 use App\Http\Controllers\Admin\CoachAvailabilityController;
+use App\Http\Controllers\Admin\PersonalFollowUpController;
 use App\Http\Controllers\Admin\WorkAssignmentController;
 use Illuminate\Support\Facades\Log;
 
@@ -265,6 +266,9 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::resource('employeeleaverequests', EmployeeLeaveRequestController::class);
         Route::post('employeeleaverequests/data', [EmployeeLeaveRequestController::class, 'data'])->name('employeeleaverequests.data');
         Route::post('employeeleaverequests/change-status', [EmployeeLeaveRequestController::class, 'changeStatus'])->name('employeeleaverequests.change.status');
+
+        // Personal Follow-ups ------------------------------
+        Route::resource('personal-follow-ups', PersonalFollowUpController::class)->except(['show', 'destroy']);
 
         // Shift Handovers and Task Assignments ------------------------------
         Route::get('shift-handovers', [WorkAssignmentController::class, 'handovers'])->name('shift-handovers.index');

@@ -518,6 +518,22 @@ class PermissionSeeder extends Seeder
                 ],
             ],
         ],
+        'ShiftHandover' => [
+            'controller' => 'Admin\WorkAssignmentController',
+            'permissions' => [
+                'shift-handovers-view' => ['handovers', 'assigned', 'show'],
+                'shift-handovers-store' => ['createHandover', 'storeHandover'],
+                'shift-handovers-update' => ['updateStatus', 'reassign'],
+            ],
+        ],
+        'TaskAssignment' => [
+            'controller' => 'Admin\WorkAssignmentController',
+            'permissions' => [
+                'task-assignments-view' => ['tasks', 'assigned', 'show'],
+                'task-assignments-store' => ['createTask', 'storeTask'],
+                'task-assignments-update' => ['updateStatus', 'reassign'],
+            ],
+        ],
         'Report' => [
             'controller' => 'Admin\ReportController',
             'permissions' => [
@@ -1126,6 +1142,16 @@ class PermissionSeeder extends Seeder
             'employeeleaverequests-view',
             'employeeleaverequests-store',
             'employeeleaverequests-update',
+
+            #Shift Handover
+            'shift-handovers-view',
+            'shift-handovers-store',
+            'shift-handovers-update',
+
+            #Task Assignment
+            'task-assignments-view',
+            'task-assignments-store',
+            'task-assignments-update',
 
             #Report
             'reports-view',

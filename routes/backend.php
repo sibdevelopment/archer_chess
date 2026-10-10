@@ -50,6 +50,7 @@ use App\Http\Controllers\Admin\NewEnrollmentController;
 use App\Http\Controllers\Admin\EmployeeLeaveRequestController;
 use App\Http\Controllers\Admin\StudentDashboardController;
 use App\Http\Controllers\Admin\CoachAvailabilityController;
+use App\Http\Controllers\Admin\WorkAssignmentController;
 use Illuminate\Support\Facades\Log;
 
 // Admin Routes
@@ -264,6 +265,18 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::resource('employeeleaverequests', EmployeeLeaveRequestController::class);
         Route::post('employeeleaverequests/data', [EmployeeLeaveRequestController::class, 'data'])->name('employeeleaverequests.data');
         Route::post('employeeleaverequests/change-status', [EmployeeLeaveRequestController::class, 'changeStatus'])->name('employeeleaverequests.change.status');
+
+        // Shift Handovers and Task Assignments ------------------------------
+        Route::get('shift-handovers', [WorkAssignmentController::class, 'handovers'])->name('shift-handovers.index');
+        Route::get('shift-handovers/create', [WorkAssignmentController::class, 'createHandover'])->name('shift-handovers.create');
+        Route::post('shift-handovers', [WorkAssignmentController::class, 'storeHandover'])->name('shift-handovers.store');
+        Route::get('task-assignments', [WorkAssignmentController::class, 'tasks'])->name('task-assignments.index');
+        Route::get('task-assignments/create', [WorkAssignmentController::class, 'createTask'])->name('task-assignments.create');
+        Route::post('task-assignments', [WorkAssignmentController::class, 'storeTask'])->name('task-assignments.store');
+        Route::get('work-assignments/assigned', [WorkAssignmentController::class, 'assigned'])->name('work-assignments.assigned');
+        Route::get('work-assignments/{work_assignment}', [WorkAssignmentController::class, 'show'])->name('work-assignments.show');
+        Route::post('work-assignments/{work_assignment}/status', [WorkAssignmentController::class, 'updateStatus'])->name('work-assignments.status');
+        Route::post('work-assignments/{work_assignment}/reassign', [WorkAssignmentController::class, 'reassign'])->name('work-assignments.reassign');
 
         // Feedbacks ------------------------------
         Route::resource('feedbacks', FeedbackController::class);

@@ -179,7 +179,7 @@
             @endcan
 
 
-            @canany(['leaverequests-view', 'employeeleaverequests-view', 'reports-view'])
+            @canany(['leaverequests-view', 'employeeleaverequests-view', 'reports-view', 'shift-handovers-view', 'task-assignments-view'])
                 <li class="nav-small-cap mt-2">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Actions</span>
@@ -207,6 +207,26 @@
                             <i class="ti ti-calendar"></i>
                         </span>
                         <span class="hide-menu capitalize">Leave Requests</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('shift-handovers-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.shift-handovers.*')) active @endif"
+                        href="{{ route('admin.shift-handovers.index') }}" aria-expanded="false">
+                        <span><i class="ti ti-arrows-exchange"></i></span>
+                        <span class="hide-menu">Shift Handover</span>
+                    </a>
+                </li>
+            @endcan
+
+            @can('task-assignments-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.task-assignments.*') || Route::is('admin.work-assignments.*')) active @endif"
+                        href="{{ route('admin.task-assignments.index') }}" aria-expanded="false">
+                        <span><i class="ti ti-clipboard-list"></i></span>
+                        <span class="hide-menu">Task Assignment</span>
                     </a>
                 </li>
             @endcan

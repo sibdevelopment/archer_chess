@@ -243,3 +243,11 @@ When a coach is unavailable for a day or period, the system should not treat tha
 - Time period overlap logic in reports and cover-up flows depends on exact `from_period` and `to_period` values.
 - Availability means "coach can work"; it does not mean "coach is free". The grid must also consider classes, demos, leave, and cover-up assignments.
 
+
+## Centralized Availability Decisions
+
+`app/Services/CoachAvailabilityService.php` is the shared conflict engine for demo scheduling, cover-ups, leave replacement, masterclasses, batch creation/reassignment, and availability charts.
+
+A coach must cover the full requested period and must not overlap approved leave, active batch schedules, demos, cover-ups, or masterclasses. For future batch decisions, past conflicts are ignored. The chart shows occupied periods and available gaps.
+
+Blank period rows are skipped safely when displaying/editing legacy availability. Same-day periods require end time after start time and reject 12:00 AM as end-of-day; use 11:59 PM.

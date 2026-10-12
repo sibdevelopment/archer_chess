@@ -1336,28 +1336,15 @@ When fee end date is updated:
 
 ### Automatic Fee Due Cron Flow
 
-Fee due handling is scheduled in:
+Production runs this from server crontab every 30 minutes:
 
-```text
-app/Console/Kernel.php
+```bash
+php artisan fees:mark-due-by-schedule --buffer=15
 ```
 
-Scheduled commands:
+The command waits until the last scheduled class on the fee end date plus the buffer, uses a no-class cutoff, backfills expired records, and protects itself with a cache lock. Old region-specific fee-due commands are disabled in `Kernel.php`.
 
-```php
-$schedule->command('check:fess-due-students')->dailyAt('00:30');
-$schedule->command('set:fess-due-in-usa-canada')->dailyAt('21:05');
-$schedule->command('set:fess-due-in-uk')->dailyAt('12:00');
-$schedule->command('check:payment')->everyMinute();
-```
-
-Country-specific behavior:
-
-```text
-Other countries: check:fess-due-students
-USA/CANADA: set:fess-due-in-usa-canada
-UK: set:fess-due-in-uk
-```
+When a later active advance fee exists, the student and batch remain active and move into that fee window.
 
 ### What Happens When Student Does Not Submit Fees
 
@@ -1435,7 +1422,7 @@ Batches represent class groups. A batch has:
 - Number of sessions
 - Weekly schedules
 - Assigned students
-- Zoom meeting details
+- Per-class Zoom occurrence details
 
 Stored in:
 
@@ -1499,14 +1486,13 @@ BatchController::store()
 
 What it does:
 
-1. Validates batch name as unique among non-inactive batches.
-2. Validates coach and country.
-3. Creates `Batch`.
-4. Sets `version = 1`.
-5. Sets `parent_id = batch id`.
-6. Sets `status = ACTIVE`.
-7. Creates Zoom meeting if coach Zoom credentials exist.
-8. Creates weekly schedule rows in `batch_schedules`.
+1. Validates batch name, coach, countries, and at least one valid weekly schedule.
+2. Opens a database transaction.
+3. Creates the `Batch` with `version = 1` and `status = UPCOMING`.
+4. Sets `parent_id = batch id`.
+5. Creates weekly schedule rows in `batch_schedules`.
+6. Commits the batch and schedules together.
+7. Creates no synchronous Zoom meeting; the occurrence scheduler prepares meetings after activation.
 
 ### Batch Schedule Creation During Batch Create
 
@@ -1539,10 +1525,16 @@ BatchController::update()
 What it does:
 
 - Updates batch data
-- Recreates Zoom meeting if coach has Zoom credentials
+- Reconciles affected future `batch_class_sessions`; changed or invalid meetings are replaced or blocked
 - Updates existing schedule rows
 - Creates new schedule rows
 - Deletes removed schedule rows
+
+### Per-Class Zoom Occurrences
+
+Each regular class is represented by `batch_class_sessions`, unique by `batch_id + batch_schedule_id + class_date`. The scheduler prepares the next 24 hours every five minutes. Coach/student attendance and recording sync use `batch_class_session_id` for exact matching.
+
+Holiday, approved leave, cover-up, inactive, or invalid future classes are marked `BLOCKED`. See [Regular Batch Zoom Occurrences](../developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md).
 
 ### Batch Status Change
 
@@ -1744,7 +1736,7 @@ What it does:
 3. Keeps same `parent_id`.
 4. Sets `confirm_reassign = CANCEL`.
 5. Stores old batch id in `confirm_reassign_batch_id`.
-6. Creates new Zoom meeting if coach has Zoom credentials.
+6. Leaves per-occurrence Zoom preparation to `BatchClassSessionService`.
 7. Copies active `student_batches` to the new batch.
 8. Copies existing `batch_schedules` to the new batch.
 9. Redirects to Assign Student screen for the new batch.
@@ -2441,7 +2433,7 @@ This preserves previous batch history.
 
 ### Zoom Dependency
 
-Demo sessions and batches can create Zoom meetings using coach Zoom credentials.
+Demo sessions create their own Zoom meetings. Active regular batches create one meeting per schedule/date through `BatchClassSessionService` and `batch-sessions:prepare --hours=24`.
 
 Check coach fields:
 
@@ -2452,7 +2444,7 @@ zoom_client_secret
 zoom_user_id
 ```
 
-If Zoom credentials are missing, demo session creation can fail.
+If Zoom credentials are missing, demo creation can fail and regular occurrences become `FAILED`. A failed regular occurrence without a usable legacy URL is excluded from automatic coach penalties.
 
 ## 24. Current Functional Gap / Improvement Opportunity
 
@@ -2488,7 +2480,7 @@ The Operations module is the core business pipeline of ArcherKids.
 - Demo Leads convert into Students.
 - Conversion creates New Enrollment records.
 - New Enrollment confirmation activates students and creates fee records.
-- Batches are created with coach, country, level, Zoom, and weekly schedules.
+- Batches are created with coach, country, level, and weekly schedules; Zoom meetings are prepared per class occurrence after activation.
 - Real student batch assignment happens through `student_batches`.
 - Change Batches handles student class change requests.
 - Cover Up Classes handle temporary coach replacement.

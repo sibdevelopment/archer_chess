@@ -9,6 +9,7 @@ The Actions module is different from Operations. Operations creates and manages 
 ```text
 Actions > Reports
 Actions > Leave Requests
+Actions > Employee Leave
 Actions > Feedbacks
 ```
 
@@ -18,6 +19,7 @@ Actions > Feedbacks
 01-REPORTS.md
 02-LEAVE-REQUESTS.md
 03-FEEDBACKS.md
+04-EMPLOYEE-LEAVE.md
 ```
 
 ## Main Code Area
@@ -26,6 +28,7 @@ Actions > Feedbacks
 routes/backend.php
 app/Http/Controllers/Admin/ReportController.php
 app/Http/Controllers/Admin/LeaveRequestController.php
+app/Http/Controllers/Admin/EmployeeLeaveRequestController.php
 app/Http/Controllers/Admin/FeedbackController.php
 resources/views/Admin/CoachReports/*
 resources/views/Admin/LeaveRequests/*
@@ -36,5 +39,6 @@ resources/views/Admin/Feedback/*
 
 1. Read `01-REPORTS.md` to understand coach performance, schedules, calendars, and attendance updates.
 2. Read `02-LEAVE-REQUESTS.md` to understand how coach leave affects batches and cover-up assignment.
-3. Read `03-FEEDBACKS.md` to understand how student feedback is submitted and viewed.
+3. Read `04-EMPLOYEE-LEAVE.md` for internal employee leave access and approval.
+4. Read `03-FEEDBACKS.md` to understand how student feedback is submitted and viewed.
 

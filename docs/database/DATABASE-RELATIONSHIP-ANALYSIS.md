@@ -34,6 +34,7 @@ Batch And Class Flow
     levels
     batchs
     batch_schedules
+    batch_class_sessions
     student_batches
     coach_availabilities
     coach_availability_periods
@@ -136,6 +137,8 @@ batchs
   -> coachs
   -> levels
   -> batch_schedules
+      -> batch_class_sessions
+  -> batch_class_sessions
   -> student_batches
   -> student_attendances
   -> coach_attendances
@@ -491,7 +494,7 @@ Important fields:
 | `number_of_sessions` | Planned sessions |
 | `version`, `parent_id` | Batch lineage/versioning |
 | `confirm_reassign`, `confirm_reassign_batch_id` | Reassignment workflow flags |
-| `start_url`, `join_url`, `zoom_meeting_id`, `zoom_meeting_uuid` | Zoom live class meeting data |
+| `start_url`, `join_url`, `zoom_meeting_id`, `zoom_meeting_uuid` | Legacy rollout fallback; new regular classes store meeting data per occurrence |
 
 Relationships:
 
@@ -500,6 +503,7 @@ batchs.coach_id -> coachs.id
 batchs.level_id -> levels.id
 batchs.parent_id -> batchs.id
 batchs.id -> batch_schedules.batch_id
+batchs.id -> batch_class_sessions.batch_id
 batchs.id -> student_batches.batch_id
 batchs.id -> student_attendances.batch_id
 batchs.id -> coach_attendances.batch_id
@@ -529,6 +533,7 @@ Relationships:
 ```text
 batch_schedules.batch_id -> batchs.id
 batch_schedules.id -> coverupclasses.schedule_id
+batch_schedules.id -> batch_class_sessions.batch_schedule_id
 ```
 
 Business meaning:
@@ -536,6 +541,31 @@ Business meaning:
 - One batch can have multiple weekly schedule rows.
 - Dashboard and reports use schedule weekday/time to decide which classes happen today.
 - If `student_batches.start_date/end_date` changes, the model updates related `batch_schedules.start_date/end_date`.
+
+### `batch_class_sessions`
+
+Purpose: one scheduled Zoom meeting and lifecycle record for each regular batch class occurrence.
+
+Important fields:
+
+```text
+batch_id, batch_schedule_id, coach_id, class_date,
+scheduled_start_at, scheduled_end_at, weekday, from_time, to_time,
+status, start_url, join_url, zoom_meeting_id, zoom_meeting_uuid,
+creation_attempts, last_attempted_at, last_error
+```
+
+The unique key is `batch_id + batch_schedule_id + class_date`. Status is `PENDING`, `CREATING`, `READY`, `FAILED`, `BLOCKED`, or `COMPLETED`. Holiday, approved leave, cover-up, inactive, and invalidated occurrences become `BLOCKED`.
+
+Relationships:
+
+```text
+batch_class_sessions.batch_id -> batchs.id
+batch_class_sessions.batch_schedule_id -> batch_schedules.id
+batch_class_sessions.coach_id -> coachs.id
+batch_class_sessions.id -> coach_attendances.batch_class_session_id
+batch_class_sessions.id -> student_attendances.batch_class_session_id
+```
 
 ### `student_batches`
 
@@ -718,7 +748,7 @@ Purpose: student attendance for batch/demo classes.
 Fields:
 
 ```text
-student_id, type, coach_id, demolead_id, level_id, batch_id,
+student_id, type, coach_id, demolead_id, level_id, batch_id, batch_class_session_id,
 number_of_batch_sessions, status, remark,
 date, time, homework_link, recording_link, chapter_name
 ```
@@ -730,6 +760,7 @@ student_attendances.student_id -> students.id
 student_attendances.coach_id -> coachs.id
 student_attendances.demolead_id -> demoleads.id
 student_attendances.batch_id -> batchs.id
+student_attendances.batch_class_session_id -> batch_class_sessions.id
 student_attendances.level_id -> levels.id
 ```
 
@@ -746,7 +777,7 @@ Purpose: coach attendance for batch/demo classes.
 Fields:
 
 ```text
-coach_id, type, demolead_id, batch_id,
+coach_id, type, demolead_id, batch_id, batch_class_session_id,
 date, time, status,
 number_of_batch_sessions, number_of_demo_sessions,
 chapter_name, recording_link
@@ -758,6 +789,7 @@ Relationships:
 coach_attendances.coach_id -> coachs.id
 coach_attendances.demolead_id -> demoleads.id
 coach_attendances.batch_id -> batchs.id
+coach_attendances.batch_class_session_id -> batch_class_sessions.id
 coach_attendances.id -> delayed_batches.coach_attendance_id
 ```
 
@@ -1355,3 +1387,21 @@ For any developer taking over this ERP:
 - `student_attendances` and `coach_attendances` are the record/reporting backbone.
 - Country/location is currently duplicated across flows and should be normalized in a future schema cleanup.
 - Do not push DB dumps because several tables contain credentials or sensitive student data.
+
+## 11. September-October 2026 Additions
+
+### `employee_leave_requests`
+
+Internal employee leave workflow. `employee_id -> employees.id`; `approved_by`, `created_by`, and `updated_by` point to users. It stores date/time range, leave type, reason, status, rejection reason, and decision timestamp. It has no class-occurrence side effects.
+
+### `fee_due_whatsapp_notifications`
+
+Audit record for fee-due WhatsApp actions. It links student, optional fee row, and sender, and stores amount, currency, message, and sent time. A unique `(student_id, student_fee_id)` key prevents duplicate tracking for one fee cycle.
+
+### Payment progression fields
+
+`student_fees.payment_level_id` and `new_enrollments.payment_level_id` point to `paymentlevels.id`. `students.status_reason` stores reasons for inactive/standby changes. `roles.status` controls whether a non-system role is selectable.
+
+### Regional pricing fields
+
+`paymentlevels.malaysia_fees` and `paymentlevels.hong_kong_fees` extend country-specific pricing.

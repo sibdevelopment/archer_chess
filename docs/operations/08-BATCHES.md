@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Batches are class groups. They connect coaches, schedules, students, levels, Zoom links, and attendance.
+Batches are class groups. They connect coaches, schedules, students, levels, per-class Zoom occurrences, and attendance.
 
 This is where real student-to-batch assignment happens.
 
@@ -56,7 +56,9 @@ app/Http/Controllers/Admin/BatchController.php
 app/Http/Controllers/Admin/BatchScheduleController.php
 app/Models/Batch.php
 app/Models/BatchSchedule.php
+app/Models/BatchClassSession.php
 app/Models/StudentBatch.php
+app/Services/BatchClassSessionService.php
 resources/views/Admin/Batchs/*
 resources/views/Admin/BatchSchedules/*
 ```
@@ -66,6 +68,7 @@ resources/views/Admin/BatchSchedules/*
 ```text
 batchs
 batch_schedules
+batch_class_sessions
 student_batches
 students
 coachs
@@ -105,21 +108,22 @@ Main method:
 BatchController::store()
 ```
 
-Creates:
+Creates atomically:
 
 ```text
 batchs record
 batch_schedules records
-Zoom meeting if coach credentials exist
 ```
 
 Batch starts as:
 
 ```text
-status = ACTIVE
+status = UPCOMING
 version = 1
 parent_id = batch id
 ```
+
+At least one valid weekly schedule is required. Saving a batch does not call Zoom. After activation, `batch-sessions:prepare --hours=24` creates one meeting per scheduled class occurrence.
 
 ## Batch Schedule
 
@@ -191,7 +195,7 @@ Reassignment:
 - Keeps parent batch chain.
 - Copies schedules.
 - Copies active students.
-- Creates new Zoom meeting if possible.
+- Leaves future occurrence meeting creation to `BatchClassSessionService`.
 - Sends user to assignment screen for the new batch.
 
 ## Batch Status
@@ -227,12 +231,20 @@ coverupclasses.batchschedule_id
 
 Same-day coach change creates cover-up records from Batch module.
 
+The matching regular occurrence is marked `BLOCKED`; the cover-up keeps its own meeting and attendance flow.
+
+## Per-Class Zoom Occurrences
+
+Regular classes do not share one permanent Zoom meeting. Each valid combination of batch, schedule, and date is stored in `batch_class_sessions` and has its own start/join URL and meeting identifiers.
+
+The old Zoom columns on `batchs` remain only as a rollout fallback for legacy records. See [Regular Batch Zoom Occurrences](../developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md) for preparation, retries, attendance, penalty, recording, and deployment behavior.
+
 ## Client Workflow
 
 1. Go to Operations > Batches.
 2. Create batch with coach/country/schedule.
 3. Assign active students.
-4. Review schedule and Zoom links.
+4. Activate the batch and verify upcoming occurrences are `READY`.
 5. Reassign batch if future batch version is needed.
 6. Use cover-up coach if original coach is unavailable.
 
@@ -255,3 +267,7 @@ student_batches.batch_id
 
 Only `student_batches.batch_id` is the real active batch membership.
 
+
+## Coach Filter And Availability
+
+Coach selection uses `CoachAvailabilityService`. During edit/reassignment, the currently assigned or otherwise matching batch coach remains available in the filter even when ordinary availability criteria would hide that coach, preventing accidental loss of the existing assignment.

@@ -54,6 +54,8 @@ uae_fees
 uk_fees
 qatar_fees
 singapore_fees
+malaysia_fees
+hong_kong_fees
 european_union_fees
 oman_fees
 status
@@ -83,6 +85,8 @@ uae_fees
 uk_fees
 qatar_fees
 singapore_fees
+malaysia_fees
+hong_kong_fees
 european_union_fees
 oman_fees
 status
@@ -171,6 +175,8 @@ uae_fees
 uk_fees
 qatar_fees
 singapore_fees
+malaysia_fees
+hong_kong_fees
 european_union_fees
 ```
 
@@ -227,3 +233,9 @@ Returns all payment level rows as JSON.
 - The create/update forms should be checked whenever adding a new country fee field, because validation, fillable fields, migrations, and frontend form inputs must stay aligned.
 - Sequence controls display/order behavior and must remain unique.
 
+
+## Sequential Payment Progression
+
+`PaymentLevelService` is the shared source for the next payable level, country amount, and currency. It first reads the latest fee with `payment_level_id`, then falls back to the student last-payment level or legacy batch level.
+
+Valid portal plans are the next one level or next three consecutive levels. Three levels receive a 10 percent discount. Old/already-paid targets and missing sequences are rejected. Malaysia and Hong Kong use `malaysia_fees` and `hong_kong_fees`.

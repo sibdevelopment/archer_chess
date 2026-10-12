@@ -173,3 +173,7 @@ DemoLead model
 User role assignment
 ```
 
+
+## UTM And Timezone Capture
+
+Booking forms capture `utm_source` and `utm_medium` from URL/session storage and save them on `demoleadenquiries`. Country selection uses centralized values, including Malaysia and Hong Kong, and displays country-specific timezone labels.

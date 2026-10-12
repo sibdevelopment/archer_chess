@@ -471,8 +471,15 @@ Relationships:
 - `parent()`
 - `ancestors()`
 - `coachAttendances()`
+- `classSessions()`
 
 Batch versioning/reassignment is important. A batch can have `parent_id`, `version`, and `confirm_reassign` fields. Student reassignment code often looks for latest non-inactive batches under a parent batch.
+
+### BatchClassSession
+
+Table: `batch_class_sessions`
+
+Represents one regular batch class occurrence and its scheduled Zoom meeting. It is unique by `batch_id + batch_schedule_id + class_date`, snapshots the coach and scheduled time, and records preparation status, URLs, Zoom IDs, attempts, and errors. Coach/student attendance may reference it through `batch_class_session_id`.
 
 ### BatchSchedule
 
@@ -869,7 +876,7 @@ app/Services/ZoomMeetingService.php
 Responsibilities:
 
 - Generate OAuth access token.
-- Create regular batch meetings.
+- Create scheduled, non-PMI meetings for regular batch occurrences.
 - Create demo session meetings.
 - Create meetings for specific Zoom users.
 - Create cover-up class meetings.
@@ -878,7 +885,8 @@ Responsibilities:
 
 Related command jobs:
 
-- `create:meeting-links`
+- `batch-sessions:prepare --hours=24`
+- `create:meeting-links` (legacy entry point; delegates to occurrence reconciliation)
 - `create:demo-session-link`
 - `get:meeting-recordings`
 - `get:demo-recordings`
@@ -893,6 +901,10 @@ Coach records also store Zoom-related credentials/identifiers:
 - `zoom_id`
 - `zoom_password`
 - `zoom_link`
+
+Regular batches use `BatchClassSessionService` and `batch_class_sessions`; each schedule/date receives its own meeting. The scheduler prepares the next 24 hours every five minutes, while valid coach/student requests can prepare a missing occurrence on demand. Batch-level Zoom columns are legacy rollout fallback only. Attendance and recording sync use `batch_class_session_id` for exact matching.
+
+The service honors holidays, approved leave, cover-ups, schedule changes, retries, Zoom regional API URLs, and false-penalty protection. See [Regular Batch Zoom Occurrences](REGULAR-BATCH-ZOOM-OCCURRENCES.md).
 
 The code has both app-level and coach-level Zoom concepts. Before changing Zoom behavior, trace the exact controller/command path being used.
 
@@ -958,14 +970,15 @@ get:coverupclass-recording          hourly
 get:masterclass-recording           hourly
 get:meeting-recordings              hourly
 get:demo-recordings                 hourly
-cancel:delay-batch                  every 10 minutes
+cancel:delay-batch                  every minute
 masterclass:reminder                hourly
 tournament:reminder                 hourly
 check:payment                       every minute
-check:fess-due-students             daily at 00:30
-set:fess-due-in-usa-canada          daily at 21:05
-set:fess-due-in-uk                  daily at 12:00
+batch-sessions:prepare --hours=24   every 5 minutes, without overlapping
+batchs:sync-empty-to-upcoming       daily at 01:15
 ```
+
+Fee-due processing is outside `Kernel.php`. Production uses server crontab command `fees:mark-due-by-schedule --buffer=15` every 30 minutes; the old region-specific schedules are disabled.
 
 Other command signatures found:
 
@@ -1564,3 +1577,19 @@ database/seeders/PermissionSeeder.php
 9. Confirm business rules for fee due, module duration, and batch reassignment.
 10. Document admin roles and permission setup after checking real database seed/data.
 
+
+## 16. Post-August 2026 Reconciliation
+
+All 46 commits from `4337d69..8c59cf1` are summarized and individually accounted for in [Committed Changes: September to October 2026](../COMMITTED-CHANGES-2026-09-TO-10.md).
+
+New central services and records from that range:
+
+```text
+app/Services/CoachAvailabilityService.php
+app/Services/PaymentLevelService.php
+app/Services/BatchOccurrenceService.php
+app/Models/EmployeeLeaveRequest.php
+app/Models/FeeDueWhatsappNotification.php
+employee_leave_requests
+fee_due_whatsapp_notifications
+```

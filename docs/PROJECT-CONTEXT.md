@@ -910,6 +910,31 @@ Known route/test caveats from prior analysis:
 - php artisan test/route checks may be affected by duplicate command class namespace issues under app/Console/Commands/Email.
 ```
 
+## Committed Documentation Reconciliation
+
+Committed behavior through `8c59cf1` (10-Oct-2026) has been audited against all 46 commits after `4337d69`.
+
+Coverage includes role status/country controls, employee leave, Malaysia/Hong Kong and timezone support, GTM/UTM, cookie consent, coach leave/availability, sequential payment levels, advance-fee compensation, coach/report filters, midnight penalties, fee-due WhatsApp history, and guarded homework links.
+
+Full behavior summary and commit ledger: `docs/COMMITTED-CHANGES-2026-09-TO-10.md`.
+
+## Regular Batch Per-Occurrence Zoom Meetings
+
+```text
+- Regular batch classes now use one scheduled Zoom meeting per batch schedule/date, stored in batch_class_sessions.
+- A unique batch_id + batch_schedule_id + class_date key, cache lock, and CREATING/READY/FAILED/BLOCKED/COMPLETED states prevent duplicate or ambiguous meetings.
+- batch-sessions:prepare --hours=24 runs every five minutes with overlap protection; create:meeting-links delegates to this reconciliation flow.
+- Batch create/edit saves batch and schedules transactionally and does not synchronously call Zoom. New batches start UPCOMING and require a schedule.
+- Coach/student start and join flows resolve URLs server-side and store batch_class_session_id on attendance.
+- Holidays, approved leave, cover-ups, schedule changes, and inactive classes block/delete affected regular occurrence meetings.
+- Zoom provisioning failure without a usable legacy fallback is excluded from automatic late/cancel penalties.
+- Regular recording sync matches exact occurrence meeting IDs first and retains date/time matching only for legacy attendance.
+- Demo, masterclass, and cover-up meeting flows remain independent.
+- Deployment requires the 2026_10_10_120000_create_batch_class_sessions_table migration and an initial occurrence preparation run.
+```
+
+Detailed guide: `docs/developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md`.
+
 ## Before Commit / Push
 
 Suggested checks:

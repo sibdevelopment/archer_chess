@@ -166,16 +166,17 @@ Students can be filtered by:
 - Status
 - User ID
 
-## Fee Due Cron Commands
+## Fee Due Processing
 
-Scheduled commands:
+Production uses the server crontab command:
 
-```php
-$schedule->command('check:fess-due-students')->dailyAt('00:30');
-$schedule->command('set:fess-due-in-usa-canada')->dailyAt('21:05');
-$schedule->command('set:fess-due-in-uk')->dailyAt('12:00');
-$schedule->command('check:payment')->everyMinute();
+```bash
+php artisan fees:mark-due-by-schedule --buffer=15
 ```
+
+It runs every 30 minutes, waits until the last class on the fee end date plus the buffer, backfills expired rows, and uses a no-class cutoff. Old region-specific fee-due commands are disabled in `Kernel.php`.
+
+When a later active advance fee exists, the student remains active and the student-batch window moves to that fee. Otherwise the student becomes `FEESDUE` and active membership is closed.
 
 ## Student Batch Relationship
 
@@ -211,3 +212,15 @@ student country must match batch country.
 student must not already be active in another batch.
 ```
 
+
+## Payment Levels And Advance Fees
+
+Every new fee requires `payment_level_id`. `PaymentLevelService` allows the next one or next three levels and provides country price/currency; a three-level plan gets 10 percent discount. An advance fee may be created during the final five days of the current fee period.
+
+Cancelled-class compensation extends the fee that covered the occurrence and shifts later advance fee rows so paid windows remain sequential.
+
+## Fee-Due WhatsApp History
+
+For a `FEESDUE` student, authorized non-coach admins see a green WhatsApp action. Sending records one `fee_due_whatsapp_notifications` row per student/fee cycle. The icon then becomes grey but remains clickable to show sender and time.
+
+For manual status changes to `INACTIVE` or `STANDBY`, `status_reason` stores and displays the operational reason.

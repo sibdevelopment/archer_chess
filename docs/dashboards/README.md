@@ -299,7 +299,8 @@ When student clicks Join:
 2. Backend checks if coach attendance exists for today and batch.
 3. If coach has not started/marked class, student gets "Class not started yet please try again later".
 4. If attendance exists, student attendance is marked `PRESENT`.
-5. The student is redirected/opened to the batch or cover-up join URL.
+5. For a regular batch, the backend resolves the exact `batch_class_sessions` occurrence and returns its join URL; for a cover-up it uses the cover-up URL.
+6. The browser-provided URL is not trusted for regular batch joins.
 
 Fallback route:
 
@@ -307,7 +308,7 @@ Fallback route:
 /admin/student-dashboard/join-class
 ```
 
-This route marks attendance if possible, then redirects to the meeting URL even when JavaScript fallback is used.
+This route marks attendance if possible, resolves the occurrence or cover-up URL on the server, and then redirects to that meeting.
 
 ### Student Attendance Marking Details
 
@@ -315,6 +316,7 @@ This route marks attendance if possible, then redirects to the meeting URL even 
 
 ```text
 coach_attendances.batch_id = selected batch
+coach_attendances.batch_class_session_id = resolved occurrence, when available
 coach_attendances.date = today
 coach_attendances.status = COMPLETED
 ```
@@ -332,6 +334,7 @@ If no student row exists but another attendance row exists for the batch/date, i
 type
 coach_id
 batch_id
+batch_class_session_id
 level_id
 date
 number_of_batch_sessions
@@ -592,11 +595,17 @@ slot
 status
 type
 active_students
+batch_schedule_id
+batch_class_session_id
 start_url
 homework_link
 attendance_exists
 attendance_time
 ```
+
+### Regular Batch Meeting Source
+
+For `Batch` items, `start_url` comes from the date-specific `batch_class_sessions` row. Batch-level Zoom fields are legacy rollout fallback only. Holidays, approved leave, and cover-up replacement block the normal occurrence. See [Regular Batch Zoom Occurrences](../developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md).
 
 ### Coach Calendar
 
@@ -683,13 +692,13 @@ POST /admin/dashboard/{batchId}/pre-batch-attendance
 This is used around starting class. It:
 
 1. Checks the batch exists.
-2. Finds today's batch schedule.
+2. Finds today's batch schedule and resolves or prepares its exact `batch_class_sessions` occurrence.
 3. Blocks coach change/start behavior after 10 minutes from batch start.
 4. Prevents duplicate coach attendance for same batch/date.
-5. Creates coach attendance as `COMPLETED`.
-6. Creates student attendance rows as `ABSENT` by default.
+5. Uses the occurrence `start_url` and stores its `batch_class_session_id` on coach attendance.
+6. Creates student attendance rows as `ABSENT` by default with the same occurrence reference.
 
-Then students can later click Join and mark themselves present.
+Then students can later click Join and mark themselves present. A `BLOCKED` occurrence cannot be started, and a Zoom creation failure is shown as unavailable instead of silently using an unrelated meeting.
 
 ### Demo Attendance Action
 
@@ -1084,8 +1093,17 @@ CANCELLED demo attendance -> DemoLead status CANCELLED
 - Dashboard route naming is mixed: `/admin/dashboard/dashboard` goes through `HomeController`, while `/admin/dashboard` goes to `DashboardController@index`.
 - Coach dashboard is selected by role, not by URL alone.
 - Student sidebar is completely separate from admin sidebar.
-- Student join attendance depends on coach attendance existing first.
+- Student join attendance depends on coach attendance existing first and resolves the exact regular occurrence server-side.
 - Cancelled batch attendance extends batch, student batch, and fee end dates.
 - Employee dashboard visibility is not a separate dashboard implementation; employees use the admin dashboard with permission/country restrictions.
 - Sensitive fields are visible in student/coach contexts, including Chesslang password and coach portal/Zoom data elsewhere. Be careful before sharing screenshots or repositories.
 
+
+## September-October Dashboard Updates
+
+- Missed-session rows retain their WhatsApp follow-up action.
+- Inactive coach filtering moved from the SuperAdmin dashboard to Coach Reports.
+- Coach status changes use a reason-aware modal flow aligned with students.
+- Midnight class/demo attendance timestamps are normalized so pre-midnight starts for 12:00 AM sessions do not produce false penalties.
+- Student fee views use sequential payment levels and country pricing.
+- Homework renders a clickable Solve Quiz action only for a valid URL; otherwise it displays `Homework link unavailable`.

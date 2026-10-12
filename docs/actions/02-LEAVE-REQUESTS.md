@@ -248,10 +248,7 @@ To Time
 Reason
 ```
 
-Important UI note:
-
-- The form contains JavaScript that references `to_date`, but the visible `to_date` input is not currently present in the form markup.
-- The label for `to_time` currently displays as `From Time`.
+Current UI validates the date range and same-day time order before submission.
 
 ## Store Leave Request
 
@@ -559,12 +556,14 @@ Effects:
 - Leave blocks appear in calendar.
 - Leave is considered when building schedule data.
 
-## Important Developer Notes
+## Current Leave Behavior
 
-- `handleApprovedLeaveRequest()` currently sets leave end date from `from_date`, not `to_date`. This makes the affected-data calculation behave like a single-day leave flow.
-- The form references a `to_date` JavaScript field, but the field is not visible in the current form.
-- The `to_time` label says `From Time` in the form.
-- No-cover-coach cancellation is currently disabled because `cancelBatchLogic()` is commented in `changeStatus()`.
-- Leave approval creates cover-up records only for affected schedules where admin selects a replacement coach.
-- Approved leaves cannot be edited from the listing.
+This is the current leave behavior after progressive leave normalization.
 
+- `to_date` is present and required; date ranges are processed progressively per matching schedule occurrence.
+- Same-day end time must be later than start time, and 12:00 AM is rejected as an end-of-day value.
+- Only `APPROVED` leave affects class occurrences, dashboards, cover-ups, penalties, or compensation.
+- Rejecting/inactivating a previously approved leave cleans stale cover-up and ON LEAVE artifacts where applicable.
+- Approval after an occurrence has passed removes matching delayed penalties but does not create a historical cover-up or shift batch/student/fee dates.
+- Available replacement coaches come from `CoachAvailabilityService`.
+- Future approved occurrences may create cover-ups when a replacement is selected; without a replacement, the normal delayed/cancellation process remains responsible.

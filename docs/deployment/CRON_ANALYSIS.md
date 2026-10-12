@@ -22,15 +22,46 @@ In production, the server should run Laravel's scheduler every minute:
 | Hourly | `get:masterclass-recording` | Fetch masterclass Zoom recordings. |
 | Hourly | `get:meeting-recordings` | Fetch regular batch Zoom recordings. |
 | Hourly | `get:demo-recordings` | Fetch demo session Zoom recordings. |
-| Every 10 minutes | `cancel:delay-batch` | Auto-cancel delayed batches when attendance is missing. |
+| Every minute | `cancel:delay-batch` | Apply late/cancel rules while respecting occurrence availability. |
 | Hourly | `masterclass:reminder` | Send masterclass reminder emails. |
 | Hourly | `tournament:reminder` | Send tournament reminder emails. |
 | Every minute | `check:payment` | Poll Razorpay payment status. |
-| Daily at 00:30 | `check:fess-due-students` | Mark non-USA/Canada/UK students as fees due. |
-| Daily at 21:05 | `set:fess-due-in-usa-canada` | Mark USA/Canada students as fees due. |
-| Daily at 12:00 | `set:fess-due-in-uk` | Mark UK students as fees due. |
+| Every 5 minutes | `batch-sessions:prepare --hours=24` | Prepare/reconcile regular batch occurrence meetings; overlap protected. |
+| Daily at 01:15 | `batchs:sync-empty-to-upcoming` | Move qualifying empty batches back to upcoming status. |
+
+## Server Crontab Command
+
+Fee-due processing is intentionally outside Laravel `Kernel.php` and should run from the production crontab every 30 minutes:
+
+```cron
+*/30 * * * * cd /var/www/archerkids && php artisan fees:mark-due-by-schedule --buffer=15 >> storage/logs/fee-due-cron.log 2>&1
+```
+
+The old regional `check:fess-due-students`, `set:fess-due-in-usa-canada`, and `set:fess-due-in-uk` schedules are disabled.
 
 ## Command Details
+
+### `batch-sessions:prepare --hours=24`
+
+File:
+
+- `app/Console/Commands/PrepareBatchClassSessions.php`
+
+Runs every five minutes with `withoutOverlapping()`.
+
+What it does:
+
+- Scans active regular batch schedules from 15 minutes in the past through 24 hours ahead.
+- Creates one `batch_class_sessions` row and Zoom meeting per batch/schedule/date.
+- Uses cache locking and a database unique key to prevent duplicate meetings.
+- Reconciles changed coach/time/date details and blocks holidays, approved leave, cover-ups, or invalid schedules.
+- Records attempts/errors and retries failed creation after a cooldown.
+
+Run it manually after deployment to prepare the first window:
+
+```bash
+php artisan batch-sessions:prepare --hours=24
+```
 
 ### `get:coverupclass-recording`
 
@@ -96,26 +127,15 @@ Runs hourly.
 
 What it does:
 
-- Scans every date from the last 7 days through today.
-- For each date, finds active batches where:
-  - `batch.start_date <= scanned date`
-  - `batch.end_date >= scanned date`
-  - batch has a schedule for that weekday
-  - batch status is `ACTIVE`
-- Finds the latest `CoachAttendance` for the batch on that date.
-- If the attendance has no recording link, fetches Zoom cloud recordings for the coach.
-- Matches recordings by:
-  - same date as the scanned date
-  - recording start time within 15 minutes of the batch schedule `from_time`
-- Saves the Zoom `play_url` into:
-  - `coach_attendances.recording_link`
-  - matching `student_attendances.recording_link`
+- Processes recent regular batch occurrences that have exact Zoom meeting IDs/UUIDs.
+- Groups occurrence work by coach credentials to reduce repeated Zoom API calls.
+- Matches a recording to `batch_class_sessions`, then updates coach and student attendance through `batch_class_session_id`.
+- Keeps the old date/time matching path for legacy attendance that has no occurrence reference.
 
 Important notes:
 
-- This is the heaviest recording cron because it scans 7 days every hour.
-- It may call Zoom many times if there are many batches.
-- It does not use `withoutOverlapping()`, so slow runs may overlap.
+- Exact occurrence matching avoids attaching a recording from another class at a similar time.
+- Legacy fallback remains more expensive and should reduce as occurrence-linked attendance becomes normal.
 
 ### `get:demo-recordings`
 
@@ -147,7 +167,7 @@ File:
 
 - `app/Console/Commands/CancelDelayBatch.php`
 
-Runs every 10 minutes.
+Runs every minute.
 
 What it does:
 
@@ -166,6 +186,7 @@ What it does:
 Important notes:
 
 - This job mutates attendance, batch dates, student batch dates, and fee dates.
+- Regular occurrences marked `BLOCKED`, or `FAILED` without a usable legacy start URL, are skipped to avoid false coach penalties.
 - The description says 10 minutes, but the code uses 8 minutes.
 - It can extend fees and batches automatically.
 
@@ -260,7 +281,7 @@ File:
 
 - `app/Console/Commands/CheckFessDueStudents.php`
 
-Runs daily at 00:30.
+This legacy command is not scheduled in `Kernel.php`; production uses `fees:mark-due-by-schedule`.
 
 Country scope:
 
@@ -289,7 +310,7 @@ File:
 
 - `app/Console/Commands/UsaCanadaSetFessDue.php`
 
-Runs daily at 21:05.
+This legacy command is not scheduled in `Kernel.php`; production uses `fees:mark-due-by-schedule`.
 
 Country scope:
 
@@ -318,7 +339,7 @@ File:
 
 - `app/Console/Commands/UkSetFessDue.php`
 
-Runs daily at 12:00.
+This legacy command is not scheduled in `Kernel.php`; production uses `fees:mark-due-by-schedule`.
 
 Country scope:
 
@@ -350,6 +371,9 @@ These commands exist but are commented out in `app/Console/Kernel.php`.
 | --- | --- | --- |
 | `demo:complete` | Send demo completion emails after completed demos. | Disabled. |
 | `BatchAttendance:not-marked-attendance` | Create `NOTMARKED` attendance if coach does not submit attendance. | Disabled. |
+| `check:fess-due-students` | Legacy fee-due handling outside USA/Canada/UK. | Disabled in Laravel scheduler. |
+| `set:fess-due-in-usa-canada` | Legacy USA/Canada fee-due handling. | Disabled in Laravel scheduler. |
+| `set:fess-due-in-uk` | Legacy UK fee-due handling. | Disabled in Laravel scheduler. |
 | `reminder:feesdue-24hr-students` | Send 24-hour fee due reminders for other countries. | Disabled, and email sending is commented out. |
 | `reminder:feesdue-24hr-usa-canada` | Send 24-hour fee due reminders for USA/Canada. | Disabled, and email sending is commented out. |
 | `reminder:feesdue-24hr-uk` | Send 24-hour fee due reminders for UK. | Disabled, and email sending is commented out. |
@@ -378,9 +402,9 @@ Recommended action:
 - Set `is_reminder_sent = YES` after successful sends.
 - Consider logging reminder send status per student if partial failures matter.
 
-### 3. No overlap protection
+### 3. Limited overlap protection
 
-None of the scheduled commands use Laravel's `withoutOverlapping()`.
+`batch-sessions:prepare` uses Laravel's `withoutOverlapping()`. Other scheduled commands do not currently have overlap protection.
 
 Recommended action:
 
@@ -389,14 +413,14 @@ Recommended action:
   - `check:payment`
   - Zoom recording fetch jobs
 
-### 4. Heavy Zoom polling
+### 4. Legacy Zoom polling
 
-`get:meeting-recordings` scans the last 7 days every hour and can call Zoom repeatedly.
+`get:meeting-recordings` now groups occurrence processing by coach and matches exact meeting IDs first. Its legacy fallback still scans recent attendance and can call Zoom repeatedly.
 
 Recommended action:
 
-- Reduce the scan window if possible.
-- Group by coach to avoid duplicate Zoom calls.
+- Continue reducing reliance on the legacy date/time fallback.
+- Monitor API calls per coach and failed occurrence retries.
 - Store last checked timestamps or retry only missing recordings.
 
 ### 5. Time descriptions do not match code

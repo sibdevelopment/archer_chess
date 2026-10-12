@@ -253,3 +253,9 @@ zoom_client_secret
 zoom_user_id
 ```
 
+
+## Payment Level On Conversion
+
+Student conversion requires an active payment level. The selected `payment_level_id` is copied to `new_enrollments` and later generated fee rows so enrollment and student payment progression stay aligned.
+
+Demo coach/slot selection uses `CoachAvailabilityService`, including availability periods, approved leave, batch/demo/cover-up/masterclass conflicts, and country rules.

@@ -218,3 +218,9 @@ This API is useful for dropdowns where system-level roles should not be assigned
 - Country selection is required, so create a role with the correct market/country scope from the beginning.
 - Role delete is not implemented in the controller. Existing roles are meant to be edited, not removed through the current UI.
 
+
+## Role Status Controls
+
+Roles have `ACTIVE`/`INACTIVE` status, a list filter, and an AJAX status switch. System roles are protected. A non-system role cannot be made inactive while assigned to active users; assignments must be rotated first. `roles/list` returns only active non-system roles.
+
+Country selection supports Select All and uses the centralized country list, including Malaysia and Hong Kong.

@@ -30,3 +30,7 @@ FLOW-GAPS-AND-OPTIMIZATION-PLAN.md
 2. Read these module files when a specific screen or developer change is needed.
 3. Read `docs/operations/FLOW-GAPS-AND-OPTIMIZATION-PLAN.md` before planning refactors or ERP improvements.
 4. For user/role/coach setup, read `docs/users/USER-MODULE-README.md`.
+
+## Reconciled Changes
+
+See `docs/COMMITTED-CHANGES-2026-09-TO-10.md` for the audited 46-commit update covering leads, students, fees, batches, roles, leave, availability, tracking, and regional behavior.

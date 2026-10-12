@@ -747,3 +747,9 @@ Important:
 - Some date extension logic exists but has actual update lines commented out. Confirm expected business behavior before re-enabling it.
 - `ReportController` is large and mixes reporting, calendar, and attendance write logic. Future refactoring should split read-only reports from attendance mutation methods.
 
+
+## Inactive Coach Filter
+
+Inactive coach filtering is handled in Coach Reports, not the SuperAdmin dashboard. This keeps coach lifecycle/history analysis with the report date range and coach report endpoints.
+
+Leave reporting uses only approved overlapping leave occurrences and the centralized occurrence service.

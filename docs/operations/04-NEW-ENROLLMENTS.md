@@ -162,3 +162,7 @@ Check students.status.
 Only ACTIVE students appear in batch assignment.
 ```
 
+
+## Enrollment Payment Level
+
+`new_enrollments.payment_level_id` records the active payment level selected during demo-lead conversion. Confirmation uses this value when generating the student fee, keeping enrollment aligned with sequential `PaymentLevelService` progression. A valid active payment level is required.

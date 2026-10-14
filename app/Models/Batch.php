@@ -56,6 +56,11 @@ class Batch extends BaseModel
         return $this->hasMany(BatchSchedule::class, 'batch_id');
     }
 
+    public function classSessions()
+    {
+        return $this->hasMany(BatchClassSession::class, 'batch_id');
+    }
+
     public function studentBatches()
     {
         return $this->hasMany(StudentBatch::class, 'batch_id');

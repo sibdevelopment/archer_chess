@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use Carbon\Carbon;
 use App\Models\Batch;
+use App\Models\BatchClassSession;
 use App\Models\Coach;
 use App\Models\Holiday;
 use App\Models\Student;
@@ -24,6 +25,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\StudentAttendance;
 use App\Http\Controllers\Controller;
 use App\Services\BatchOccurrenceService;
+use App\Services\BatchClassSessionService;
 use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
@@ -202,11 +204,22 @@ class StudentDashboardController extends Controller
 
     public function markAttendance(Request $request)
     {
-        $batchId = $request->input('id');
-        $studentId = $request->input('student_id');
+        $batchId = (int) $request->input('id');
+        $studentId = (int) $request->input('student_id');
+        $type = strtoupper((string) $request->input('type', 'BATCH'));
         $today = Carbon::now()->toDateString();
 
-        if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
+        if (! in_array($type, ['BATCH', 'COVERUP'], true)) {
+            return response()->json(['message' => 'Invalid class type.', 'status' => 'error'], 422);
+        }
+
+        $student = Student::where('user_id', Auth::id())->first();
+        if (! $student || $student->id !== $studentId) {
+            return response()->json(['message' => 'Invalid student account.', 'status' => 'error'], 403);
+        }
+
+        $studentBatch = $this->eligibleStudentBatch($studentId, $batchId, $today);
+        if (! $studentBatch) {
             return response()->json([
                 'message' => 'Class is not active for this student yet.',
                 'status' => 'error'
@@ -214,68 +227,54 @@ class StudentDashboardController extends Controller
         }
 
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)
-            ->where('date', $today)
+            ->whereDate('date', $today)
             ->where('status','COMPLETED')
+            ->whereRaw('UPPER(type) = ?', [$type])
+            ->orderByDesc('id')
             ->first();
-        // dd($coachAttendance);
 
-        if ($coachAttendance) {
-            $studentAttendance = StudentAttendance::where('student_id', $studentId)
-                ->where('batch_id', $batchId)
-                ->where('date', $today)
-                ->first();
-                // dd($studentAttendance);
-
-            if ($studentAttendance) {
-                // dd(33);
-                $studentAttendance->status = 'PRESENT';
-                $studentAttendance->time = Carbon::now()->toTimeString();
-                $studentAttendance->save();
-                return response()->json([
-                    'message' => 'Attendance marked successfully',
-                    'status' => 'success'
-                ], 200);
-            } else {
-                // dd(22);
-                $otherStudentAttendance = StudentAttendance::where('batch_id', $batchId)
-                    ->where('date', $today)
-                    ->first();
-                // dd($otherStudentAttendance);
-
-                if ($otherStudentAttendance) {
-                    $studentAttendance = new StudentAttendance();
-                    $studentAttendance->student_id = $studentId;
-                    $studentAttendance->type = 'BATCH';
-                    $studentAttendance->coach_id = $otherStudentAttendance->coach_id;
-                    $studentAttendance->batch_id = $batchId;
-                    $studentAttendance->level_id = $otherStudentAttendance->level_id;
-                    $studentAttendance->date = $today;
-                    $studentAttendance->time = Carbon::now()->toTimeString();
-                    $studentAttendance->remark = '';
-                    $studentAttendance->number_of_batch_sessions = $otherStudentAttendance->number_of_batch_sessions;
-                    $studentAttendance->homework_link = $otherStudentAttendance->homework_link;
-                    $studentAttendance->recording_link = $otherStudentAttendance->recording_link;
-                    $studentAttendance->chapter_name = $otherStudentAttendance->chapter_name;
-                    $studentAttendance->status = 'PRESENT';
-                    $studentAttendance->save();
-                    return response()->json([
-                        'message' => 'Attendance marked successfully',
-                        'status' => 'success'
-                    ], 200);
-                } else {
-                    return response()->json([
-                        'message' => 'Class not started yet please try again later',
-                        'status' => 'error'
-                    ], 404);
-                }
-            }
-        } else {
+        if (! $coachAttendance) {
             return response()->json([
                 'message' => 'Class not started yet please try again later',
                 'status' => 'error'
             ], 404);
         }
 
+        $joinUrl = $this->studentJoinUrl($batchId, $type, $today, $coachAttendance);
+        if (! $joinUrl) {
+            return response()->json([
+                'message' => 'Class link is not available yet. Please try again shortly.',
+                'status' => 'error',
+            ], 503);
+        }
+
+        $attendanceKey = [
+            'student_id' => $studentId,
+            'batch_id' => $batchId,
+            'date' => $today,
+        ];
+        if ($coachAttendance->batch_class_session_id) {
+            $attendanceKey['batch_class_session_id'] = $coachAttendance->batch_class_session_id;
+        }
+        $studentAttendance = StudentAttendance::firstOrNew($attendanceKey);
+        $studentAttendance->type = $type;
+        $studentAttendance->coach_id = $coachAttendance->coach_id;
+        $studentAttendance->batch_class_session_id = $coachAttendance->batch_class_session_id;
+        $studentAttendance->level_id = $studentBatch->level_id;
+        $studentAttendance->time = Carbon::now()->toTimeString();
+        $studentAttendance->remark = $studentAttendance->remark ?? '';
+        $studentAttendance->number_of_batch_sessions = $coachAttendance->number_of_batch_sessions;
+        $studentAttendance->homework_link = $coachAttendance->homework_link;
+        $studentAttendance->recording_link = $coachAttendance->recording_link;
+        $studentAttendance->chapter_name = $coachAttendance->chapter_name;
+        $studentAttendance->status = 'PRESENT';
+        $studentAttendance->save();
+
+        return response()->json([
+            'message' => 'Attendance marked successfully',
+            'status' => 'success',
+            'join_url' => $joinUrl,
+        ], 200);
     }
 
     /**
@@ -283,53 +282,105 @@ class StudentDashboardController extends Controller
      */
     public function joinClass(Request $request)
     {
-        $batchId = $request->input('id');
-        $studentId = $request->input('student_id');
-        $joinUrl = $request->input('join_url');
+        $batchId = (int) $request->input('id');
+        $studentId = (int) $request->input('student_id');
+        $type = strtoupper((string) $request->input('type', 'BATCH'));
         $today = Carbon::now()->toDateString();
 
-        if (!$batchId || !$studentId || !$joinUrl) {
+        if (! in_array($type, ['BATCH', 'COVERUP'], true)) {
+            return redirect()->back()->with('error', 'Invalid class type.');
+        }
+
+        $student = Student::where('user_id', Auth::id())->first();
+        if (! $batchId || ! $student || $student->id !== $studentId) {
             return redirect()->back()->with('error', 'Invalid join link.');
         }
 
-        if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
+        $studentBatch = $this->eligibleStudentBatch($studentId, $batchId, $today);
+        if (! $studentBatch) {
             return redirect()->back()->with('error', 'Class is not active for this student yet.');
         }
 
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)
-            ->where('date', $today)
+            ->whereDate('date', $today)
+            ->where('status', 'COMPLETED')
+            ->whereRaw('UPPER(type) = ?', [$type])
+            ->orderByDesc('id')
             ->first();
 
-        if ($coachAttendance) {
-            $studentAttendance = StudentAttendance::where('student_id', $studentId)
+        if (! $coachAttendance) {
+            return redirect()->back()->with('error', 'Class has not been started by the coach yet.');
+        }
+
+        $joinUrl = $this->studentJoinUrl($batchId, $type, $today, $coachAttendance);
+        if (! $joinUrl) {
+            return redirect()->back()->with('error', 'Class link is not available yet. Please try again shortly.');
+        }
+
+        $attendanceKey = [
+            'student_id' => $studentId,
+            'batch_id' => $batchId,
+            'date' => $today,
+        ];
+        if ($coachAttendance->batch_class_session_id) {
+            $attendanceKey['batch_class_session_id'] = $coachAttendance->batch_class_session_id;
+        }
+        $studentAttendance = StudentAttendance::firstOrNew($attendanceKey);
+        $studentAttendance->type = $type;
+        $studentAttendance->coach_id = $coachAttendance->coach_id;
+        $studentAttendance->batch_class_session_id = $coachAttendance->batch_class_session_id;
+        $studentAttendance->level_id = $studentBatch->level_id;
+        $studentAttendance->time = Carbon::now()->toTimeString();
+        $studentAttendance->status = 'PRESENT';
+        $studentAttendance->save();
+
+        return redirect()->away($joinUrl);
+    }
+
+    private function studentJoinUrl(
+        int $batchId,
+        string $type,
+        string $date,
+        ?CoachAttendance $coachAttendance = null
+    ): ?string
+    {
+        if ($type === 'COVERUP') {
+            return Coverupclass::where('batch_id', $batchId)
+                ->whereDate('date', $date)
+                ->value('join_url');
+        }
+
+        $batch = Batch::where('id', $batchId)->where('status', 'ACTIVE')->first();
+        if (! $batch) {
+            return null;
+        }
+
+        if ($coachAttendance?->batch_class_session_id) {
+            $session = BatchClassSession::where('id', $coachAttendance->batch_class_session_id)
                 ->where('batch_id', $batchId)
-                ->where('date', $today)
+                ->whereDate('class_date', $date)
+                ->whereIn('status', [BatchClassSession::STATUS_READY, BatchClassSession::STATUS_COMPLETED])
                 ->first();
 
-            if ($studentAttendance) {
-                $studentAttendance->status = 'PRESENT';
-                $studentAttendance->time = Carbon::now()->toTimeString();
-                $studentAttendance->save();
-            } else {
-                $otherStudentAttendance = StudentAttendance::where('batch_id', $batchId)
-                    ->where('date', $today)
-                    ->first();
-
-                if ($otherStudentAttendance) {
-                    $studentAttendance = new StudentAttendance();
-                    $studentAttendance->student_id = $studentId;
-                    $studentAttendance->coach_id = $coachAttendance->coach_id;
-                    $studentAttendance->batch_id = $batchId;
-                    $studentAttendance->level_id = $coachAttendance->level_id;
-                    $studentAttendance->date = $today;
-                    $studentAttendance->time = Carbon::now()->toTimeString();
-                    $studentAttendance->status = 'PRESENT';
-                    $studentAttendance->save();
-                }
+            if ($session) {
+                return $session->join_url;
             }
         }
 
-        return redirect()->away($joinUrl);
+        $schedule = BatchSchedule::where('batch_id', $batchId)
+            ->where('status', 'ACTIVE')
+            ->where('weekday', Carbon::parse($date)->format('l'))
+            ->first();
+
+        if (! $schedule) {
+            return null;
+        }
+
+        try {
+            return app(BatchClassSessionService::class)->ensureJoinUrl($batch, $schedule, $date);
+        } catch (\Throwable $exception) {
+            return $batch->join_url;
+        }
     }
 
     public function joinDemoSession(DemoSession $demo_session)

@@ -26,6 +26,7 @@ use App\Models\StudentBatch;
 use App\Models\StudentFee;
 use App\Models\User;
 use App\Services\BatchOccurrenceService;
+use App\Services\BatchClassSessionService;
 use App\Services\CoachAvailabilityService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Http\RedirectResponse;
@@ -42,6 +43,50 @@ use Yajra\DataTables\Facades\DataTables;
 
 class DashboardController extends Controller
 {
+    private function regularBatchStartUrl(Batch $batch, BatchSchedule $schedule, string $date): ?string
+    {
+        $sessions = app(BatchClassSessionService::class);
+        $date = Carbon::parse($date)->toDateString();
+
+        if ($date < Carbon::today()->toDateString()) {
+            return $sessions->startUrl($batch, $schedule, $date);
+        }
+
+        try {
+            return $sessions->ensureStartUrl($batch, $schedule, $date);
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to resolve regular batch start URL.', [
+                'batch_id' => $batch->id,
+                'batch_schedule_id' => $schedule->id,
+                'class_date' => $date,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return $batch->start_url;
+        }
+    }
+
+    private function regularBatchSessionId(Batch $batch, BatchSchedule $schedule, string $date): ?int
+    {
+        return app(BatchClassSessionService::class)->find($batch, $schedule, $date)?->id;
+    }
+
+    private function latestRegularBatchAttendance(
+        Batch $batch,
+        BatchSchedule $schedule,
+        string $date,
+        int $coachId
+    ): ?CoachAttendance {
+        $sessionId = $this->regularBatchSessionId($batch, $schedule, $date);
+
+        return CoachAttendance::where('batch_id', $batch->id)
+            ->where('coach_id', $coachId)
+            ->whereDate('date', $date)
+            ->when($sessionId, fn ($query) => $query->where('batch_class_session_id', $sessionId))
+            ->orderByDesc('id')
+            ->first();
+    }
+
     private function dashboardAllowedCountries(User $user): array
     {
         if ($user->hasRole('Admin') || $user->hasRole('SuperAdmin')) {
@@ -478,10 +523,12 @@ class DashboardController extends Controller
                         continue;
                     }
                     $status                  = $schedule->status;
-                    $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
-                        ->where('coach_id', $coachId)
-                        ->whereDate('date', $yesterdayDate)
-                        ->orderBy('id', 'desc')->first();
+                    $latest_batch_attendance = $this->latestRegularBatchAttendance(
+                        $batch,
+                        $schedule,
+                        $yesterdayDate,
+                        $coachId
+                    );
 
                     if ($latest_batch_attendance) {
                         $status = $latest_batch_attendance->status;
@@ -501,7 +548,9 @@ class DashboardController extends Controller
                         'status'          => $status,
                         'type'            => 'Yesterday Batch',
                         'active_students' => $batch->active_students_count,
-                        'start_url' => $batch->start_url,
+                        'start_url' => $this->regularBatchStartUrl($batch, $schedule, $yesterdayDate),
+                        'batch_schedule_id' => $schedule->id,
+                        'batch_class_session_id' => $this->regularBatchSessionId($batch, $schedule, $yesterdayDate),
                         'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                         'attendance_exists' => $latest_batch_attendance ? true : false,
                         'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
@@ -551,10 +600,7 @@ class DashboardController extends Controller
                     continue;
                 }
                 $status                  = $schedule->status;
-                $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
-                    ->where('coach_id', $coachId)
-                    ->whereDate('date', $date)
-                    ->orderBy('id', 'desc')->first();
+                $latest_batch_attendance = $this->latestRegularBatchAttendance($batch, $schedule, $date, $coachId);
 
                 if ($latest_batch_attendance) {
                     $status = $latest_batch_attendance->status;
@@ -571,12 +617,14 @@ class DashboardController extends Controller
 
                 $combinedData[] = [
                     'id'              => $batch->id,
+                    'batch_schedule_id' => $schedule->id,
                     'name'            => $batch->name,
                     'slot'            => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
                     'status'          => $status,
                     'type'            => 'Batch',
                     'active_students' => $studentCount,
-                    'start_url' => $batch->start_url,
+                    'start_url' => $this->regularBatchStartUrl($batch, $schedule, $date),
+                    'batch_class_session_id' => $this->regularBatchSessionId($batch, $schedule, $date),
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
@@ -661,7 +709,7 @@ class DashboardController extends Controller
                     'status'          => $status,
                     'type'            => 'Coverup',
                     'active_students' => $batch->active_students_count,
-                    'start_url' => optional($coverupClasses->firstWhere('batch_id', $batch->id))->start_url ?? $batch->start_url,
+                    'start_url' => optional($coverupClasses->firstWhere('batch_id', $batch->id))->start_url,
                     'homework_link' => $latest_batch_attendance ? $latest_batch_attendance->homework_link : null,
                     'attendance_exists' => $latest_batch_attendance ? true : false,
                     'attendance_time' => $latest_batch_attendance ? $latest_batch_attendance->created_at->format('Y-m-d H:i:s') : null,
@@ -775,10 +823,12 @@ class DashboardController extends Controller
                         continue;
                     }
                     $status = $schedule->status;
-                    $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
-                        ->where('coach_id', $coachId)
-                        ->whereDate('date', $yesterdayDate)
-                        ->orderBy('id', 'desc')->first();
+                    $latest_batch_attendance = $this->latestRegularBatchAttendance(
+                        $batch,
+                        $schedule,
+                        $yesterdayDate,
+                        $coachId
+                    );
 
                     if ($latest_batch_attendance) {
                         $status = $latest_batch_attendance->status;
@@ -813,7 +863,9 @@ class DashboardController extends Controller
                         'type'            => 'Yesterday Batch',
                         'coverup' => 'No',
                         'active_students' => $batch->active_students_count,
-                        'start_url' => $batch->start_url,
+                        'start_url' => $this->regularBatchStartUrl($batch, $schedule, $yesterdayDate),
+                        'batch_schedule_id' => $schedule->id,
+                        'batch_class_session_id' => $this->regularBatchSessionId($batch, $schedule, $yesterdayDate),
                         'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED']),
                     ];
                 }
@@ -857,10 +909,7 @@ class DashboardController extends Controller
 
                 // ✅ Set attendance status
                 $status = $schedule->status;
-                $latest_batch_attendance = CoachAttendance::where('batch_id', $schedule->batch_id)
-                    ->where('coach_id', $coachId)
-                    ->whereDate('date', $date)
-                    ->orderBy('id', 'desc')->first();
+                $latest_batch_attendance = $this->latestRegularBatchAttendance($batch, $schedule, $date, $coachId);
 
                 if ($latest_batch_attendance) {
                     $status = $latest_batch_attendance->status;
@@ -877,13 +926,15 @@ class DashboardController extends Controller
 
                 $combinedData[] = [
                     'id' => $batch->id,
+                    'batch_schedule_id' => $schedule->id,
                     'name' => $batch->name,
                     'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
                     'status' => $status,
                     'type' => 'BATCH',
                     'coverup' => 'No',
                     'active_students' => $studentCount,
-                    'start_url' => $batch->start_url,
+                    'start_url' => $this->regularBatchStartUrl($batch, $schedule, $date),
+                    'batch_class_session_id' => $this->regularBatchSessionId($batch, $schedule, $date),
                     'is_one_to_one' => $batch->is_one_to_one,
                     'is_teachable' => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
@@ -1018,6 +1069,7 @@ class DashboardController extends Controller
             foreach ($batch->batchSchedules as $schedule) {
                 $baseItem = [
                     'id' => $batch->id,
+                    'batch_schedule_id' => $schedule->id,
                     'name' => $batch->name,
                     'slot' => Carbon::parse($schedule->from_time)->format('h:i A') . ' - ' . Carbon::parse($schedule->to_time)->format('h:i A'),
                     'active_students' => $batch->active_students_count,
@@ -1050,11 +1102,7 @@ class DashboardController extends Controller
                     continue;
                 }
 
-                $latestAttendance = CoachAttendance::where('batch_id', $schedule->batch_id)
-                    ->where('coach_id', $coachId)
-                    ->whereDate('date', $date)
-                    ->orderBy('id', 'desc')
-                    ->first();
+                $latestAttendance = $this->latestRegularBatchAttendance($batch, $schedule, $date, $coachId);
                 $status = $latestAttendance ? $latestAttendance->status : $schedule->status;
 
                 $items[] = array_merge($baseItem, [
@@ -1065,7 +1113,8 @@ class DashboardController extends Controller
                         ->where('start_date', '<=', $date)
                         ->where('end_date', '>=', $date)
                         ->count(),
-                    'start_url' => $batch->start_url,
+                    'start_url' => $this->regularBatchStartUrl($batch, $schedule, $date),
+                    'batch_class_session_id' => $this->regularBatchSessionId($batch, $schedule, $date),
                     'homework_link' => $latestAttendance ? $latestAttendance->homework_link : null,
                     'attendance_exists' => (bool) $latestAttendance,
                     'attendance_time' => $latestAttendance ? $latestAttendance->created_at->format('Y-m-d H:i:s') : null,
@@ -1137,7 +1186,7 @@ class DashboardController extends Controller
                         ->where('start_date', '<=', $date)
                         ->where('end_date', '>=', $date)
                         ->count(),
-                    'start_url' => $coverup->start_url ?? $batch->start_url,
+                    'start_url' => $coverup->start_url,
                     'homework_link' => $latestAttendance ? $latestAttendance->homework_link : null,
                     'attendance_exists' => (bool) $latestAttendance,
                     'attendance_time' => $latestAttendance ? $latestAttendance->created_at->format('Y-m-d H:i:s') : null,
@@ -1279,6 +1328,7 @@ class DashboardController extends Controller
         $attendanceDate = $request->input('attendance_date');
         $attendanceId   = $request->input('attendance_id');
         $attendanceTime = $request->input('attendance_time');
+        $batchScheduleId = $request->input('batch_schedule_id');
 
         if (! in_array($type, ['Demo', 'Yesterday Batch'], true) && ! in_array($normalizedType, ['BATCH', 'COVERUP'], true)) {
             return response()->json(['error' => 'Invalid type specified'], 400);
@@ -1303,6 +1353,7 @@ class DashboardController extends Controller
                 ->first();
             
             $todaysSchedule = BatchSchedule::where('batch_id', $id)
+                ->when($batchScheduleId, fn ($query) => $query->where('id', $batchScheduleId))
                 ->where('weekday', $dayName)
                 ->first();
 
@@ -1321,6 +1372,10 @@ class DashboardController extends Controller
             if (! $data) {
                 return response()->json(['error' => 'Data not found'], 404);
             }
+
+            $batchClassSession = $normalizedType === 'COVERUP' || ! $todaysSchedule
+                ? null
+                : app(BatchClassSessionService::class)->find($data, $todaysSchedule, $date);
 
             // Batch level + student batch
             $activeBatch     = $data->studentBatches()->first();
@@ -1341,11 +1396,12 @@ class DashboardController extends Controller
                     $q->where('batch_id', $id);
                 })
                 ->whereDate('date', $date)
+                ->when($batchClassSession, fn ($query) => $query->where('batch_class_session_id', $batchClassSession->id))
                 ->get()
                 ->keyBy('student_id');
 
             // Batch time
-            $activeSlot = $data->batchSchedules->firstWhere('status', 'ACTIVE');
+            $activeSlot = $todaysSchedule ?: $data->batchSchedules->firstWhere('status', 'ACTIVE');
             $fromTime   = $activeSlot ? Carbon::parse($activeSlot->from_time)->format('h:i A') : null;
             $toTime     = $activeSlot ? Carbon::parse($activeSlot->to_time)->format('h:i A') : null;
             $noticeSchedule = $todaysSchedule ?: $activeSlot;
@@ -1354,6 +1410,7 @@ class DashboardController extends Controller
             if(empty($attendanceId)) {
                 $todaysCoachAttendance = CoachAttendance::where('batch_id', $id)
                     ->whereDate('date', $date)
+                    ->when($batchClassSession, fn ($query) => $query->where('batch_class_session_id', $batchClassSession->id))
                     ->orderBy('id', 'desc')
                     ->first();
 
@@ -1406,6 +1463,7 @@ class DashboardController extends Controller
                 'isDelayed'             => $isDelayed,
                 'delayTime'             => $delayTime,
                 'delayedBatchNotice'    => $delayedBatchNotice,
+                'batchScheduleId'       => $noticeSchedule?->id,
             ]);
         }
 
@@ -1816,6 +1874,7 @@ class DashboardController extends Controller
             'coach_id'        => 'required|integer',
             'type'            => 'required|string',
             'batch_id'        => 'required|integer',
+            'batch_schedule_id' => 'nullable|integer|exists:batch_schedules,id',
             'date'            => 'required|date',
             'time'            => 'required',
             'student_ids'     => 'required|array',
@@ -1840,17 +1899,46 @@ class DashboardController extends Controller
         }
 
         $attendanceDate = Carbon::parse($request->input('date'))->toDateString();
-        $coachAttendance = CoachAttendance::where('batch_id', $request->batch_id)->whereDate('date', $attendanceDate)->first();
-
         $date = $request->input('date');
         $todaysDay = Carbon::parse($date)->format('l');
         $schedule = BatchSchedule::where('batch_id', $batch->id)
+            ->when($request->batch_schedule_id, fn ($query) => $query->where('id', $request->batch_schedule_id))
             ->where('weekday', $todaysDay)
             ->first();
 
         if (! $schedule) {
             return response()->json(['error' => 'No schedule found for this day'], 422);
         }
+
+        $normalizedType = strtoupper((string) $request->type);
+        $authenticatedCoach = auth()->user()?->coach;
+        if (! $authenticatedCoach
+            || (int) $authenticatedCoach->id !== (int) $coachId
+            || (int) $authenticatedCoach->id !== (int) $request->coach_id) {
+            return response()->json(['error' => 'You are not allowed to mark this attendance.'], 403);
+        }
+
+        if ($normalizedType === 'COVERUP') {
+            $isAssignedCoverupCoach = Coverupclass::where('batch_id', $batch->id)
+                ->where('batchschedule_id', $schedule->id)
+                ->whereDate('date', $attendanceDate)
+                ->where('new_coach_id', $authenticatedCoach->id)
+                ->exists();
+            if (! $isAssignedCoverupCoach) {
+                return response()->json(['error' => 'This cover-up class is assigned to another coach.'], 403);
+            }
+        } elseif ((int) $batch->coach_id !== (int) $authenticatedCoach->id) {
+            return response()->json(['error' => 'This batch is assigned to another coach.'], 403);
+        }
+
+        $batchClassSession = $normalizedType === 'COVERUP'
+            ? null
+            : app(BatchClassSessionService::class)->find($batch, $schedule, $attendanceDate);
+
+        $coachAttendance = CoachAttendance::where('batch_id', $request->batch_id)
+            ->whereDate('date', $attendanceDate)
+            ->when($batchClassSession, fn ($query) => $query->where('batch_class_session_id', $batchClassSession->id))
+            ->first();
 
         $occurrences = app(BatchOccurrenceService::class);
         if (strtoupper($request->type) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $attendanceDate, $schedule)) {
@@ -1868,6 +1956,7 @@ class DashboardController extends Controller
         }
 
         if ($coachAttendance) {
+            $coachAttendance->batch_class_session_id = $batchClassSession?->id;
             $coachAttendance->status = $request->status;
             $coachAttendance->homework_link = $request->homework_link ?? '';
             $coachAttendance->chapter_name = $request->chapter_name ?? '';
@@ -1883,6 +1972,7 @@ class DashboardController extends Controller
             $coachAttendance->coach_id = $request->coach_id;
             $coachAttendance->type = strtoupper($request->type);
             $coachAttendance->batch_id = $request->batch_id;
+            $coachAttendance->batch_class_session_id = $batchClassSession?->id;
             $coachAttendance->date = $attendanceDate;
             $coachAttendance->time = $request->input('time');
             $coachAttendance->status = $request->status;
@@ -1979,9 +2069,11 @@ class DashboardController extends Controller
             $studentAttendance = StudentAttendance::where('batch_id', $request->batch_id)
                 ->where('student_id', $studentId)
                 ->whereDate('date', $attendanceDate)
+                ->when($batchClassSession, fn ($query) => $query->where('batch_class_session_id', $batchClassSession->id))
                 ->first(); 
             
             if ($studentAttendance) {
+                $studentAttendance->batch_class_session_id = $batchClassSession?->id;
                 $studentAttendance->status = $request->studentStatus[$studentId] ?? 'ABSENT';
                 $studentAttendance->remark = $request->studentRemark[$studentId] ?? '';
                 $studentAttendance->time = $request->input('time');
@@ -1998,6 +2090,7 @@ class DashboardController extends Controller
                 $studentAttendance = new StudentAttendance();
                 $studentAttendance->student_id = $studentId;
                 $studentAttendance->batch_id = $request->batch_id;
+                $studentAttendance->batch_class_session_id = $batchClassSession?->id;
                 $studentAttendance->level_id = $studentBatch ? $studentBatch->level_id : null; 
                 
                 $studentAttendance->date = $attendanceDate;
@@ -2031,13 +2124,23 @@ class DashboardController extends Controller
             }
         }
 
-        return response()->json(['status' => 'success', 'message' => 'Attendance recorded successfully', 'start_url' => $batch->start_url], 200);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Attendance recorded successfully',
+            'start_url' => $normalizedType === 'COVERUP'
+                ? Coverupclass::where('batch_id', $batch->id)
+                    ->where('batchschedule_id', $schedule->id)
+                    ->whereDate('date', $attendanceDate)
+                    ->value('start_url')
+                : $this->regularBatchStartUrl($batch, $schedule, $attendanceDate),
+        ], 200);
     }
 
     public function preBatchAttendance(Request $request)
     {
         $request->validate([
             'batch_id' => 'required|integer|exists:batchs,id',
+            'batch_schedule_id' => 'nullable|integer|exists:batch_schedules,id',
             'date' => 'nullable|date',
         ]);
 
@@ -2050,8 +2153,13 @@ class DashboardController extends Controller
             }, 'coach', 'parent'])
             ->first();
 
+        if (! $batch) {
+            return response()->json(['error' => 'Batch not found'], 404);
+        }
+
         $todaysDay = Carbon::parse($date)->format('l');
         $schedule = BatchSchedule::where('batch_id', $batch->id)
+            ->when($request->batch_schedule_id, fn ($query) => $query->where('id', $request->batch_schedule_id))
             ->where('weekday', $todaysDay)
             ->first();
 
@@ -2059,15 +2167,61 @@ class DashboardController extends Controller
             return response()->json(['error' => 'No schedule found for this day'], 422);
         }
 
+        $attendanceType = strtoupper($request->input('type', 'BATCH'));
+        if (! in_array($attendanceType, ['BATCH', 'COVERUP'], true)) {
+            return response()->json(['error' => 'Invalid class type.'], 422);
+        }
+
         $occurrences = app(BatchOccurrenceService::class);
-        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->holidayForBatch($batch, $date, $schedule)) {
+        if ($attendanceType !== 'COVERUP' && $occurrences->holidayForBatch($batch, $date, $schedule)) {
             return response()->json(['error' => 'This class is blocked because of a regional holiday.'], 422);
         }
 
-        if (strtoupper($request->input('type', 'BATCH')) !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
+        if ($attendanceType !== 'COVERUP' && $occurrences->approvedLeaveForSchedule($batch->coach_id, $date, $schedule->from_time, $schedule->to_time)) {
             return response()->json(['error' => 'This class is blocked because the coach leave is approved.'], 422);
         }
 
+        $user = auth()->user();
+        $coach = $user?->coach;
+        if (! $coach || $coach->status !== 'ACTIVE') {
+            return response()->json(['error' => 'Your coach account is not active. Please contact support.'], 403);
+        }
+
+        $coverup = null;
+        $batchClassSession = null;
+        $startUrl = null;
+
+        if ($attendanceType === 'COVERUP') {
+            $coverup = Coverupclass::where('batch_id', $batch->id)
+                ->where('batchschedule_id', $schedule->id)
+                ->whereDate('date', $date)
+                ->where('new_coach_id', $coach->id)
+                ->first();
+            $startUrl = $coverup?->start_url;
+        } else {
+            if ((int) $batch->coach_id !== (int) $coach->id) {
+                return response()->json(['error' => 'This batch is assigned to another coach.'], 403);
+            }
+
+            try {
+                $batchClassSession = app(BatchClassSessionService::class)->ensure($batch, $schedule, $date);
+                $startUrl = app(BatchClassSessionService::class)->startUrl($batch, $schedule, $date);
+            } catch (\Throwable $exception) {
+                Log::error('Unable to prepare regular batch meeting before attendance.', [
+                    'batch_id' => $batch->id,
+                    'batch_schedule_id' => $schedule->id,
+                    'class_date' => $date,
+                    'message' => $exception->getMessage(),
+                ]);
+                $startUrl = $batch->start_url;
+            }
+        }
+
+        if (! $startUrl) {
+            return response()->json([
+                'error' => 'The class meeting link is not available yet. Please try again shortly.',
+            ], 503);
+        }
 
         $scheduleDate = Carbon::parse($date);
         $fromTime = Carbon::createFromFormat('H:i:s', $schedule->from_time)->setDate(
@@ -2085,24 +2239,22 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Coach change is not allowed after 10 minutes from batch start.'], 403);
         }
     
-        $user = auth()->user();
-        $coach = $user->coach;
-        if (! $coach || $coach->status !== 'ACTIVE') {
-            return response()->json(['error' => 'Your coach account is not active. Please contact support.'], 403);
-        }
         $attendanceDate = $scheduleDate->toDateString();
         $attendanceTime = Carbon::now()->format('H:i:s');
 
         // Check if attendance already exists for this batch and date
         $existingCoachAttendance = CoachAttendance::where('batch_id', $batch->id)
             ->whereDate('date', $attendanceDate)
+            ->whereRaw('UPPER(type) = ?', [$attendanceType])
+            ->when($batchClassSession, fn ($query) => $query->where('batch_class_session_id', $batchClassSession->id))
             ->first();
 
         // If attendance exists, just return success without creating new entry
         if ($existingCoachAttendance) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Attendance already marked for this batch today, no duplicate entry created.'
+                'message' => 'Attendance already marked for this batch today, no duplicate entry created.',
+                'start_url' => $startUrl,
             ]);
         }
 
@@ -2113,8 +2265,9 @@ class DashboardController extends Controller
         // Create coach attendance record with status COMPLETED
         $coachAttendance = new CoachAttendance();
         $coachAttendance->coach_id = $coach->id;
-        $coachAttendance->type = strtoupper($request->type);
+        $coachAttendance->type = $attendanceType;
         $coachAttendance->batch_id = $batch->id;
+        $coachAttendance->batch_class_session_id = $batchClassSession?->id;
         $coachAttendance->date = $attendanceDate;
         $coachAttendance->time = $attendanceTime;
         $coachAttendance->status = 'COMPLETED';
@@ -2124,9 +2277,10 @@ class DashboardController extends Controller
         // Mark all students as ABSENT with remark
         foreach ($batch->studentBatches as $studentBatch) {
             $studentAttendance = new StudentAttendance();
-            $studentAttendance->type = strtoupper($request->type);  
+            $studentAttendance->type = $attendanceType;
             $studentAttendance->student_id = $studentBatch->student_id;
             $studentAttendance->batch_id = $batch->id;
+            $studentAttendance->batch_class_session_id = $batchClassSession?->id;
             $studentAttendance->level_id = $studentBatch->level_id;
             $studentAttendance->date = $attendanceDate;
             $studentAttendance->time = $attendanceTime;
@@ -2139,6 +2293,7 @@ class DashboardController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Class attendance marked successfully.',
+            'start_url' => $startUrl,
         ]);
     }
     
@@ -2152,40 +2307,18 @@ class DashboardController extends Controller
             return response()->json(['error' => 'No meeting ID found'], 400);
         }
 
-        $batch = Batch::where('zoom_meeting_id', $meetingId)->first();
+        $session = app(BatchClassSessionService::class)->sessionForMeeting((string) $meetingId);
+        if ($session) {
+            $session->update(['status' => \App\Models\BatchClassSession::STATUS_COMPLETED]);
 
-        if (! $batch) {
-            return response()->json(['error' => 'No batch found for this meeting'], 404);
+            return response()->json(['status' => 'success'], 200);
         }
 
-        $coach = $batch->coach;
-
-        $studentIds = StudentBatch::where('batch_id', $batch->id)
-            ->where('status', 'ACTIVE')
-            ->pluck('student_id')
-            ->toArray();
-
-        $studentStatus = [];
-        foreach ($studentIds as $id) {
-            $studentStatus[$id] = 'PRESENT'; // optional: use Zoom's participant API to improve this
+        if (! Batch::where('zoom_meeting_id', $meetingId)->exists()) {
+            return response()->json(['error' => 'No batch session found for this meeting'], 404);
         }
 
-        $fakeRequest = new Request([
-            'coach_id'        => $coach->id,
-            'type'            => 'Zoom',
-            'batch_id'        => $batch->id,
-            'level_id'        => $batch->level_id,
-            'date'            => now()->toDateString(),
-            'time'            => now()->format('h:i A'),
-            'status'          => 'COMPLETED',
-            'student_ids'     => $studentIds,
-            'studentStatus'   => $studentStatus,
-            'chapter_name'    => 'Automated from Zoom',
-        ]);
-
-        // You can put your batchAttendance logic right here OR
-        // Call a trait/method you extract for cleanliness
-        $this->storeBatchAttendance($fakeRequest);
+        // Legacy batch meetings have no reliable occurrence identity. Attendance remains manual.
 
         return response()->json(['status' => 'success'], 200);
     }

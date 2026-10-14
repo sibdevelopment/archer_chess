@@ -15,6 +15,7 @@ class CoachAttendance extends BaseModel
         'type',
         'demolead_id',
         'batch_id',
+        'batch_class_session_id',
         'masterclass_id',
         'date',
         'time',
@@ -42,6 +43,11 @@ class CoachAttendance extends BaseModel
     public function batch()
     {
         return $this->belongsTo(Batch::class, 'batch_id');
+    }
+
+    public function batchClassSession()
+    {
+        return $this->belongsTo(BatchClassSession::class);
     }
     
     public static function boot()

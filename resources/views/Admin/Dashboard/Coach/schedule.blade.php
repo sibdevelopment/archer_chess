@@ -39,9 +39,12 @@
                         ->whereDate('date', $scheduleDate)
                         ->exists();
                 } elseif (!$isDemoSchedule) {
-                    $isAttendaceMarked = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                        ->whereDate('date', $scheduleDate)
-                        ->exists();
+                    $attendanceQuery = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
+                        ->whereDate('date', $scheduleDate);
+                    if (!empty($schedule['batch_class_session_id'])) {
+                        $attendanceQuery->where('batch_class_session_id', $schedule['batch_class_session_id']);
+                    }
+                    $isAttendaceMarked = $attendanceQuery->exists();
                 }
 
                 if($schedule['id'] == '4584'){
@@ -98,6 +101,7 @@
                         @elseif ($schedule['type'] === 'Demo')
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
+                                data-schedule-id="{{ $schedule['batch_schedule_id'] ?? '' }}"
                                 data-date="{{ $scheduleDate }}"
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
@@ -105,6 +109,7 @@
                         @else
                             <button class="btn btn-{{ $badgeColor }} status-btn" data-id="{{ $schedule['id'] }}"
                                 data-btn="statusBtn" data-type="{{ $schedule['type'] }}"
+                                data-schedule-id="{{ $schedule['batch_schedule_id'] ?? '' }}"
                                 data-date="{{ $scheduleDate }}"
                                 style="--bs-btn-padding-x: 10px !important; --bs-btn-padding-y: 1px !important; --bs-btn-border-radius: 4px; font-size: 0.875rem;">
                                 {{ $schedule['status'] }}
@@ -180,10 +185,12 @@
                         if ($schedule['type'] === 'Demo') {
                             $latestAttendance = $demoLatestAttendance;
                         } else {
-                            $latestAttendance = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
-                                ->whereDate('date', $scheduleDate)
-                                ->latest()
-                                ->first();
+                            $latestAttendanceQuery = App\Models\CoachAttendance::where('batch_id', $schedule['id'])
+                                ->whereDate('date', $scheduleDate);
+                            if (!empty($schedule['batch_class_session_id'])) {
+                                $latestAttendanceQuery->where('batch_class_session_id', $schedule['batch_class_session_id']);
+                            }
+                            $latestAttendance = $latestAttendanceQuery->latest()->first();
                         }
 
                         $timeDiff = $now->diffInMinutes($slotStartTime, false); // Negative if now is before start

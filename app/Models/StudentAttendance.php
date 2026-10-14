@@ -20,6 +20,7 @@ class StudentAttendance extends BaseModel
         'demolead_id',
         'level_id',
         'batch_id',
+        'batch_class_session_id',
         'number_of_batch_sessions',
         'status',
         'remark',
@@ -72,6 +73,11 @@ class StudentAttendance extends BaseModel
     public function batch()
     {
         return $this->belongsTo(Batch::class);
+    }
+
+    public function batchClassSession()
+    {
+        return $this->belongsTo(BatchClassSession::class);
     }
 
     public function level()

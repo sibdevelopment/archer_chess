@@ -43,6 +43,10 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('check:payment')->everyMinute();
 
+        $schedule->command('batch-sessions:prepare --hours=24')
+            ->everyFiveMinutes()
+            ->withoutOverlapping();
+
         $schedule->command('batchs:sync-empty-to-upcoming')->dailyAt('01:15');
 
 

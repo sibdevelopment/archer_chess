@@ -118,6 +118,7 @@
     <input type="hidden" name="coach_id" value="{{ $coachId }}">
     <input type="hidden" name="type" value="{{ $type }}">
     <input type="hidden" name="batch_id" value="{{ $data->id }}">
+    <input type="hidden" name="batch_schedule_id" value="{{ $batchScheduleId ?? '' }}">
     <input type="hidden" name="batchEndTiming" value="{{ $toTime }}">
     <input type="hidden" value="{{ $batchLevel->id }}" name="level_id">
     <!-- ------------------------------------------------------------------------------ :: -->

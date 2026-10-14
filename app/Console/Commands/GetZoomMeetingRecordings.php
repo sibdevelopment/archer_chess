@@ -8,6 +8,7 @@ use App\Models\Masterclass;
 use App\Models\CoachAttendance;
 use Illuminate\Console\Command;
 use App\Models\StudentAttendance;
+use App\Models\BatchClassSession;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Log;
 
@@ -213,6 +214,8 @@ class GetZoomMeetingRecordings extends Command
     // For a range of dates
     public function handle()
     {
+        $this->syncOccurrenceRecordings();
+
         $startDateTime = Carbon::now()->subDays(7);
         $endDateTime = Carbon::now();
 
@@ -310,6 +313,66 @@ class GetZoomMeetingRecordings extends Command
 
             // Move to next date
             $current->addDay();
+        }
+    }
+
+    private function syncOccurrenceRecordings(): void
+    {
+        $sessions = BatchClassSession::with(['batch', 'coach'])
+            ->whereNotNull('zoom_meeting_id')
+            ->where('class_date', '>=', Carbon::now()->subDays(7)->toDateString())
+            ->whereIn('status', [BatchClassSession::STATUS_READY, BatchClassSession::STATUS_COMPLETED])
+            ->get()
+            ->groupBy('coach_id');
+
+        foreach ($sessions as $coachSessions) {
+            $coach = $coachSessions->first()?->coach;
+            if (! $coach || ! $coach->zoom_api_key || ! $coach->zoom_client_secret || ! $coach->zoom_id || ! $coach->zoom_user_id) {
+                continue;
+            }
+
+            try {
+                $zoom = new ZoomMeetingService($coach->zoom_api_key, $coach->zoom_client_secret, $coach->zoom_id);
+                $recordings = collect($zoom->getRecordingLinks($coach->zoom_user_id) ?? [])
+                    ->filter(fn ($recording) => ! empty($recording['meeting_id']) && ! empty($recording['play_url']))
+                    ->keyBy(fn ($recording) => (string) $recording['meeting_id']);
+
+                foreach ($coachSessions as $session) {
+                    $recording = $recordings->get((string) $session->zoom_meeting_id);
+                    if (! $recording) {
+                        continue;
+                    }
+
+                    CoachAttendance::where(function ($query) use ($session) {
+                        $query->where('batch_class_session_id', $session->id)
+                            ->orWhere(function ($legacy) use ($session) {
+                                $legacy->whereNull('batch_class_session_id')
+                                    ->where('batch_id', $session->batch_id)
+                                    ->whereDate('date', $session->class_date);
+                            });
+                    })->where(function ($query) {
+                        $query->whereNull('recording_link')->orWhere('recording_link', '');
+                    })->update(['recording_link' => $recording['play_url']]);
+
+                    StudentAttendance::where(function ($query) use ($session) {
+                        $query->where('batch_class_session_id', $session->id)
+                            ->orWhere(function ($legacy) use ($session) {
+                                $legacy->whereNull('batch_class_session_id')
+                                    ->where('batch_id', $session->batch_id)
+                                    ->whereDate('date', $session->class_date);
+                            });
+                    })->where(function ($query) {
+                        $query->whereNull('recording_link')->orWhere('recording_link', '');
+                    })->update(['recording_link' => $recording['play_url']]);
+
+                    $session->update(['status' => BatchClassSession::STATUS_COMPLETED]);
+                }
+            } catch (\Throwable $exception) {
+                Log::error('Unable to sync regular batch occurrence recordings.', [
+                    'coach_id' => $coach->id,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         }
     }
 

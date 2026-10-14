@@ -401,13 +401,13 @@
                                     @if ($firstMatchingClass['weekday'] == $currentDay && $now->between($showFrom, $showTill))                                    
                                         <span>({{ $studentLocalWeekday }})</span>
                                         @if (isset($coverup_class) && !empty($coverup_class))
-                                            @php $joinFallbackUrl = route('admin.student-dashboard.join-class') . '?id=' . $coverup_class->batch_id . '&student_id=' . $student->id . '&join_url=' . rawurlencode($coverup_class->join_url ?? ''); @endphp
-                                            <a href="{{ $joinFallbackUrl }}" class="btn btn-primary-theme-outline joinBtn" data-type="COVERUP" data-id="{{ $coverup_class->batch_id }}" data-studentid="{{ $student->id }}" data-join_url="{{ $coverup_class->join_url }}" target="_blank">
+                                            @php $joinFallbackUrl = route('admin.student-dashboard.join-class', ['id' => $coverup_class->batch_id, 'student_id' => $student->id, 'type' => 'COVERUP']); @endphp
+                                            <a href="{{ $joinFallbackUrl }}" class="btn btn-primary-theme-outline joinBtn" data-type="COVERUP" data-id="{{ $coverup_class->batch_id }}" data-studentid="{{ $student->id }}" target="_blank">
                                                 Join &nbsp;
                                             </a>
                                         @else
-                                            @php $joinFallbackUrl = route('admin.student-dashboard.join-class') . '?id=' . $batch->id . '&student_id=' . $student->id . '&join_url=' . rawurlencode($batch->join_url ?? ''); @endphp
-                                            <a href="{{ $joinFallbackUrl }}" class="btn btn-primary-theme-outline joinBtn" data-type="BATCH" data-id="{{ $batch->id }}" data-studentid="{{ $student->id }}" data-join_url="{{ $batch->join_url }}" target="_blank">
+                                            @php $joinFallbackUrl = route('admin.student-dashboard.join-class', ['id' => $batch->id, 'student_id' => $student->id, 'type' => 'BATCH']); @endphp
+                                            <a href="{{ $joinFallbackUrl }}" class="btn btn-primary-theme-outline joinBtn" data-type="BATCH" data-id="{{ $batch->id }}" data-studentid="{{ $student->id }}" target="_blank">
                                                 Join &nbsp;
                                             </a>
                                         @endif
@@ -1248,13 +1248,7 @@
             var type = $btn.data('type');
             var id = $btn.data('id');
             var studentId = $btn.data('studentid');
-            var joinUrl = $btn.data('join_url');
             var fallbackHref = $btn.attr('href');
-
-            if (!joinUrl) {
-                if (fallbackHref) window.location.href = fallbackHref;
-                return;
-            }
 
             var newWindow = null;
             try {
@@ -1280,6 +1274,12 @@
                         if (typeof toastr !== 'undefined') {
                             toastr.error(errorMsg, '', { showMethod: "slideDown", hideMethod: "slideUp", timeOut: 3000, closeButton: true });
                         }
+                        return;
+                    }
+                    var joinUrl = response.join_url;
+                    if (!joinUrl) {
+                        if (newWindow) try { newWindow.close(); } catch (e) {}
+                        if (fallbackHref) window.location.href = fallbackHref;
                         return;
                     }
                     if (newWindow) {

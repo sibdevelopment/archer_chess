@@ -15,7 +15,9 @@ use Illuminate\Console\Command;
 use App\Models\StudentAttendance;
 use Illuminate\Support\Facades\Log;
 use App\Models\DelayedBatch;
+use App\Models\BatchClassSession;
 use App\Services\BatchOccurrenceService;
+use App\Services\BatchClassSessionService;
 
 class CancelDelayBatch extends Command
 {
@@ -63,6 +65,8 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
+            $batchClassSession = app(BatchClassSessionService::class)->find($batch, $schedule, $date);
+
             $coverupExists = $occurrences->coverupForOccurrence($batchId, $schedule->id, $date) !== null;
 
             if ($coverupExists) {
@@ -71,7 +75,7 @@ class CancelDelayBatch extends Command
             }
 
             if ($occurrences->holidayForBatch($batch, $date, $schedule)) {
-                $occurrences->markHolidayOccurrence($batch, $schedule, $date);
+                $occurrences->markHolidayOccurrence($batch, $schedule, $date, $batchClassSession?->id);
                 $this->info("Marked HOLIDAY for batch {$schedule->batch_id}.");
                 continue;
             }
@@ -87,8 +91,22 @@ class CancelDelayBatch extends Command
                 continue;
             }
 
+            if ((! $batchClassSession || ! in_array($batchClassSession->status, [
+                    BatchClassSession::STATUS_READY,
+                    BatchClassSession::STATUS_COMPLETED,
+                ], true))
+                && empty($batch->start_url)) {
+                DelayedBatch::where($delayedBatchKey)->delete();
+                $this->warn("Skipped penalties for batch {$batchId} because its Zoom occurrence is unavailable.");
+                continue;
+            }
+
             $coachAttendanceExists = CoachAttendance::where('batch_id', $batchId)
                 ->whereDate('date', $date)
+                ->when($batchClassSession, fn ($query) => $query->where(function ($occurrence) use ($batchClassSession) {
+                    $occurrence->where('batch_class_session_id', $batchClassSession->id)
+                        ->orWhereNull('batch_class_session_id');
+                }))
                 ->exists();
 
             if (! $coachAttendanceExists && $now->greaterThan($lateTime)) {
@@ -125,11 +143,22 @@ class CancelDelayBatch extends Command
             if ($now->greaterThanOrEqualTo($cutoffTime)) {
                 $studentAttendanceExists = StudentAttendance::where('batch_id', $batchId)
                     ->whereDate('date', $date)
+                    ->when($batchClassSession, fn ($query) => $query->where(function ($occurrence) use ($batchClassSession) {
+                        $occurrence->where('batch_class_session_id', $batchClassSession->id)
+                            ->orWhereNull('batch_class_session_id');
+                    }))
                     ->exists();
 
                 if (! $studentAttendanceExists || ! $coachAttendanceExists) {
                     if (!$studentAttendanceExists) {
-                        $occurrences->shiftCancelledOccurrence($batch, $schedule, $date, 'Batch Cancelled');
+                        $occurrences->shiftCancelledOccurrence(
+                            $batch,
+                            $schedule,
+                            $date,
+                            'Batch Cancelled',
+                            null,
+                            $batchClassSession?->id
+                        );
                         $this->info("Marked CANCELLED for students in batch $batchId");
                     }
 
@@ -137,7 +166,8 @@ class CancelDelayBatch extends Command
                         $coachAttendance = CoachAttendance::create([
                             'coach_id' => $batch->coach_id,
                             'batch_id' => $batchId,
-                            'type' => $schedule->type ?? null,
+                            'batch_class_session_id' => $batchClassSession?->id,
+                            'type' => 'BATCH',
                             'level_id' => $schedule->level_id,
                             'date' => $date,
                             'status' => 'CANCELLED',

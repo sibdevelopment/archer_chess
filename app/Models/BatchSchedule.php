@@ -28,6 +28,11 @@ class BatchSchedule extends BaseModel
     {
         return $this->belongsTo(Batch::class);
     }
+
+    public function classSessions()
+    {
+        return $this->hasMany(BatchClassSession::class, 'batch_schedule_id');
+    }
     
     public static function boot()
     {

@@ -74,13 +74,22 @@ class BatchOccurrenceService
             });
     }
 
-    public function markHolidayOccurrence(Batch $batch, BatchSchedule $schedule, string $date): bool
+    public function markHolidayOccurrence(
+        Batch $batch,
+        BatchSchedule $schedule,
+        string $date,
+        ?int $batchClassSessionId = null
+    ): bool
     {
         $this->clearDelayedPenalty($batch->id, $schedule->id, $date);
 
         $existingAttendance = CoachAttendance::where('batch_id', $batch->id)
             ->where('coach_id', $batch->coach_id)
             ->whereDate('date', $date)
+            ->when($batchClassSessionId, fn ($query) => $query->where(function ($occurrence) use ($batchClassSessionId) {
+                $occurrence->where('batch_class_session_id', $batchClassSessionId)
+                    ->orWhereNull('batch_class_session_id');
+            }))
             ->orderByDesc('id')
             ->first();
 
@@ -92,6 +101,10 @@ class BatchOccurrenceService
                 StudentAttendance::where('batch_id', $batch->id)
                     ->whereDate('date', $date)
                     ->where('status', 'CANCELLED')
+                    ->when($batchClassSessionId, fn ($query) => $query->where(function ($occurrence) use ($batchClassSessionId) {
+                        $occurrence->where('batch_class_session_id', $batchClassSessionId)
+                            ->orWhereNull('batch_class_session_id');
+                    }))
                     ->update(['remark' => 'Cancelled due to holiday']);
             }
 
@@ -106,6 +119,7 @@ class BatchOccurrenceService
         $coachAttendance->coach_id = $batch->coach_id;
         $coachAttendance->type = 'BATCH';
         $coachAttendance->batch_id = $batch->id;
+        $coachAttendance->batch_class_session_id = $batchClassSessionId;
         $coachAttendance->date = $date;
         $coachAttendance->time = $schedule->from_time;
         $coachAttendance->status = 'HOLIDAY';
@@ -122,19 +136,29 @@ class BatchOccurrenceService
             $schedule,
             $date,
             'Cancelled due to holiday',
-            $coachAttendance->number_of_batch_sessions
+            $coachAttendance->number_of_batch_sessions,
+            $batchClassSessionId
         );
 
         return true;
     }
 
-    public function markApprovedLeaveOccurrence(Batch $batch, BatchSchedule $schedule, string $date): bool
+    public function markApprovedLeaveOccurrence(
+        Batch $batch,
+        BatchSchedule $schedule,
+        string $date,
+        ?int $batchClassSessionId = null
+    ): bool
     {
         $this->clearDelayedPenalty($batch->id, $schedule->id, $date);
 
         $existingAttendance = CoachAttendance::where('batch_id', $batch->id)
             ->where('coach_id', $batch->coach_id)
             ->whereDate('date', $date)
+            ->when($batchClassSessionId, fn ($query) => $query->where(function ($occurrence) use ($batchClassSessionId) {
+                $occurrence->where('batch_class_session_id', $batchClassSessionId)
+                    ->orWhereNull('batch_class_session_id');
+            }))
             ->orderByDesc('id')
             ->first();
 
@@ -146,6 +170,10 @@ class BatchOccurrenceService
                 StudentAttendance::where('batch_id', $batch->id)
                     ->whereDate('date', $date)
                     ->where('status', 'CANCELLED')
+                    ->when($batchClassSessionId, fn ($query) => $query->where(function ($occurrence) use ($batchClassSessionId) {
+                        $occurrence->where('batch_class_session_id', $batchClassSessionId)
+                            ->orWhereNull('batch_class_session_id');
+                    }))
                     ->update(['remark' => 'Cancelled due to approved coach leave']);
             }
 
@@ -160,6 +188,7 @@ class BatchOccurrenceService
         $coachAttendance->coach_id = $batch->coach_id;
         $coachAttendance->type = 'BATCH';
         $coachAttendance->batch_id = $batch->id;
+        $coachAttendance->batch_class_session_id = $batchClassSessionId;
         $coachAttendance->date = $date;
         $coachAttendance->time = $schedule->from_time;
         $coachAttendance->status = 'ON LEAVE';
@@ -176,7 +205,8 @@ class BatchOccurrenceService
             $schedule,
             $date,
             'Cancelled due to approved coach leave',
-            $coachAttendance->number_of_batch_sessions
+            $coachAttendance->number_of_batch_sessions,
+            $batchClassSessionId
         );
 
         return true;
@@ -281,7 +311,8 @@ class BatchOccurrenceService
         BatchSchedule $schedule,
         string $date,
         string $remark = 'Batch Cancelled',
-        ?int $numberOfBatchSessions = null
+        ?int $numberOfBatchSessions = null,
+        ?int $batchClassSessionId = null
     ): void {
         $batchSchedules = BatchSchedule::where('batch_id', $batch->id)
             ->where('status', 'ACTIVE')
@@ -311,6 +342,10 @@ class BatchOccurrenceService
         $alreadyCompensated = StudentAttendance::where('batch_id', $batch->id)
             ->whereDate('date', $date)
             ->where('status', 'CANCELLED')
+            ->when($batchClassSessionId, fn ($query) => $query->where(function ($occurrence) use ($batchClassSessionId) {
+                $occurrence->where('batch_class_session_id', $batchClassSessionId)
+                    ->orWhereNull('batch_class_session_id');
+            }))
             ->exists();
 
         if ($alreadyCompensated) {
@@ -321,12 +356,17 @@ class BatchOccurrenceService
         $batch->save();
 
         foreach ($studentBatches as $studentBatch) {
+            $attendanceKey = [
+                'student_id' => $studentBatch->student_id,
+                'batch_id' => $batch->id,
+                'date' => $date,
+            ];
+            if ($batchClassSessionId) {
+                $attendanceKey['batch_class_session_id'] = $batchClassSessionId;
+            }
+
             StudentAttendance::firstOrCreate(
-                [
-                    'student_id' => $studentBatch->student_id,
-                    'batch_id' => $batch->id,
-                    'date' => $date,
-                ],
+                $attendanceKey,
                 [
                     'level_id' => $batch->level_id,
                     'time' => $schedule->from_time,
@@ -334,6 +374,7 @@ class BatchOccurrenceService
                     'remark' => $remark,
                     'type' => 'BATCH',
                     'coach_id' => $batch->coach_id,
+                    'batch_class_session_id' => $batchClassSessionId,
                     'homework_link' => '',
                     'recording_link' => '',
                     'chapter_name' => '',

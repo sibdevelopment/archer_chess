@@ -55,6 +55,23 @@ class BatchController extends Controller
         }
     }
 
+    private function validateBatchSchedulesPresent(array $days, array $fromTimes, array $toTimes): void
+    {
+        if (empty($days)) {
+            throw ValidationException::withMessages([
+                'weekday' => 'At least one batch schedule is required.',
+            ]);
+        }
+
+        foreach ($days as $key => $day) {
+            if (empty($day) || empty($fromTimes[$key]) || empty($toTimes[$key])) {
+                throw ValidationException::withMessages([
+                    'weekday' => 'Every batch schedule must include a day, start time, and end time.',
+                ]);
+            }
+        }
+    }
+
     private function joiningStartDateForStudent(Student $student, $fallbackDate = null): string
     {
         $batchStartDate = Carbon::parse($fallbackDate ?: Carbon::today())->toDateString();
@@ -734,14 +751,14 @@ class BatchController extends Controller
                     return '<i class="ti ti-link cursor-pointer text-primary fs-5 copy-link" data-url="' . e($batch->start_url) . '" title="Copy Start URL"></i>';
                 } 
 
-                return '<span class="badge bg-secondary fs-1">N/A</span>';
+                return '<span class="badge bg-light-info text-info fs-1">Per class</span>';
             })
             ->editColumn('join_url', function ($batch) {
                 if(!empty($batch->join_url)){
                     return '<i class="ti ti-link cursor-pointer text-success fs-5 copy-link" data-url="' . e($batch->join_url) . '" title="Copy Join URL"></i>';
                 }
 
-                return '<span class="badge bg-success fs-1">N/A</span>';
+                return '<span class="badge bg-light-success text-success fs-1">Per class</span>';
             })
             ->editColumn('status', function ($batch) {
                 switch ($batch->status) {
@@ -951,6 +968,7 @@ class BatchController extends Controller
         $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
         $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
         $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $this->validateBatchSchedulesPresent($daysOfWeek, $fromTimes, $toTimes);
         $this->validateBatchScheduleTimes($fromTimes, $toTimes);
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
 
@@ -969,63 +987,36 @@ class BatchController extends Controller
             ], 422);
         }
 
-        $batch = new Batch;
-        $batch->fill($request->all());
-        $batch->is_one_to_one = $request->boolean('is_one_to_one');
-        if ($request->has('country')) {
-            $batch->country = normalizeCountryValues($request->input('country'));
-        }
+        return DB::transaction(function () use ($request, $daysOfWeek, $fromTimes, $toTimes) {
+            $batch = new Batch;
+            $batch->fill($request->all());
+            $batch->is_one_to_one = $request->boolean('is_one_to_one');
+            if ($request->has('country')) {
+                $batch->country = normalizeCountryValues($request->input('country'));
+            }
 
-        $batch->version = 1;
-        $batch->save();
-        $batch->parent_id = $batch->id;
-        $batch->status = 'UPCOMING';
-        $batch->save();
-
-
-        // ZOOM CODE
-
-        $coach = Coach::find($request->coach_id);
-
-        if(!empty($coach->zoom_id) && !empty($coach->zoom_api_key) && !empty($coach->zoom_client_secret) && !empty($coach->zoom_user_id)) {
-
-            $zoomMeetingService = new ZoomMeetingService(
-                $coach->zoom_api_key,
-                $coach->zoom_client_secret,
-                $coach->zoom_id 
-            );
-            
-            $meetingData = [
-                'title' => 'Batch - '.$coach->user->first_name.' - '.$batch->name,
-                'duration_in_minute' => 40,
-                'start_date_time' => now()->addMinutes(5)->toIso8601String(),
-            ];
-
-            $zoomResponse = $zoomMeetingService->createNewUserMeeting($meetingData, $coach->zoom_user_id);
-
-            // $zoomResponse = $zoomMeetingService->createMeeting($meetingData);
-            $batch->start_url = $zoomResponse['start_url'] ?? '';
-            $batch->join_url  = $zoomResponse['join_url'] ?? '';
-            $batch->zoom_meeting_id  = $zoomResponse['id'] ?? null;
-            $batch->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
+            $batch->version = 1;
             $batch->save();
-        }
+            $batch->parent_id = $batch->id;
+            $batch->status = 'UPCOMING';
+            $batch->save();
 
-        // Save Batch Schedule Data
-        foreach ($daysOfWeek as $index => $day) {
-            $batchSchedule            = new BatchSchedule();
-            $batchSchedule->batch_id  = $batch->id;
-            $batchSchedule->weekday   = $day;
-            $batchSchedule->from_time = $fromTimes[$index] ?? null;
-            $batchSchedule->to_time   = $toTimes[$index] ?? null;
-            $batchSchedule->status    = 'ACTIVE';
-            $batchSchedule->save();
-        }
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Batch Created Successfully',
-            'batch'   => $batch,
-        ], 201);
+            foreach ($daysOfWeek as $index => $day) {
+                BatchSchedule::create([
+                    'batch_id' => $batch->id,
+                    'weekday' => $day,
+                    'from_time' => $fromTimes[$index] ?? null,
+                    'to_time' => $toTimes[$index] ?? null,
+                    'status' => 'ACTIVE',
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Batch Created Successfully',
+                'batch' => $batch,
+            ], 201);
+        });
     }
 
     public function edit(Batch $batch)
@@ -1055,6 +1046,7 @@ class BatchController extends Controller
         $daysOfWeek = is_array($request->input('weekday', [])) ? $request->input('weekday', []) : (array) $request->input('weekday', []);
         $fromTimes  = is_array($request->input('from_time', [])) ? $request->input('from_time', []) : (array) $request->input('from_time', []);
         $toTimes    = is_array($request->input('to_time', [])) ? $request->input('to_time', []) : (array) $request->input('to_time', []);
+        $this->validateBatchSchedulesPresent($daysOfWeek, $fromTimes, $toTimes);
         $this->validateBatchScheduleTimes($fromTimes, $toTimes);
         $schedules  = $availability->schedulesFromRequest($daysOfWeek, $fromTimes, $toTimes);
         $countries  = normalizeCountryValues($request->input('country', $batch->country ?? []));
@@ -1088,75 +1080,47 @@ class BatchController extends Controller
             ], 422);
         }
 
-        $batch->fill($canChangeCoach ? $request->all() : $request->except('coach_id'));
-        $batch->is_one_to_one = $request->boolean('is_one_to_one');
-        if ($request->has('country')) {
-            $batch->country = $countries;
-        }
-        $batch->save();
-
-        $coach = Coach::find($batch->coach_id);
-
-        // if (empty($batch->start_url) || empty($batch->join_url)) {
-
-        if(!empty($coach->zoom_id) && !empty($coach->zoom_api_key) && !empty($coach->zoom_client_secret) && !empty($coach->zoom_user_id)) {
-
-            $zoomMeetingService = new ZoomMeetingService(
-                $coach->zoom_api_key,
-                $coach->zoom_client_secret,
-                $coach->zoom_id 
-            );
-            
-            $meetingData = [
-                'title' => 'Batch - '.$coach->user->first_name.' - '.$batch->name,
-                'duration_in_minute' => 40,
-                'start_date_time' => now()->addMinutes(5)->toIso8601String(),
-            ];
-
-            $zoomResponse = $zoomMeetingService->createNewUserMeeting($meetingData, $coach->zoom_user_id);
-
-            // $zoomResponse = $zoomMeetingService->createMeeting($meetingData);
-            $batch->start_url = $zoomResponse['start_url'] ?? '';
-            $batch->join_url  = $zoomResponse['join_url'] ?? '';
-            $batch->zoom_meeting_id  = $zoomResponse['id'] ?? null;
-            $batch->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
+        return DB::transaction(function () use ($request, $batch, $canChangeCoach, $countries, $daysOfWeek, $fromTimes, $toTimes) {
+            $batch->fill($canChangeCoach ? $request->all() : $request->except('coach_id'));
+            $batch->is_one_to_one = $request->boolean('is_one_to_one');
+            if ($request->has('country')) {
+                $batch->country = $countries;
+            }
             $batch->save();
-        }
-        // }
 
-        // Extract Request Data
-        $deletedDaysInput = $request->input('deleted_days', []);
-        $deletedDays = is_array($deletedDaysInput) ? $deletedDaysInput : explode(',', $deletedDaysInput);
-        // Update or Add Batch Schedules
-        foreach ($daysOfWeek as $id => $day) {
-            $scheduleData = [
-                'weekday'   => $day,
-                'from_time' => $fromTimes[$id] ?? null,
-                'to_time'   => $toTimes[$id] ?? null,
-                'batch_id'  => $batch->id,
-                'status'    => 'ACTIVE',
-            ];
-            // If ID is numeric, it's an update, otherwise, it's a new schedule
-            if (is_numeric($id)) {
-                BatchSchedule::where('id', $id)->update($scheduleData);
-            } else {
-                BatchSchedule::create($scheduleData);
+            $deletedDaysInput = $request->input('deleted_days', []);
+            $deletedDays = is_array($deletedDaysInput) ? $deletedDaysInput : explode(',', $deletedDaysInput);
+            foreach ($daysOfWeek as $id => $day) {
+                $scheduleData = [
+                    'weekday' => $day,
+                    'from_time' => $fromTimes[$id] ?? null,
+                    'to_time' => $toTimes[$id] ?? null,
+                    'batch_id' => $batch->id,
+                    'status' => 'ACTIVE',
+                ];
+
+                if (is_numeric($id)) {
+                    BatchSchedule::where('id', $id)
+                        ->where('batch_id', $batch->id)
+                        ->update($scheduleData);
+                } else {
+                    BatchSchedule::create($scheduleData);
+                }
             }
-        }
-        // Handle Deletions
-        if (! empty($deletedDays)) {
-            $validDeletedDays = array_filter($deletedDays, function ($value) {
-                return is_numeric($value) && $value > 0;
-            });
+
+            $validDeletedDays = array_filter($deletedDays, fn ($value) => is_numeric($value) && $value > 0);
             if (! empty($validDeletedDays)) {
-                BatchSchedule::whereIn('id', $validDeletedDays)->delete();
+                BatchSchedule::where('batch_id', $batch->id)
+                    ->whereIn('id', $validDeletedDays)
+                    ->delete();
             }
-        }
-        return response()->json([
-            'status'  => 'success',
-            'message' => 'Batch Created Successfully',
-            'slider'  => $batch,
-        ], 201);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Batch Updated Successfully',
+                'slider' => $batch,
+            ], 201);
+        });
     }
 
     public function show(Batch $batch)
@@ -1790,7 +1754,6 @@ class BatchController extends Controller
         $oldBatchId        = $request->batch_id;
         $existingSchedules = BatchSchedule::where('batch_id', $oldBatchId)->get();
         $oldBatch          = Batch::findOrFail($oldBatchId);
-        $coach             = $oldBatch->coach;
 
         $newBatchData                              = $oldBatch->toArray();
         $newBatchData['version']                   = $oldBatch->version + 1;
@@ -1798,29 +1761,11 @@ class BatchController extends Controller
         $newBatchData['confirm_reassign']          = 'CANCEL';
         $newBatchData['confirm_reassign_batch_id'] = $oldBatchId; // Store the old batch ID
         $newBatchData['created_by']                = Auth::id();
+        $newBatchData['start_url']                  = null;
+        $newBatchData['join_url']                   = null;
+        $newBatchData['zoom_meeting_id']            = null;
+        $newBatchData['zoom_meeting_uuid']          = null;
         $newBatch                                  = Batch::create($newBatchData);
-
-        if (!empty($coach->zoom_id) && !empty($coach->zoom_api_key) && !empty($coach->zoom_client_secret) && !empty($coach->zoom_user_id)) {
-            $zoomMeetingService = new ZoomMeetingService(
-                $coach->zoom_api_key,
-                $coach->zoom_client_secret,
-                $coach->zoom_id
-            );
-
-            $meetingData = [
-                'title' => 'Batch - ' . ($coach->user->first_name ?? 'Coach') . ' - ' . $newBatch->name,
-                'duration_in_minute' => 40,
-                'start_date_time' => now()->addMinutes(5)->toIso8601String(),
-            ];
-
-            $zoomResponse = $zoomMeetingService->createNewUserMeeting($meetingData, $coach->zoom_user_id);
-
-            $newBatch->start_url         = $zoomResponse['start_url'] ?? '';
-            $newBatch->join_url          = $zoomResponse['join_url'] ?? '';
-            $newBatch->zoom_meeting_id   = $zoomResponse['id'] ?? null;
-            $newBatch->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
-            $newBatch->save();
-        }
 
 
         // Reassign students to the new batch

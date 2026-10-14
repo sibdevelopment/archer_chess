@@ -428,6 +428,7 @@
                 var coachId = '{{ $coach->id }}';
                 var dataBtn = $(this).data('btn');
                 var scheduleDate = $(this).data('date');
+                var batchScheduleId = $(this).data('schedule-id') || null;
 
                 const attendanceDataURL =
                     '{{ route('admin.dashboard.getAttendanceData', ['coachId' => $coach->id]) }}';
@@ -439,6 +440,7 @@
                         type: scheduleType,
                         date: scheduleDate,
                         attendance_date: scheduleDate,
+                        batch_schedule_id: batchScheduleId,
                     },
                     success: function(response) {
                         $('#AttendanceModal .modal-body').html(response);
@@ -469,7 +471,8 @@
                         type: batch.type || 'Batch',
                         attendance_id: batch.attendance_id,
                         attendance_date: batch.attendance_date,
-                        attendance_time: batch.attendance_time
+                        attendance_time: batch.attendance_time,
+                        batch_schedule_id: batch.batch_schedule_id
                     },
                     success: function(response) {
                         $('#AttendanceData').html(response);
@@ -538,6 +541,7 @@
                                 demosession_id: schedule.id,
                                 type: type,
                                 date: schedule.schedule_date,
+                                batch_schedule_id: schedule.batch_schedule_id,
                                 _token: $('meta[name="csrf-token"]').attr('content')
                             },
                             success: function(response) {
@@ -551,7 +555,7 @@
 
                                 if (response.status === 'success') {
                                     setTimeout(function() {
-                                        window.open(startUrl, '_blank');
+                                        window.open(response.start_url || startUrl, '_blank');
                                     }, 1000);
                                 }
                             },

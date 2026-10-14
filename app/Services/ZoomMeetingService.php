@@ -29,7 +29,7 @@ class ZoomMeetingService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->generateToken(),
                 'Content-Type' => 'application/json',
-            ])->post("https://api.zoom.us/v2/users/me/meetings", [
+            ])->post($this->apiBaseUrl() . "/v2/users/me/meetings", [
                 'topic'      => $validated['title'],
                 'type'       => 2,
                 'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
@@ -59,7 +59,7 @@ class ZoomMeetingService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->generateToken(),
                 'Content-Type' => 'application/json',
-            ])->post("https://api.zoom.us/v2/users/{$userId}/meetings", [
+            ])->post($this->apiBaseUrl() . "/v2/users/{$userId}/meetings", [
                 'topic'      => $validated['title'],
                 'type'       => 1, // Instant meeting
                 'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
@@ -88,7 +88,7 @@ class ZoomMeetingService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->generateToken(),
                 'Content-Type' => 'application/json',
-            ])->post("https://api.zoom.us/v2/users/{$userId}/meetings", [
+            ])->post($this->apiBaseUrl() . "/v2/users/{$userId}/meetings", [
                 'topic'      => $validated['title'],
                 'type'       => 1, // Instant meeting
                 'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
@@ -108,6 +108,44 @@ class ZoomMeetingService
         }
     }
 
+    public function createScheduledUserMeeting(array $meetingData, string $userId): array
+    {
+        $validated = $this->validateMeetingData($meetingData);
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->generateToken(),
+            'Content-Type' => 'application/json',
+        ])->post($this->apiBaseUrl() . "/v2/users/{$userId}/meetings", [
+            'topic' => $validated['title'],
+            'type' => 2,
+            'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
+            'duration' => $validated['duration_in_minute'],
+            'timezone' => $meetingData['timezone'] ?? config('app.timezone', 'Asia/Kolkata'),
+            'settings' => [
+                'auto_recording' => 'cloud',
+                'password' => '',
+                'use_pmi' => false,
+                'waiting_room' => true,
+            ],
+        ]);
+
+        $response->throw();
+
+        return $response->json();
+    }
+
+    public function deleteMeeting(string $meetingId): void
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->generateToken(),
+            'Content-Type' => 'application/json',
+        ])->delete($this->apiBaseUrl() . "/v2/meetings/{$meetingId}");
+
+        if (! in_array($response->status(), [204, 404], true)) {
+            $response->throw();
+        }
+    }
+
     
     public function createCoverUpClassMeeting(array $meetingData, $userId): array
     {
@@ -117,7 +155,7 @@ class ZoomMeetingService
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->generateToken(),
                 'Content-Type' => 'application/json',
-            ])->post("https://api.zoom.us/v2/users/{$userId}/meetings", [
+            ])->post($this->apiBaseUrl() . "/v2/users/{$userId}/meetings", [
                 'topic'      => $validated['title'],
                 'type'       => 1, // Instant meeting
                 'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
@@ -198,7 +236,7 @@ class ZoomMeetingService
         $nextPageToken = '';
 
         do {
-            $url = "https://api.zoom.us/v2/users";
+            $url = $this->apiBaseUrl() . "/v2/users";
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $token,
@@ -273,7 +311,7 @@ class ZoomMeetingService
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Content-Type'  => 'application/json',
-        ])->get("https://api.zoom.us/v2/users/{$userId}/recordings", [
+        ])->get($this->apiBaseUrl() . "/v2/users/{$userId}/recordings", [
             'from' => Carbon::now()->subDays(10)->format('Y-m-d'),
             'to'   => Carbon::now()->format('Y-m-d'),
         ]);
@@ -311,8 +349,18 @@ class ZoomMeetingService
 
     protected function generateToken(): string
     {
-        $cacheKey = 'zoom_access_token_' . md5($this->clientKey . $this->accountId);
-        return Cache::remember($cacheKey, 3500, function () {
+        return $this->tokenPayload()['access_token'];
+    }
+
+    protected function apiBaseUrl(): string
+    {
+        return rtrim($this->tokenPayload()['api_url'] ?? 'https://api.zoom.us', '/');
+    }
+
+    protected function tokenPayload(): array
+    {
+        $cacheKey = 'zoom_token_payload_' . md5($this->clientKey . $this->clientSecret . $this->accountId);
+        return Cache::remember($cacheKey, 3300, function () {
             $base64String = base64_encode($this->clientKey . ':' . $this->clientSecret);
             $response = Http::withHeaders([ 
                 "Content-Type"  => "application/x-www-form-urlencoded",
@@ -320,7 +368,12 @@ class ZoomMeetingService
             ])->post("https://zoom.us/oauth/token?grant_type=account_credentials&account_id={$this->accountId}");
             $response->throw();
 
-            return $response->json()['access_token'];
+            $payload = $response->json();
+
+            return [
+                'access_token' => $payload['access_token'],
+                'api_url' => $payload['api_url'] ?? 'https://api.zoom.us',
+            ];
         });
     }
 

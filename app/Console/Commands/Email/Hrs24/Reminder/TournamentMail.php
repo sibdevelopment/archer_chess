@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands\Email\Reminder;
 
-use App\Models\Student;
 use App\Models\Tournament;
 use App\Mail\TournamentMail as TournamentMailTemplate;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
+use App\Services\StudentEventAudienceService;
 
 class TournamentMail extends Command
 {
@@ -30,36 +30,8 @@ class TournamentMail extends Command
             $minutesDiff = $now->diffInMinutes($tournamentDateTime, false);
 
             if ($minutesDiff >= 150 && $minutesDiff <= 200) {
-                // Get relevant students
-                $students = Student::where(function ($query) use ($tournament) {
-                // Match country
-                if (!empty($tournament->country)) {
-                    $query->whereIn('country', $tournament->country);
-                }
-
-                // Match student_ids (if given)
-                if (!empty($tournament->student_ids)) {
-                    $query->whereIn('id', $tournament->student_ids);
-                }
-
-                // Match batch_ids (if given)
-                if (!empty($tournament->batch_ids)) {
-                    $query->whereHas('studentBatches', function ($q) use ($tournament) {
-                        $q->whereIn('batch_id', $tournament->batch_ids)
-                        ->where('status', 'ACTIVE');
-                    });
-                }
-
-                // Match level_ids (if given)
-                if (!empty($tournament->level_ids)) {
-                    $query->whereHas('studentBatches', function ($q) use ($tournament) {
-                        $q->whereIn('level_id', $tournament->level_ids)
-                        ->where('status', 'ACTIVE');
-                    });
-                }
-            })
-            ->whereIn('status', ['ACTIVE', 'FEESDUE'])
-            ->get();
+                $students = app(StudentEventAudienceService::class)
+                    ->studentsForEvent($tournament, ['ACTIVE', 'FEESDUE']);
                 foreach ($students as $student) {
                     if (!empty($student->user->email)) {
                         Mail::to($student->user->email)->send(new TournamentMailTemplate($student, $tournament));

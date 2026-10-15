@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use App\Models\MasterclassData;
 use App\Http\Controllers\Controller;
 use App\Services\CoachAvailabilityService;
+use App\Services\StudentEventAudienceService;
 use App\Services\ZoomMeetingService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -169,10 +170,11 @@ class MasterclassController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, StudentEventAudienceService $audience)
     {
 
         $request->validate($this->rules, $this->customMessages);
+        $audience->validateTargets($request);
         $this->validateCoachAvailability($request);
         $countries = $request->country;
         $coach = Coach::find($request->coach_id);
@@ -181,6 +183,7 @@ class MasterclassController extends Controller
 
         $masterclass = new Masterclass;
         $masterclass->fill($request->all());
+        $audience->fillTargets($masterclass, $request);
         $masterclass->save();
 
 
@@ -208,60 +211,7 @@ class MasterclassController extends Controller
             $masterclass->save();
         }
 
-            $students = collect();
-
-        // (a) Direct Students
-        if (!empty($request->student_ids)) {
-            $students = $students->merge(
-                Student::whereIn('id', $request->student_ids)
-                    ->where('status', '!=', 'INACTIVE')
-                    ->get()
-            );
-        }
-
-        // (b) Batch Students
-        if (!empty($request->batch_ids)) {
-            $batchStudents = Student::whereHas('studentBatches', function ($q) use ($request) {
-                    $q->whereIn('batch_id', $request->batch_ids)
-                    ->where('status', '!=', 'INACTIVE');
-                })->get();
-
-            $students = $students->merge($batchStudents);
-        }
-
-        // (c) Level Students
-        if (!empty($request->level_ids)) {
-            $levelStudents = Student::whereHas('studentBatches.batch', function ($q) use ($request) {
-                    $q->whereIn('level_id', $request->level_ids)
-                    ->where('status', '!=', 'INACTIVE');
-                })->get();
-
-            $students = $students->merge($levelStudents);
-        }
-
-        // (d) Country Students (sometimes only country, sometimes combined)
-        if (!empty($countries)) {
-            $countryStudents = Student::whereIn('country', $countries)
-                ->where('status', '!=', 'INACTIVE')
-                ->get();
-
-            $students = $students->merge($countryStudents);
-        }
-
-        // Remove duplicate students
-        $students = $students->unique('id');
-
-        // 4. Save MasterclassData + Send Mail
-        foreach ($students as $student) {
-            $masterclassData = MasterclassData::firstOrNew([
-                'masterclass_id' => $masterclass->id,
-                'student_id'     => $student->id,
-            ]);
-            $masterclassData->save();
-
-            // Send mail
-            // Mail::to($student->email)->send(new MasterclassMail($student, $masterclass));
-        }
+        $audience->syncMasterclassData($masterclass);
 
 
 
@@ -399,12 +349,14 @@ class MasterclassController extends Controller
         return view('Admin.Masterclasses.form', compact('masterclass', 'batches', 'students', 'levels', 'coaches', 'selectedBatches', 'selectedStudents', 'selectedLevels'));
     }
 
-    public function update(Request $request, Masterclass $masterclass)
+    public function update(Request $request, Masterclass $masterclass, StudentEventAudienceService $audience)
     {
         $request->validate($this->rules, $this->customMessages);
+        $audience->validateTargets($request);
         $this->validateCoachAvailability($request, $masterclass->id);
         $countries = $request->country;
         $masterclass->fill($request->all());
+        $audience->fillTargets($masterclass, $request);
         $masterclass->save();
 
         $coach = Coach::find($masterclass->coach_id);
@@ -430,6 +382,8 @@ class MasterclassController extends Controller
             $masterclass->zoom_meeting_uuid = $zoomResponse['uuid'] ?? null;
             $masterclass->save();
         }
+
+        $audience->syncMasterclassData($masterclass);
 
         // MasterclassData::where('masterclass_id', $masterclass->id)->delete();
 
@@ -588,6 +542,9 @@ class MasterclassController extends Controller
         'time' => 'required',
         'coach_id' => 'required',
         'country' => 'required',
+        'student_ids' => 'nullable|array',
+        'batch_ids' => 'nullable|array',
+        'level_ids' => 'nullable|array',
     ];
 
     private $customMessages = [

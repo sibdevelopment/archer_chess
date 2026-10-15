@@ -519,10 +519,8 @@ class StudentController extends Controller
 
     public function list(Request $request)
     {
-        $students = Student::
-        // where('status', 'ACTIVE')
-        //     ->
-            when(! empty($request->countries), function ($query) use ($request) {
+        $students = Student::where('status', 'ACTIVE')
+            ->when(! empty($request->countries), function ($query) use ($request) {
                 return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
                     ->flatMap(fn ($country) => countryComparisonValues($country))
                     ->unique()
@@ -538,10 +536,8 @@ class StudentController extends Controller
     }
     public function masterclassTounamentlist(Request $request)
     {
-        $students = Student::
-        // where('status', '!=', 'INACTIVE')
-        //     ->
-            when(! empty($request->countries), function ($query) use ($request) {
+        $students = Student::where('status', 'ACTIVE')
+            ->when(! empty($request->countries), function ($query) use ($request) {
                 return $query->whereIn('country', collect(normalizeCountryValues($request->countries))
                     ->flatMap(fn ($country) => countryComparisonValues($country))
                     ->unique()

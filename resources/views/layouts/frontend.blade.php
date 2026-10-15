@@ -28,6 +28,25 @@
     <!-- in resources/views/layouts/admin.blade.php (inside <head>) -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- Google Tag Manager -->
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var firstScript = d.getElementsByTagName(s)[0];
+            var script = d.createElement(s);
+            var dataLayerParam = l !== 'dataLayer' ? '&l=' + l : '';
+
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dataLayerParam;
+            firstScript.parentNode.insertBefore(script, firstScript);
+        })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
+    </script>
+    <!-- End Google Tag Manager -->
+
 
     <style>
         /* Navbar background */
@@ -744,6 +763,11 @@
 </head>
 
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <div class="cursor"></div>
 
 
@@ -891,7 +915,6 @@
                                     <li><a href="{{ route('cookie.policy') }}">Cookie Policy</a></li>
                                     <li><a href="{{ route('terms') }}">Terms Of Service</a></li>
                                     <li><a href="{{ route('refund.policy') }}">Refund & Cancellation</a></li>
-                                    <li><a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a></li>
                                     <li><a href="{{ route('blog') }}">Blog</a></li>
                                     <li><a href="{{ route('event') }}">Event</a></li>
                                 </ul>
@@ -1121,10 +1144,6 @@
             });
         });
     </script>
-
-
-@include('Frontend.partials.cookie-consent')
-
 </body>
 
 </html>

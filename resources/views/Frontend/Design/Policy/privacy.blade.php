@@ -271,9 +271,9 @@
                                 hard drive through your Web browser (if you allow), enabling the sites or service providers’
                                 systems to recognize your browser and capture and remember certain information. We use
                                 cookies for essential website functions. Analytics and marketing cookies are used only after
-                                your consent. You can review the details in our
-                                <a href="{{ route('cookie.policy') }}">Cookie Policy</a> and change your choice anytime from
-                                <a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a>. Like most websites,
+                                your consent where consent is required. You can review the details in our
+                                <a href="{{ route('cookie.policy') }}">Cookie Policy</a>. On UK and EU landing pages, you can
+                                change your choice using the Cookie Settings link shown on those pages. Like most websites,
                                 some services may not function properly if essential cookies are blocked in your browser.
                             </p>
                         </div>

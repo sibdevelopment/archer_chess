@@ -18,6 +18,37 @@ use Illuminate\Support\Facades\DB;
 
 class ChangeclassController extends Controller
 {
+    private function activeEmployees()
+    {
+        return Employee::with('user')
+            ->whereHas('user', function ($query) {
+                $query->where('status', 'ACTIVE');
+            })->get();
+    }
+
+    private function activeEmployeeSelectionRules(): array
+    {
+        return [
+            'employee_ids' => ['required', 'array', 'min:1'],
+            'employee_ids.*' => [
+                'required',
+                'integer',
+                'distinct',
+                function ($attribute, $value, $fail) {
+                    $isActiveEmployee = Employee::whereKey($value)
+                        ->whereHas('user', function ($query) {
+                            $query->where('status', 'ACTIVE');
+                        })
+                        ->exists();
+
+                    if (! $isActiveEmployee) {
+                        $fail('The selected employee is invalid or inactive.');
+                    }
+                },
+            ],
+        ];
+    }
+
     private function batchContainsStudentCountry(Batch $batch, Student $student): bool
     {
         $countries = is_array($batch->country) ? $batch->country : json_decode($batch->country, true);
@@ -130,7 +161,7 @@ class ChangeclassController extends Controller
     {
         $user           = auth()->user();
         $batches        = Batch::get();
-        $employees      = Employee::get();
+        $employees      = $this->activeEmployees();
         return view('Admin.ChangeClass.index', compact('user', 'batches', 'employees'));
     }
 
@@ -304,7 +335,7 @@ class ChangeclassController extends Controller
      */
     public function show(Changeclass $changeclass)
     {
-        $employees = Employee::all();
+        $employees = $this->activeEmployees();
         $batches   = $this->applyBatchCountryFilter(
             Batch::where('status','!=','INACTIVE'),
             $changeclass->student->country ?? null
@@ -339,8 +370,7 @@ class ChangeclassController extends Controller
         // dd($request->all());
         if ($request->type == 'changeclass') {
 
-            $request->validate([
-                'employee_ids'    => 'required',
+            $request->validate(array_merge($this->activeEmployeeSelectionRules(), [
                 // 'employee_id'   => 'required',
                 // 'batch_id'      => 'required',
                 // 'start_date'    => 'required|date',
@@ -349,8 +379,10 @@ class ChangeclassController extends Controller
                 'received_fees' => 'required|numeric|min:0',
                 'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'nullable',
-            ], [
+            ]), [
                 'employee_ids.required'     => 'Please select a Employee.',
+                'employee_ids.array'        => 'Please select valid employees.',
+                'employee_ids.min'          => 'Please select at least one employee.',
                 'employee_id.required'    => 'Please select an employee.',
                 'batch_id.required'       => 'Please select a batch.',
                 'start_date.required'     => 'The start date is required.',
@@ -390,8 +422,7 @@ class ChangeclassController extends Controller
             ], 201);
         } else
         if ($request->type == 'student-fee') {
-            $request->validate([
-                'employee_ids'    => 'required',
+            $request->validate(array_merge($this->activeEmployeeSelectionRules(), [
                 // 'employee_id'   => 'required',
                 'batch_id'      => 'required',
                 'start_date'    => 'required|date',
@@ -402,8 +433,10 @@ class ChangeclassController extends Controller
                 'payment_level_id' => 'required|exists:paymentlevels,id',
                 'currency'      => 'required|string|in:' . implode(',', availableCurrencyCodes()),
                 'remark'        => 'required',
-            ], [
+            ]), [
                 'employee_ids.required'     => 'Please select a Employee.',
+                'employee_ids.array'        => 'Please select valid employees.',
+                'employee_ids.min'          => 'Please select at least one employee.',
                 // 'employee_id.required'    => 'Please select an employee.',
                 'batch_id.required'       => 'Please select a batch.',
                 'start_date.required'     => 'The start date is required.',

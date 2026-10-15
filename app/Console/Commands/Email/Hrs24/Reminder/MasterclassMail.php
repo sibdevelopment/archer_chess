@@ -3,11 +3,11 @@
 namespace App\Console\Commands\Email\Reminder;
 
 use Carbon\Carbon;
-use App\Models\Student;
 use App\Models\Masterclass;
 use App\Mail\MasterclassMail as MasterclassMailTemplate;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
+use App\Services\StudentEventAudienceService;
 
 
 class MasterclassMail extends Command
@@ -29,36 +29,8 @@ class MasterclassMail extends Command
             $minutesDiff = $now->diffInMinutes($masterclassDateTime, false);
 
             if ($minutesDiff >= 150 && $minutesDiff <= 200) {
-                // Get relevant students
-                $students = Student::where(function ($query) use ($masterclass) {
-                // Match country
-                if (!empty($masterclass->country)) {
-                    $query->whereIn('country', $masterclass->country);
-                }
-
-                // Match student_ids (if given)
-                if (!empty($masterclass->student_ids)) {
-                    $query->whereIn('id', $masterclass->student_ids);
-                }
-
-                // Match batch_ids (if given)
-                if (!empty($masterclass->batch_ids)) {
-                    $query->whereHas('studentBatches', function ($q) use ($masterclass) {
-                        $q->whereIn('batch_id', $masterclass->batch_ids)
-                        ->where('status', 'ACTIVE');
-                    });
-                }
-
-                // Match level_ids (if given)
-                if (!empty($masterclass->level_ids)) {
-                    $query->whereHas('studentBatches', function ($q) use ($masterclass) {
-                        $q->whereIn('level_id', $masterclass->level_ids)
-                        ->where('status', 'ACTIVE');
-                    });
-                }
-            })
-            ->whereIn('status', ['ACTIVE', 'FEESDUE'])
-            ->get();
+                $students = app(StudentEventAudienceService::class)
+                    ->studentsForEvent($masterclass, ['ACTIVE', 'FEESDUE']);
 
                 foreach ($students as $student) {
                     if (!empty($student->user->email)) {

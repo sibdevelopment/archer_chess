@@ -24,6 +24,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\StudentAttendance;
 use App\Http\Controllers\Controller;
 use App\Services\BatchOccurrenceService;
+use App\Services\StudentEventAudienceService;
 use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
@@ -479,30 +480,21 @@ class StudentDashboardController extends Controller
             // dd($latestBatchLevel, $latestBatch, $latestStduentBatch);
 
             if ($this->canViewStudentEvents($student)) {
-                $country     = $student->country;
-                $recentBatch = $student->studentBatches()
-                    ->whereHas('student', function ($query) {
-                        $query->where('status', 'ACTIVE');
-                    })
-                    ->orderBy('id', 'desc')
-                    ->first();
-
-                $batchId   = $recentBatch ? [strval($recentBatch->batch_id)] : [];
-                $levelId   = $recentBatch ? [strval($recentBatch->batch->level_id)] : [];
                 $currentDate = Carbon::now()->toDateString();
+                $audience = app(StudentEventAudienceService::class);
 
-                $tournamentData = Tournament::where('status', 'ACTIVE')
-                    ->whereDate('date', '>=', $currentDate)
-                    ->whereJsonContains('country', $country)
-                    ->whereJsonContains('level_ids', $levelId)
+                $tournamentData = $audience->visibleToStudent(
+                    Tournament::where('status', 'ACTIVE')->whereDate('date', '>=', $currentDate),
+                    $student
+                )
                     ->orderBy('date', 'asc')
                     ->take(3)
                     ->get();
 
-                $masterclassedata = Masterclass::where('status', 'ACTIVE')
-                    ->whereDate('date', '>=', $currentDate)
-                    ->whereJsonContains('country', $country)
-                    ->whereJsonContains('level_ids', $levelId)
+                $masterclassedata = $audience->visibleToStudent(
+                    Masterclass::where('status', 'ACTIVE')->whereDate('date', '>=', $currentDate),
+                    $student
+                )
                     ->orderBy('date', 'asc')
                     ->take(3)
                     ->get();
@@ -853,107 +845,33 @@ class StudentDashboardController extends Controller
 
     public function studentTournaments()
     {
+        $student = Student::where('user_id', Auth::id())->first();
 
-        $user = Auth::user();
-
-        $userroles = $user->roles->pluck('name')->first();
-        $user      = Auth::user();
-        $student   = Student::where('user_id', $user->id)->first();
-        // dd($student);
         if (! $this->canViewStudentEvents($student)) {
             $tournamentDatas = [];
             return view('Admin.StudentDashboard.tournaments', compact('tournamentDatas', 'student'));
         }
 
-        $country     = $student->country;
-        $recentBatch = $student->studentBatches()
-            // ->whereHas('student', function ($query) {
-            //     $query->where('status', '!=', 'INACTIVE');
-            // })
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-        $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
-
-        $batchId   = array_map('strval', $batchId);
-        $levelId   = array_map('strval', $levelId);
-        $studentId = (string) $student->id;
-
-        // dd($recentBatch);
-        if (! $recentBatch) {
-            $tournamentDatas = Tournament::where('status', 'ACTIVE')
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('student_ids', $studentId)
-                                      // ->whereDate('date', '<=', now()) // Include today’s tournaments
-                ->orderBy('date', 'desc') // Sort from latest to past
-                                      // ->take(1) // Get only the latest (next slot)
-                ->get();
-            // dd($tournamentDatas);
-
-            return view('Admin.StudentDashboard.tournaments', compact('tournamentDatas', 'student'));
-        }
-
-        $tournamentDatas = Tournament::where('status', 'ACTIVE')
-            ->whereJsonContains('country', $country)
-            ->where(function ($query) use ($batchId, $levelId, $studentId) {
-                $query->whereJsonContains('batch_ids', $batchId)
-                    ->orWhereJsonContains('level_ids', $levelId)
-                    ->orWhereJsonContains('student_ids', $studentId);
-            })
-        // ->whereDate('date', '<=', now()) // Include today’s tournaments
+        $tournamentDatas = app(StudentEventAudienceService::class)
+            ->visibleToStudent(Tournament::where('status', 'ACTIVE'), $student)
             ->orderBy('date', 'desc')
-        // ->take(1) // Get only the latest (next slot)
             ->get();
 
         return view('Admin.StudentDashboard.tournaments', compact('tournamentDatas', 'student'));
     }
     public function studentMasterclasses()
     {
-        $user    = Auth::user();
-        $student = Student::where('user_id', $user->id)->first();
-        // dd($student);
+        $student = Student::where('user_id', Auth::id())->first();
+
         if (! $this->canViewStudentEvents($student)) {
             $masterclassDatas = [];
             return view('Admin.StudentDashboard.masterclass', compact('masterclassDatas', 'student'));
         }
 
-        $country     = $student->country;
-        // dd($country);
-        $recentBatch = $student->studentBatches()
-            ->whereHas('student', function ($query) {
-                $query->where('status', 'ACTIVE');
-            })
-            ->orderBy('id', 'desc')
-            ->first();
-        // dd($recentBatch->level_id);
-
-        $batchId = $recentBatch ? [$recentBatch->batch_id] : [];
-        $levelId = $recentBatch ? [$recentBatch->batch->level_id] : [];
-    // dd($recentBatch);
-        $batchId   = array_map('strval', $batchId);
-        $levelId   = array_map('strval', $levelId);
-        $studentId = (string) $student->id;
-        // dd($recentBatch);
-        if (! $recentBatch) {
-            $masterclassDatas = Masterclass::where('status', 'ACTIVE')
-                ->whereJsonContains('country', $country)
-                ->whereJsonContains('student_ids', $studentId)
-                ->orderBy('date', 'desc')
-                ->get();
-            return view('Admin.StudentDashboard.masterclass', compact('masterclassDatas', 'student'));
-        }
-        // dd($batchId, $levelId, $studentId);
-        $masterclassDatas = Masterclass::where('status', 'ACTIVE')
-            ->whereJsonContains('country', $country)
-            ->where(function ($query) use ($batchId, $levelId, $studentId) {
-                $query->whereJsonContains('batch_ids', $batchId)
-                    ->orWhereJsonContains('level_ids', $levelId)
-                    ->orWhereJsonContains('student_ids', $studentId);
-            })
+        $masterclassDatas = app(StudentEventAudienceService::class)
+            ->visibleToStudent(Masterclass::where('status', 'ACTIVE'), $student)
             ->orderBy('date', 'desc')
             ->get();
-        // dd($masterclassDatas);
 
         return view('Admin.StudentDashboard.masterclass', compact('masterclassDatas', 'student'));
     }

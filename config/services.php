@@ -36,4 +36,27 @@ return [
         'secret' => env('RAZORPAY_SECRET'),
     ],
 
+    'wati' => [
+        'enabled' => filter_var(env('WATI_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'base_url' => env('WATI_API_BASE_URL', 'https://live-mt-server.wati.io'),
+        'token' => env('WATI_API_TOKEN'),
+        'channel_number' => env('WATI_CHANNEL_NUMBER'),
+        'tenant_id' => env('WATI_TENANT_ID'),
+        'webhook_secret' => env('WATI_WEBHOOK_SECRET'),
+        'queue' => env('WATI_QUEUE', 'default'),
+        'timeout' => (int) env('WATI_HTTP_TIMEOUT', 15),
+        'class_reminder_minutes' => (int) env('WATI_CLASS_REMINDER_MINUTES', 60),
+        'class_reminder_window' => (int) env('WATI_CLASS_REMINDER_WINDOW', 5),
+        'templates' => [
+            'class_reminder' => [
+                'name' => env('WATI_CLASS_REMINDER_TEMPLATE'),
+                'language' => env('WATI_CLASS_REMINDER_LANGUAGE', 'en'),
+            ],
+            'fee_due' => [
+                'name' => env('WATI_FEE_DUE_TEMPLATE'),
+                'language' => env('WATI_FEE_DUE_LANGUAGE', 'en'),
+            ],
+        ],
+    ],
+
 ];

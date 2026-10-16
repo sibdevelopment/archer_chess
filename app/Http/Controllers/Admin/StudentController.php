@@ -13,6 +13,7 @@ use App\Models\StudentFee;
 use App\Models\CameraCheck;
 use App\Models\Changeclass;
 use App\Models\FeeDueWhatsappNotification;
+use App\Models\WatiNotification;
 use Illuminate\Support\Str;
 use App\Models\Paymentlevel;
 use App\Models\StudentBatch;
@@ -23,6 +24,7 @@ use Illuminate\Support\Carbon;
 use App\Exports\StudentsExport;
 use App\Models\StudentAttendance;
 use App\Services\PaymentLevelService;
+use App\Services\WatiNotificationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
@@ -417,7 +419,15 @@ class StudentController extends Controller
                     if ($notification) {
                         $sentBy = trim(($notification->sentBy?->first_name ?? '') . ' ' . ($notification->sentBy?->last_name ?? '')) ?: 'N/A';
                         $sentAt = $notification->sent_at ? $notification->sent_at->format('d-M-Y h:i A') : 'N/A';
-                        $whatsappBadge = ' &nbsp; <button type="button" class="badge fs-1 border-0 fee-due-whatsapp-sent-btn" style="background:#d1d5db;color:#6b7280;opacity:.65;" data-sent-by="' . e($sentBy) . '" data-sent-at="' . e($sentAt) . '" title="Fee due WhatsApp already sent"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                        $watiNotification = $notification->wati_notification_id
+                            ? WatiNotification::find($notification->wati_notification_id)
+                            : null;
+                        $deliveryStatus = $watiNotification?->status ?? 'RECORDED';
+                        if ($deliveryStatus === WatiNotification::STATUS_FAILED) {
+                            $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-danger fs-1 border-0 fee-due-whatsapp-btn" data-student-id="' . $student->id . '" title="Retry failed WATI notification"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                        } else {
+                            $whatsappBadge = ' &nbsp; <button type="button" class="badge fs-1 border-0 fee-due-whatsapp-sent-btn" style="background:#d1d5db;color:#6b7280;opacity:.65;" data-sent-by="' . e($sentBy) . '" data-sent-at="' . e($sentAt) . '" data-status="' . e($deliveryStatus) . '" data-error="' . e($watiNotification?->last_error ?? '') . '" title="WhatsApp status: ' . e($deliveryStatus) . '"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
+                        }
                     } else {
                         $whatsappBadge = ' &nbsp; <button type="button" class="badge bg-success fs-1 border-0 fee-due-whatsapp-btn" data-student-id="' . $student->id . '" title="Send fee due WhatsApp"><div class="tcul-contact_icon"><i class="fab fa-whatsapp my-float"></i></div></button>';
                     }
@@ -467,7 +477,12 @@ class StudentController extends Controller
             ->make(true);
     }
 
-    public function sendFeeDueWhatsapp(Request $request, Student $student, PaymentLevelService $paymentLevelService)
+    public function sendFeeDueWhatsapp(
+        Request $request,
+        Student $student,
+        PaymentLevelService $paymentLevelService,
+        WatiNotificationService $watiNotifications
+    )
     {
         $user = auth()->user();
         $role = $user?->getRoleNames()->toArray() ?? [];
@@ -493,12 +508,76 @@ class StudentController extends Controller
             ->where('student_fee_id', $studentFee->id)
             ->first();
 
+        $dueSummary = $paymentLevelService->dueAmountSummary($student);
+        $message = $studentFee->generateFeeDueMessage();
+
         if ($notification) {
+            $watiNotification = $notification->wati_notification_id
+                ? WatiNotification::find($notification->wati_notification_id)
+                : null;
+
+            if ($watiNotification?->canRetry()
+                && $watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+                try {
+                    $watiNotifications->dispatch($watiNotification, true);
+                } catch (\Throwable $exception) {
+                    return response()->json([
+                        'message' => 'WATI retry failed: ' . $exception->getMessage(),
+                    ], 502);
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Fee due WhatsApp retry queued through WATI.',
+                    'delivery_status' => $watiNotification->fresh()->status,
+                ]);
+            }
+
+            if ($watiNotification?->canRetry()
+                && ! $watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'WATI is unavailable. Opened the WhatsApp Web fallback.',
+                    'whatsapp_url' => 'https://web.whatsapp.com/send?phone=' . $student->mobile . '&text=' . urlencode($message),
+                ]);
+            }
+
             return response()->json(['message' => 'Fee due WhatsApp has already been recorded for this fee row.'], 409);
         }
 
-        $dueSummary = $paymentLevelService->dueAmountSummary($student);
-        $message = $studentFee->generateFeeDueMessage();
+        if ($watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+            try {
+                $watiNotification = $watiNotifications->feeDue($student, $studentFee, $dueSummary, $user);
+            } catch (\InvalidArgumentException $exception) {
+                return response()->json(['message' => $exception->getMessage()], 422);
+            }
+
+            $notification = new FeeDueWhatsappNotification([
+                'student_id' => $student->id,
+                'student_fee_id' => $studentFee->id,
+                'sent_by' => auth()->id(),
+                'fee_amount' => $dueSummary['amount'] ?? null,
+                'currency' => $dueSummary['currency'] ?? null,
+                'message' => $message,
+                'sent_at' => now(),
+            ]);
+            $notification->wati_notification_id = $watiNotification->id;
+            $notification->save();
+
+            try {
+                $watiNotifications->dispatch($watiNotification, $watiNotification->canRetry());
+            } catch (\Throwable $exception) {
+                return response()->json([
+                    'message' => 'WATI could not accept the fee due notification: ' . $exception->getMessage(),
+                ], 502);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Fee due WhatsApp queued through WATI.',
+                'delivery_status' => $watiNotification->fresh()->status,
+            ]);
+        }
 
         FeeDueWhatsappNotification::create([
             'student_id' => $student->id,

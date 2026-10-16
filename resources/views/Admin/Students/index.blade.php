@@ -389,7 +389,9 @@
                 </div>
                 <div class="modal-body">
                     <p class="mb-1"><strong>Sent By:</strong> <span id="feeDueWhatsappSentBy">N/A</span></p>
-                    <p class="mb-0"><strong>Sent At:</strong> <span id="feeDueWhatsappSentAt">N/A</span></p>
+                    <p class="mb-1"><strong>Sent At:</strong> <span id="feeDueWhatsappSentAt">N/A</span></p>
+                    <p class="mb-1"><strong>Status:</strong> <span id="feeDueWhatsappStatus">N/A</span></p>
+                    <p class="mb-0 d-none" id="feeDueWhatsappErrorRow"><strong>Error:</strong> <span id="feeDueWhatsappError"></span></p>
                 </div>
             </div>
         </div>
@@ -758,6 +760,8 @@
                             } else {
                                 window.open(response.whatsapp_url, '_blank');
                             }
+                        } else if (whatsappWindow) {
+                            whatsappWindow.close();
                         }
 
                         toastr.success(response.message || 'Fee due WhatsApp notification recorded.', '', {
@@ -790,6 +794,10 @@
                 e.stopPropagation();
                 $('#feeDueWhatsappSentBy').text($(this).data('sent-by') || 'N/A');
                 $('#feeDueWhatsappSentAt').text($(this).data('sent-at') || 'N/A');
+                $('#feeDueWhatsappStatus').text($(this).data('status') || 'RECORDED');
+                var error = $(this).data('error') || '';
+                $('#feeDueWhatsappError').text(error);
+                $('#feeDueWhatsappErrorRow').toggleClass('d-none', !error);
                 $('#feeDueWhatsappSentModal').modal('show');
             });
             // Trigger the data table reload on page load if a coach is selected

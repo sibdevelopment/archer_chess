@@ -50,6 +50,7 @@ use App\Http\Controllers\Admin\NewEnrollmentController;
 use App\Http\Controllers\Admin\EmployeeLeaveRequestController;
 use App\Http\Controllers\Admin\StudentDashboardController;
 use App\Http\Controllers\Admin\CoachAvailabilityController;
+use App\Http\Controllers\Admin\WatiNotificationController;
 use Illuminate\Support\Facades\Log;
 
 // Admin Routes
@@ -167,6 +168,8 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('students/masterclass_tounament/list', [StudentController::class, 'masterclassTounamentlist'])->name('students.masterclassTounamentlist');
         Route::post('students/change-status', [StudentController::class, 'changeStatus'])->name('students.change.status');
         Route::post('students/{student}/fee-due-whatsapp', [StudentController::class, 'sendFeeDueWhatsapp'])->name('students.fee-due-whatsapp');
+        Route::get('wati-notifications', [WatiNotificationController::class, 'index'])->name('wati-notifications.index');
+        Route::post('wati-notifications/{watiNotification}/retry', [WatiNotificationController::class, 'retry'])->name('wati-notifications.retry');
         Route::get('students/get/coaches', [StudentController::class, 'getCoaches'])->name('students.get.coaches');
         Route::get('students/get/batches', [StudentController::class, 'getBatches'])->name('students.get.batches');
         Route::post('students/delete/attendance', [StudentController::class, 'deleteStudentAtendance'])->name('students.delete.attendance');

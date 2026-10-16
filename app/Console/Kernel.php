@@ -47,6 +47,10 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping();
 
+        $schedule->command('wati:send-class-reminders')
+            ->everyMinute()
+            ->withoutOverlapping();
+
         $schedule->command('batchs:sync-empty-to-upcoming')->dailyAt('01:15');
 
 

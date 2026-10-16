@@ -935,6 +935,20 @@ Full behavior summary and commit ledger: `docs/COMMITTED-CHANGES-2026-09-TO-10.m
 
 Detailed guide: `docs/developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md`.
 
+## WATI WhatsApp Integration
+
+```text
+- WATI is opt-in and remains disabled unless WATI_ENABLED=true plus the API token, endpoint, channel number, and flow template are configured.
+- Missing WATI configuration leaves the manual fee-due WhatsApp Web flow available and makes automated class reminders a safe no-op.
+- wati_notifications is the generic audit record for class reminders and fee-due messages, including idempotency key, recipient, template parameters, initiator, provider IDs, attempts, status, timestamps, and errors.
+- SendWatiTemplateMessage uses the WATI V3 template endpoint, queue retries, per-notification overlap protection, and a stable local message UUID.
+- wati:send-class-reminders runs every minute and targets READY regular batch occurrences within the configured reminder window; only active students with an eligible active batch assignment are included.
+- Fee-due sends retain the current role checks, fee calculation, employee attribution, duplicate protection, and WhatsApp Web fallback.
+- POST /api/wati/webhook requires WATI_WEBHOOK_SECRET and records sent, delivered, read, and failed provider states without allowing status regression.
+- Admins with students-view access can inspect and filter the WhatsApp audit log and retry failed messages.
+- Deployment requires the 2026_10_16_120000_create_wati_notifications_table migration, configured WATI templates, and Laravel scheduler execution.
+```
+
 ## Before Commit / Push
 
 Suggested checks:

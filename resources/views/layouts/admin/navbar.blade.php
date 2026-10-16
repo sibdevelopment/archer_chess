@@ -17,6 +17,18 @@
                 </li>
             @endcan
 
+            @can('students-view')
+                <li class="sidebar-item">
+                    <a class="sidebar-link @if (Route::is('admin.wati-notifications.*')) active @endif"
+                        href="{{ route('admin.wati-notifications.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="ti ti-brand-whatsapp"></i>
+                        </span>
+                        <span class="hide-menu capitalize">WhatsApp Notifications</span>
+                    </a>
+                </li>
+            @endcan
+
             <!-- User Management -->
             @canany(['role-view', 'employee-view', 'coachs-view', 'students-view'])
                 <li class="nav-small-cap mt-2">

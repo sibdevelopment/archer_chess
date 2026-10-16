@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\WatiWebhookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +38,5 @@ Route::middleware(['basic_auth'])->group(function () {
         });
     });
 });
+
+Route::post('wati/webhook', WatiWebhookController::class)->name('wati.webhook');

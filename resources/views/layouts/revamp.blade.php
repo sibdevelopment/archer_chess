@@ -12,6 +12,24 @@
         content="Archers Chess Academy, Chess Learning, Online Chess Education, Chess Coaching, Chess Lessons, Chess Community, Chess Skills, Strategic Thinking, Chess Curriculum">
     <meta name="robots" content="index, follow">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Tag Manager -->
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var firstScript = d.getElementsByTagName(s)[0];
+            var script = d.createElement(s);
+            var dataLayerParam = l !== 'dataLayer' ? '&l=' + l : '';
+
+            script.async = true;
+            script.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dataLayerParam;
+            firstScript.parentNode.insertBefore(script, firstScript);
+        })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
+    </script>
+    <!-- End Google Tag Manager -->
     <!-- Title -->
     <title>@yield('title', config('app.name'))</title>
     @yield('head')
@@ -392,6 +410,11 @@
 </head>
 
 <body style="overflow-x: hidden;">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KCPKNMQ" height="0" width="0"
+            style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
     <div class="tcul-floating_btn_contact" style="right: 130px;">
         <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#registrationModal">
             <div class="book-class-online">
@@ -961,14 +984,6 @@
                                         Refund & Cancellation
                                     </a>
 
-                                    <a href="javascript:void(0)" data-cookie-settings
-                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
-                                        <span class="tw-text-405">
-                                            <i class="ph-bold ph-caret-double-right"></i>
-                                        </span>
-                                        Cookie Settings
-                                    </a>
-
                                     <a href="{{ route('blog') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
@@ -1070,14 +1085,6 @@
                                             <i class="ph-bold ph-caret-double-right"></i>
                                         </span>
                                         Refund & Cancellation
-                                    </a>
-
-                                    <a href="javascript:void(0)" data-cookie-settings
-                                        class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
-                                        <span class="tw-text-405">
-                                            <i class="ph-bold ph-caret-double-right"></i>
-                                        </span>
-                                        Cookie Settings
                                     </a>
 
                                     <a href="{{ route('blog') }}"
@@ -1903,8 +1910,6 @@
     <script src="/frontend1/assets/js/main.js"></script>
 
     @stack('scripts')
-
-    @include('Frontend.partials.cookie-consent')
 
 </body>
 

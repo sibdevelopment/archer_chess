@@ -112,15 +112,14 @@
 
                         <h2>Third-party tools</h2>
                         <p>
-                            We may use Google Tag Manager to manage analytics and marketing tags. These optional tags are
-                            blocked until you give consent through the cookie banner or Cookie Settings.
+                            We may use Google Tag Manager to manage analytics and marketing tags. On our UK and EU landing
+                            pages, optional tags are blocked until you provide consent through the cookie banner.
                         </p>
 
                         <h2>How to change your choice</h2>
                         <p>
-                            You can update or withdraw consent anytime by opening
-                            <a href="javascript:void(0)" data-cookie-settings>Cookie Settings</a>. You can also delete or
-                            block cookies from your browser settings.
+                            On UK and EU landing pages, you can update or withdraw consent using the Cookie Settings link
+                            shown on those pages. You can also delete or block cookies from your browser settings.
                         </p>
 
                         <h2>Policy updates</h2>

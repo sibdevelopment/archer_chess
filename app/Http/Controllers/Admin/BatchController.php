@@ -922,7 +922,7 @@ class BatchController extends Controller
     public function masterclassTounamentlist(Request $request)
     {
         $countries = normalizeCountryValues($request->input('countries', []));
-        $batches   = Batch::where('status', '!=', 'INACTIVE')
+        $batches   = Batch::where('status', 'ACTIVE')
             ->where(function ($query) use ($countries) {
                 foreach ($countries as $country) {
                     foreach (countryComparisonValues($country) as $countryValue) {

@@ -15,6 +15,7 @@ use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Services\StudentEventAudienceService;
 
 class TournamentController extends Controller
 {
@@ -123,12 +124,14 @@ class TournamentController extends Controller
         return view('Admin.Tournaments.form', compact('batches', 'students', 'levels'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, StudentEventAudienceService $audience)
     {
         $request->validate($this->rules, $this->customMessages);
+        $audience->validateTargets($request);
         $countries = $request->country;
         $tournament = new Tournament;
         $tournament->fill($request->all());
+        $audience->fillTargets($tournament, $request);
         if (!empty($request->certificate) && $request->file('certificate')) {
             $certificate = $request->file('certificate');
             $certificatefile['name'] = $certificate->getClientOriginalName();
@@ -138,61 +141,7 @@ class TournamentController extends Controller
         }
         $tournament->save();
 
-        $students = collect();
-
-        // (a) Direct Students
-        if (!empty($request->student_ids)) {
-            $students = $students->merge(
-                Student::whereIn('id', $request->student_ids)
-                    ->where('status', '!=', 'INACTIVE')
-                    ->get()
-            );
-        }
-
-        // (b) Batch Students
-        if (!empty($request->batch_ids)) {
-            $batchStudents = Student::whereHas('studentBatches', function ($q) use ($request) {
-                    $q->whereIn('batch_id', $request->batch_ids)
-                    ->where('status', '!=', 'INACTIVE');
-                })->get();
-
-            $students = $students->merge($batchStudents);
-        }
-
-        // (c) Level Students
-        if (!empty($request->level_ids)) {
-            $levelStudents = Student::whereHas('studentBatches.batch', function ($q) use ($request) {
-                    $q->whereIn('level_id', $request->level_ids)
-                    ->where('status', '!=', 'INACTIVE');
-                })->get();
-
-            $students = $students->merge($levelStudents);
-        }
-
-        // (d) Country Students
-        if (!empty($countries)) {
-            $countryStudents = Student::whereIn('country', $countries)
-                ->where('status', '!=', 'INACTIVE')
-                ->get();
-
-            $students = $students->merge($countryStudents);
-        }
-
-        // ✅ Remove duplicates
-        $students = $students->unique('id');
-
-        foreach ($students as $student) {
-            // TournamentData::firstOrCreate([
-            //     'tournament_id' => $tournament->id,
-            //     'student_id'    => $student->id,
-            // ]);
-
-            // 🔑 Send Mail
-            if (!empty($student->email)) {
-                // Mail::to($student->email)->send(new TournamentMail($student, $tournament));
-                break;
-            }
-        }
+        $audience->syncTournamentData($tournament);
 
         // if (!empty($request->student_ids)) {
         //     foreach ($request->student_ids as $student_id) {
@@ -303,7 +252,7 @@ class TournamentController extends Controller
     {
 
         $batches = Batch::where('status', 'ACTIVE')->get();
-        $students = Student::get();
+        $students = Student::where('status', 'ACTIVE')->get();
         $levels = Level::where('status', 'ACTIVE')->get();
         $selectedBatches = old('batch_ids', $tournament->batch_ids ?? []);
         $selectedStudents = old('student_ids', $tournament->student_ids ?? []);
@@ -312,10 +261,12 @@ class TournamentController extends Controller
         return view('Admin.Tournaments.form', compact('tournament', 'batches', 'students', 'levels', 'selectedBatches', 'selectedStudents', 'selectedLevels'));
     }
 
-    public function update(Request $request, Tournament $tournament)
+    public function update(Request $request, Tournament $tournament, StudentEventAudienceService $audience)
     {
         $request->validate($this->rules, $this->customMessages);
+        $audience->validateTargets($request);
         $tournament->fill($request->all());
+        $audience->fillTargets($tournament, $request);
         $countries = $request->country;
 
         if (!empty($request->certificate) && $request->file('certificate')) {
@@ -325,6 +276,8 @@ class TournamentController extends Controller
             $tournament->certificate = $certificatefile;
         }
         $tournament->save();
+
+        $audience->syncTournamentData($tournament);
 
         // $tournamentdata = TournamentData::where('tournament_id', $tournament->id)->delete();
 
@@ -505,6 +458,9 @@ class TournamentController extends Controller
         'date' => 'required',
         'time' => 'required',
         'link' => 'required',
+        'student_ids' => 'nullable|array',
+        'batch_ids' => 'nullable|array',
+        'level_ids' => 'nullable|array',
     ];
 
     private $customMessages = [

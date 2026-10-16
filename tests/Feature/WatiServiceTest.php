@@ -27,6 +27,8 @@ class WatiServiceTest extends TestCase
             'services' => [
                 'wati' => [
                     'enabled' => false,
+                    'audience_mode' => 'allowlist',
+                    'allowed_student_ids' => [],
                     'base_url' => 'https://live-mt-server.wati.io',
                     'token' => null,
                     'channel_number' => null,
@@ -108,6 +110,50 @@ class WatiServiceTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         $service->normalizePhone('1234');
+    }
+
+    public function test_empty_allowlist_denies_students_by_default(): void
+    {
+        $service = new WatiNotificationService(new WatiService());
+        $student = new \App\Models\Student(['student_id' => 'ARCHERCHESS_100001']);
+
+        $this->assertFalse($service->hasAudience());
+        $this->assertFalse($service->allowsStudent($student));
+    }
+
+    public function test_allowlist_accepts_only_configured_student_codes(): void
+    {
+        config()->set('services.wati.audience_mode', 'allowlist');
+        config()->set('services.wati.allowed_student_ids', [
+            ' archerchess_100001 ',
+            'ARCHERCHESS_100002',
+        ]);
+        $service = new WatiNotificationService(new WatiService());
+
+        $this->assertTrue($service->hasAudience());
+        $this->assertTrue($service->allowsStudent(
+            new \App\Models\Student(['student_id' => 'ARCHERCHESS_100001'])
+        ));
+        $this->assertFalse($service->allowsStudent(
+            new \App\Models\Student(['student_id' => 'ARCHERCHESS_100003'])
+        ));
+    }
+
+    public function test_all_mode_accepts_any_student_and_disabled_or_unknown_modes_deny(): void
+    {
+        $service = new WatiNotificationService(new WatiService());
+        $student = new \App\Models\Student(['student_id' => 'ARCHERCHESS_100003']);
+
+        config()->set('services.wati.audience_mode', 'all');
+        $this->assertTrue($service->hasAudience());
+        $this->assertTrue($service->allowsStudent($student));
+
+        config()->set('services.wati.audience_mode', 'disabled');
+        $this->assertFalse($service->hasAudience());
+        $this->assertFalse($service->allowsStudent($student));
+
+        config()->set('services.wati.audience_mode', 'invalid');
+        $this->assertFalse($service->allowsStudent($student));
     }
 
     public function test_it_rejects_recipient_errors_even_when_wati_returns_http_200(): void

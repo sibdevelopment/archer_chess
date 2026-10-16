@@ -50,6 +50,10 @@ class WatiNotificationController extends Controller
             return back()->with('error', 'WATI credentials or this notification template are not configured.');
         }
 
+        if (! $notifications->allowsNotification($watiNotification)) {
+            return back()->with('error', 'This student is not enabled for the current WATI audience mode.');
+        }
+
         try {
             $notifications->dispatch($watiNotification, true);
         } catch (\Throwable $exception) {

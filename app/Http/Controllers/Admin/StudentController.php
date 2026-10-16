@@ -517,7 +517,7 @@ class StudentController extends Controller
                 : null;
 
             if ($watiNotification?->canRetry()
-                && $watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+                && $watiNotifications->availableForStudent(WatiNotification::TYPE_FEE_DUE, $student)) {
                 try {
                     $watiNotifications->dispatch($watiNotification, true);
                 } catch (\Throwable $exception) {
@@ -534,7 +534,7 @@ class StudentController extends Controller
             }
 
             if ($watiNotification?->canRetry()
-                && ! $watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+                && ! $watiNotifications->availableForStudent(WatiNotification::TYPE_FEE_DUE, $student)) {
                 return response()->json([
                     'status' => 'success',
                     'message' => 'WATI is unavailable. Opened the WhatsApp Web fallback.',
@@ -545,7 +545,7 @@ class StudentController extends Controller
             return response()->json(['message' => 'Fee due WhatsApp has already been recorded for this fee row.'], 409);
         }
 
-        if ($watiNotifications->availableFor(WatiNotification::TYPE_FEE_DUE)) {
+        if ($watiNotifications->availableForStudent(WatiNotification::TYPE_FEE_DUE, $student)) {
             try {
                 $watiNotification = $watiNotifications->feeDue($student, $studentFee, $dueSummary, $user);
             } catch (\InvalidArgumentException $exception) {

@@ -16,6 +16,7 @@ class WatiNotification extends Model
     public const STATUS_DELIVERED = 'DELIVERED';
     public const STATUS_READ = 'READ';
     public const STATUS_FAILED = 'FAILED';
+    public const STATUS_SKIPPED = 'SKIPPED';
 
     protected $fillable = [
         'local_message_id',

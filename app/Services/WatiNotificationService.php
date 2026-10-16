@@ -23,6 +23,42 @@ class WatiNotificationService
         return $this->wati->configuredFor($type);
     }
 
+    public function availableForStudent(string $type, Student $student): bool
+    {
+        return $this->availableFor($type) && $this->allowsStudent($student);
+    }
+
+    public function hasAudience(): bool
+    {
+        $mode = strtolower(trim((string) config('services.wati.audience_mode', 'allowlist')));
+
+        return $mode === 'all' || ($mode === 'allowlist' && $this->allowedStudentIds() !== []);
+    }
+
+    public function allowsStudent(Student $student): bool
+    {
+        $mode = strtolower(trim((string) config('services.wati.audience_mode', 'allowlist')));
+
+        if ($mode === 'all') {
+            return true;
+        }
+
+        if ($mode !== 'allowlist') {
+            return false;
+        }
+
+        $studentCode = strtoupper(trim((string) $student->student_id));
+
+        return $studentCode !== '' && in_array($studentCode, $this->allowedStudentIds(), true);
+    }
+
+    public function allowsNotification(WatiNotification $notification): bool
+    {
+        $notification->loadMissing('student');
+
+        return $notification->student !== null && $this->allowsStudent($notification->student);
+    }
+
     public function feeDue(
         Student $student,
         StudentFee $studentFee,
@@ -30,6 +66,7 @@ class WatiNotificationService
         ?User $initiator
     ): WatiNotification {
         $type = WatiNotification::TYPE_FEE_DUE;
+        $this->ensureStudentAllowed($student);
         $template = $this->requiredTemplate($type);
         $recipient = $this->normalizePhone($student->mobile);
         $amount = $dueSummary['amount'] ?? null;
@@ -66,6 +103,7 @@ class WatiNotificationService
     public function classReminder(BatchClassSession $session, Student $student): WatiNotification
     {
         $type = WatiNotification::TYPE_CLASS_REMINDER;
+        $this->ensureStudentAllowed($student);
         $template = $this->requiredTemplate($type);
         $recipient = $this->normalizePhone($student->mobile);
         $session->loadMissing(['batch', 'coach.user']);
@@ -107,7 +145,7 @@ class WatiNotificationService
 
     public function dispatch(WatiNotification $notification, bool $retryFailed = false): bool
     {
-        if (! $this->availableFor($notification->type)) {
+        if (! $this->availableFor($notification->type) || ! $this->allowsNotification($notification)) {
             return false;
         }
 
@@ -150,5 +188,27 @@ class WatiNotificationService
         }
 
         return (string) $this->wati->templateName($type);
+    }
+
+    private function allowedStudentIds(): array
+    {
+        $configured = config('services.wati.allowed_student_ids', []);
+        $studentIds = is_array($configured)
+            ? $configured
+            : explode(',', (string) $configured);
+
+        return collect($studentIds)
+            ->map(fn ($studentId) => strtoupper(trim((string) $studentId)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function ensureStudentAllowed(Student $student): void
+    {
+        if (! $this->allowsStudent($student)) {
+            throw new InvalidArgumentException('Student is not enabled for the current WATI audience mode.');
+        }
     }
 }

@@ -38,6 +38,11 @@ return [
 
     'wati' => [
         'enabled' => filter_var(env('WATI_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'audience_mode' => strtolower(trim((string) env('WATI_AUDIENCE_MODE', 'allowlist'))),
+        'allowed_student_ids' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('WATI_ALLOWED_STUDENT_IDS', ''))
+        ))),
         'base_url' => env('WATI_API_BASE_URL', 'https://live-mt-server.wati.io'),
         'token' => env('WATI_API_TOKEN'),
         'channel_number' => env('WATI_CHANNEL_NUMBER'),

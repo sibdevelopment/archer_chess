@@ -939,6 +939,8 @@ Detailed guide: `docs/developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md`.
 
 ```text
 - WATI is opt-in and remains disabled unless WATI_ENABLED=true plus the API token, endpoint, channel number, and flow template are configured.
+- WATI audience delivery is deny-by-default: WATI_AUDIENCE_MODE=allowlist sends only to the comma-separated public student codes in WATI_ALLOWED_STUDENT_IDS; an empty list sends to nobody. Use WATI_AUDIENCE_MODE=all only after production approval, while disabled or unknown modes deny every student.
+- The audience guard is enforced when creating and dispatching notifications and again inside queued jobs. Non-allowlisted fee-due actions retain the manual WhatsApp Web fallback, and blocked queued jobs are recorded as SKIPPED.
 - Missing WATI configuration leaves the manual fee-due WhatsApp Web flow available and makes automated class reminders a safe no-op.
 - wati_notifications is the generic audit record for class reminders and fee-due messages, including idempotency key, recipient, template parameters, initiator, provider IDs, attempts, status, timestamps, and errors.
 - SendWatiTemplateMessage uses the WATI V3 template endpoint, queue retries, per-notification overlap protection, and a stable local message UUID.

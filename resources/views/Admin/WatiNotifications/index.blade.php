@@ -17,7 +17,7 @@
                             </select>
                             <select name="status" class="form-select form-select-sm">
                                 <option value="">All statuses</option>
-                                @foreach (['QUEUED', 'PROCESSING', 'ACCEPTED', 'SENT', 'DELIVERED', 'READ', 'FAILED'] as $status)
+                                @foreach (['QUEUED', 'PROCESSING', 'ACCEPTED', 'SENT', 'DELIVERED', 'READ', 'FAILED', 'SKIPPED'] as $status)
                                     <option value="{{ $status }}" @selected(request('status') === $status)>{{ $status }}</option>
                                 @endforeach
                             </select>
@@ -58,6 +58,7 @@
                                         $badge = match ($notification->status) {
                                             'READ', 'DELIVERED' => 'success',
                                             'FAILED' => 'danger',
+                                            'SKIPPED' => 'secondary',
                                             'SENT', 'ACCEPTED' => 'info',
                                             default => 'warning',
                                         };

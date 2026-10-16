@@ -18,8 +18,9 @@ class SendWatiClassReminders extends Command
 
     public function handle(WatiNotificationService $notifications): int
     {
-        if (! $notifications->availableFor(WatiNotification::TYPE_CLASS_REMINDER)) {
-            $this->line('WATI class reminders are disabled or not fully configured.');
+        if (! $notifications->availableFor(WatiNotification::TYPE_CLASS_REMINDER)
+            || ! $notifications->hasAudience()) {
+            $this->line('WATI class reminders are disabled, not fully configured, or have no enabled audience.');
             return Command::SUCCESS;
         }
 
@@ -46,6 +47,11 @@ class SendWatiClassReminders extends Command
                         ->unique('student_id');
 
                     foreach ($studentBatches as $studentBatch) {
+                        if (! $notifications->allowsStudent($studentBatch->student)) {
+                            $counts['skipped']++;
+                            continue;
+                        }
+
                         try {
                             $notification = $notifications->classReminder($session, $studentBatch->student);
                             if ($notification->wasRecentlyCreated && $notifications->dispatch($notification)) {

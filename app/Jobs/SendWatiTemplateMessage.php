@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Exceptions\WatiRequestException;
 use App\Models\WatiNotification;
+use App\Services\WatiNotificationService;
 use App\Services\WatiService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -44,7 +45,7 @@ class SendWatiTemplateMessage implements ShouldQueue, ShouldBeUnique
         return [60, 300, 900];
     }
 
-    public function handle(WatiService $wati): void
+    public function handle(WatiService $wati, WatiNotificationService $notifications): void
     {
         $notification = WatiNotification::find($this->notificationId);
         if (! $notification || in_array($notification->status, [
@@ -52,6 +53,7 @@ class SendWatiTemplateMessage implements ShouldQueue, ShouldBeUnique
             WatiNotification::STATUS_SENT,
             WatiNotification::STATUS_DELIVERED,
             WatiNotification::STATUS_READ,
+            WatiNotification::STATUS_SKIPPED,
         ], true)) {
             return;
         }
@@ -61,6 +63,14 @@ class SendWatiTemplateMessage implements ShouldQueue, ShouldBeUnique
                 'status' => WatiNotification::STATUS_FAILED,
                 'failed_at' => now(),
                 'last_error' => 'WATI is disabled or its credentials/template are incomplete.',
+            ]);
+            return;
+        }
+
+        if (! $notifications->allowsNotification($notification)) {
+            $notification->update([
+                'status' => WatiNotification::STATUS_SKIPPED,
+                'last_error' => 'Blocked by the current WATI audience configuration.',
             ]);
             return;
         }

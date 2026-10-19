@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 class StudentEventAudienceService
 {
     private const ELIGIBLE_ASSIGNMENT_STATUSES = ['ACTIVE', 'STANDBY'];
+    private const ELIGIBLE_BATCH_STATUSES = ['ACTIVE', 'STANDBY'];
 
     public function validateTargets(Request $request): void
     {
@@ -89,7 +90,7 @@ class StudentEventAudienceService
     {
         $assignments = $student->studentBatches()
             ->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
-            ->whereHas('batch', fn (Builder $batch) => $batch->where('status', 'ACTIVE'))
+            ->whereHas('batch', fn (Builder $batch) => $batch->whereIn('status', self::ELIGIBLE_BATCH_STATUSES))
             ->with('batch:id,level_id')
             ->get();
 
@@ -140,7 +141,7 @@ class StudentEventAudienceService
                     $targetQuery->orWhereHas('studentBatches', function (Builder $studentBatch) use ($batchIds) {
                         $studentBatch->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
                             ->whereIn('batch_id', $batchIds)
-                            ->whereHas('batch', fn (Builder $batch) => $batch->where('status', 'ACTIVE'));
+                            ->whereHas('batch', fn (Builder $batch) => $batch->whereIn('status', self::ELIGIBLE_BATCH_STATUSES));
                     });
                 }
 
@@ -148,7 +149,8 @@ class StudentEventAudienceService
                     $targetQuery->orWhereHas('studentBatches', function (Builder $studentBatch) use ($levelIds) {
                         $studentBatch->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
                             ->whereHas('batch', function (Builder $batch) use ($levelIds) {
-                                $batch->where('status', 'ACTIVE')->whereIn('level_id', $levelIds);
+                                $batch->whereIn('status', self::ELIGIBLE_BATCH_STATUSES)
+                                    ->whereIn('level_id', $levelIds);
                             });
                     });
                 }

@@ -525,7 +525,7 @@ overlap exists when existing_from < selected_to AND existing_to > selected_from
 - Upcoming tournaments and upcoming masterclasses on the student dashboard are visible only when the logged-in student status is ACTIVE.
 - FEESDUE and INACTIVE students should not receive upcoming tournament/masterclass data on the dashboard cards.
 - The separate student tournament and student masterclass pages follow the same ACTIVE-only student rule.
-- An ACTIVE student with an ACTIVE or STANDBY student-batch assignment remains eligible for batch-targeted and level-targeted tournaments/masterclasses, provided the related batch itself is ACTIVE. INACTIVE assignments and non-active batches remain excluded.
+- An ACTIVE student with an ACTIVE or STANDBY student-batch assignment remains eligible for batch-targeted and level-targeted tournaments/masterclasses when the related batch is ACTIVE or STANDBY. INACTIVE assignments and INACTIVE batches remain excluded.
 - The existing fees-due modal/payment reminder remains unchanged.
 ```
 

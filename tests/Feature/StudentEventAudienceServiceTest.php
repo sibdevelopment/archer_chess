@@ -119,6 +119,37 @@ class StudentEventAudienceServiceTest extends TestCase
         $this->assertNotContains($wrongCountry->id, $visibleIds);
     }
 
+    public function test_standby_batch_assignments_remain_eligible_for_event_targeting(): void
+    {
+        $standbyStudent = $this->student('ACTIVE', 'USA');
+        $inactiveStudent = $this->student('ACTIVE', 'USA');
+        $inactiveBatchStudent = $this->student('ACTIVE', 'USA');
+        $batch = $this->batch('ACTIVE', 7, ['USA']);
+        $inactiveBatch = $this->batch('INACTIVE', 7, ['USA']);
+
+        $this->assignment($standbyStudent, $batch, 'STANDBY');
+        $this->assignment($inactiveStudent, $batch, 'INACTIVE');
+        $this->assignment($inactiveBatchStudent, $inactiveBatch, 'STANDBY');
+
+        $event = $this->masterclass(
+            [(string) $batch->id, (string) $inactiveBatch->id],
+            [],
+            ['7'],
+            ['USA']
+        );
+
+        $targetedIds = $this->audience->studentsForEvent($event)->pluck('id')->all();
+        $visibleIds = $this->audience
+            ->visibleToStudent(Masterclass::query(), $standbyStudent)
+            ->pluck('id')
+            ->all();
+
+        $this->assertContains($standbyStudent->id, $targetedIds);
+        $this->assertNotContains($inactiveStudent->id, $targetedIds);
+        $this->assertNotContains($inactiveBatchStudent->id, $targetedIds);
+        $this->assertContains($event->id, $visibleIds);
+    }
+
     private function student(string $status, string $country): Student
     {
         $student = new Student(['status' => $status, 'country' => $country]);

@@ -16,6 +16,8 @@ use Illuminate\Validation\ValidationException;
 
 class StudentEventAudienceService
 {
+    private const ELIGIBLE_ASSIGNMENT_STATUSES = ['ACTIVE', 'STANDBY'];
+
     public function validateTargets(Request $request): void
     {
         $studentIds = $this->ids($request->input('student_ids', []));
@@ -86,7 +88,7 @@ class StudentEventAudienceService
     public function visibleToStudent(Builder $query, Student $student): Builder
     {
         $assignments = $student->studentBatches()
-            ->where('status', 'ACTIVE')
+            ->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
             ->whereHas('batch', fn (Builder $batch) => $batch->where('status', 'ACTIVE'))
             ->with('batch:id,level_id')
             ->get();
@@ -136,7 +138,7 @@ class StudentEventAudienceService
 
                 if (! empty($batchIds)) {
                     $targetQuery->orWhereHas('studentBatches', function (Builder $studentBatch) use ($batchIds) {
-                        $studentBatch->where('status', 'ACTIVE')
+                        $studentBatch->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
                             ->whereIn('batch_id', $batchIds)
                             ->whereHas('batch', fn (Builder $batch) => $batch->where('status', 'ACTIVE'));
                     });
@@ -144,7 +146,7 @@ class StudentEventAudienceService
 
                 if (! empty($levelIds)) {
                     $targetQuery->orWhereHas('studentBatches', function (Builder $studentBatch) use ($levelIds) {
-                        $studentBatch->where('status', 'ACTIVE')
+                        $studentBatch->whereIn('status', self::ELIGIBLE_ASSIGNMENT_STATUSES)
                             ->whereHas('batch', function (Builder $batch) use ($levelIds) {
                                 $batch->where('status', 'ACTIVE')->whereIn('level_id', $levelIds);
                             });

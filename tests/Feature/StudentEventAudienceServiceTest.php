@@ -119,35 +119,44 @@ class StudentEventAudienceServiceTest extends TestCase
         $this->assertNotContains($wrongCountry->id, $visibleIds);
     }
 
-    public function test_standby_batch_assignments_remain_eligible_for_event_targeting(): void
+    public function test_standby_assignments_and_standby_batches_remain_eligible_for_event_targeting(): void
     {
-        $standbyStudent = $this->student('ACTIVE', 'USA');
+        $standbyAssignmentStudent = $this->student('ACTIVE', 'USA');
+        $standbyBatchStudent = $this->student('ACTIVE', 'USA');
         $inactiveStudent = $this->student('ACTIVE', 'USA');
         $inactiveBatchStudent = $this->student('ACTIVE', 'USA');
-        $batch = $this->batch('ACTIVE', 7, ['USA']);
+        $activeBatch = $this->batch('ACTIVE', 7, ['USA']);
+        $standbyBatch = $this->batch('STANDBY', 7, ['USA']);
         $inactiveBatch = $this->batch('INACTIVE', 7, ['USA']);
 
-        $this->assignment($standbyStudent, $batch, 'STANDBY');
-        $this->assignment($inactiveStudent, $batch, 'INACTIVE');
+        $this->assignment($standbyAssignmentStudent, $activeBatch, 'STANDBY');
+        $this->assignment($standbyBatchStudent, $standbyBatch, 'ACTIVE');
+        $this->assignment($inactiveStudent, $activeBatch, 'INACTIVE');
         $this->assignment($inactiveBatchStudent, $inactiveBatch, 'STANDBY');
 
         $event = $this->masterclass(
-            [(string) $batch->id, (string) $inactiveBatch->id],
+            [(string) $activeBatch->id, (string) $standbyBatch->id, (string) $inactiveBatch->id],
             [],
             ['7'],
             ['USA']
         );
 
         $targetedIds = $this->audience->studentsForEvent($event)->pluck('id')->all();
-        $visibleIds = $this->audience
-            ->visibleToStudent(Masterclass::query(), $standbyStudent)
+        $standbyAssignmentVisibleIds = $this->audience
+            ->visibleToStudent(Masterclass::query(), $standbyAssignmentStudent)
+            ->pluck('id')
+            ->all();
+        $standbyBatchVisibleIds = $this->audience
+            ->visibleToStudent(Masterclass::query(), $standbyBatchStudent)
             ->pluck('id')
             ->all();
 
-        $this->assertContains($standbyStudent->id, $targetedIds);
+        $this->assertContains($standbyAssignmentStudent->id, $targetedIds);
+        $this->assertContains($standbyBatchStudent->id, $targetedIds);
         $this->assertNotContains($inactiveStudent->id, $targetedIds);
         $this->assertNotContains($inactiveBatchStudent->id, $targetedIds);
-        $this->assertContains($event->id, $visibleIds);
+        $this->assertContains($event->id, $standbyAssignmentVisibleIds);
+        $this->assertContains($event->id, $standbyBatchVisibleIds);
     }
 
     private function student(string $status, string $country): Student

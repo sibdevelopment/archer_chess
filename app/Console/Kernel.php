@@ -13,11 +13,10 @@ class Kernel extends ConsoleKernel
         \App\Console\Commands\Email\Reminder\DemoClassMail::class,
         \App\Console\Commands\Email\Reminder\TournamentMail::class,
     ];
-        
+
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
     protected function schedule(Schedule $schedule)
@@ -45,6 +44,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('batchs:sync-empty-to-upcoming')->dailyAt('01:15');
 
+        // The command itself enforces exact transition dates and one-time transition keys.
+        $schedule->command('batches:dst-process')
+            ->dailyAt('00:10')
+            ->timezone(config('batch_dst.timezone'))
+            ->withoutOverlapping();
 
         // Reminder Emails
         // $schedule->command('masterclass:reminder')->hourly();
@@ -61,7 +65,6 @@ class Kernel extends ConsoleKernel
         // $schedule->command('set:fess-due-in-usa-canada')->dailyAt('21:05');
         // $schedule->command('set:fess-due-in-uk')->dailyAt('12:00');
 
-
         // OTHER 24Hrs REminder
         // $schedule->command('reminder:feesdue-24hr-students')->hourly();
 
@@ -76,7 +79,7 @@ class Kernel extends ConsoleKernel
 
         // // USA CANADA 1Hour Reminder
         // $schedule->command('set:onehour-reminder-in-usa-canada')->everyTenMinutes();
-        
+
         // // UK 1Hour Reminder
         // $schedule->command('set:onehour-reminder-in-uk')->everyTenMinutes();
     }

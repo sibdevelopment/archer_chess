@@ -148,6 +148,22 @@ class BatchDstAdjustmentServiceTest extends TestCase
         $this->schedule($batch, 'Friday', '20:30:00', '21:30:00');
 
         $run = $this->service->apply('uk-eu', 'test-autumn', CarbonImmutable::parse('2026-10-25 00:10:00'));
+
+        // MySQL JSON columns can reorder object keys; rollback compares values, not JSON key order.
+        $item = $run->items()->first();
+        $after = $item->after_state;
+        $item->after_state = [
+            'name' => $after['name'],
+            'schedules' => collect($after['schedules'])->map(fn ($schedule) => [
+                'to_time' => $schedule['to_time'],
+                'id' => $schedule['id'],
+                'from_time' => $schedule['from_time'],
+                'weekday' => $schedule['weekday'],
+            ])->all(),
+            'batch_id' => $after['batch_id'],
+        ];
+        $item->save();
+
         $rolledBack = $this->service->rollback($run);
 
         $this->assertSame('ROLLED_BACK', $rolledBack->status);

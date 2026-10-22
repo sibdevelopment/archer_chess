@@ -142,7 +142,7 @@ class BatchDstAdjustmentService
         $conflicts = [];
         foreach ($run->items()->orderBy('id')->get() as $item) {
             $batch = Batch::find($item->batch_id);
-            if (! $batch || $this->snapshot($batch) !== $item->after_state) {
+            if (! $batch || ! $this->statesMatch($this->snapshot($batch), $item->after_state)) {
                 $conflicts[] = $item->batch_id;
             }
         }
@@ -326,5 +326,27 @@ class BatchDstAdjustmentService
                 'updated_at' => now(),
             ]);
         }
+    }
+
+    private function statesMatch(array $current, array $expected): bool
+    {
+        $normalize = function (array $state): array {
+            return [
+                'batch_id' => (int) $state['batch_id'],
+                'name' => (string) $state['name'],
+                'schedules' => collect($state['schedules'])
+                    ->map(fn (array $schedule) => [
+                        'id' => (int) $schedule['id'],
+                        'weekday' => (string) $schedule['weekday'],
+                        'from_time' => (string) $schedule['from_time'],
+                        'to_time' => (string) $schedule['to_time'],
+                    ])
+                    ->sortBy('id')
+                    ->values()
+                    ->all(),
+            ];
+        };
+
+        return $normalize($current) === $normalize($expected);
     }
 }

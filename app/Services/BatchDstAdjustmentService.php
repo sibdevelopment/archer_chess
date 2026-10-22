@@ -289,7 +289,10 @@ class BatchDstAdjustmentService
 
     private function weekdayCode(array $schedules): string
     {
+        $weekdayOrder = array_flip(array_keys(self::WEEKDAY_CODES));
+
         return collect($schedules)
+            ->sortBy(fn (array $schedule) => $weekdayOrder[$schedule['weekday']] ?? PHP_INT_MAX)
             ->map(fn (array $schedule) => self::WEEKDAY_CODES[$schedule['weekday']] ?? '')
             ->implode('');
     }

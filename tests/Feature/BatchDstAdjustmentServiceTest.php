@@ -99,16 +99,17 @@ class BatchDstAdjustmentServiceTest extends TestCase
     public function test_preview_handles_midnight_weekday_and_batch_name_rollover(): void
     {
         $batch = $this->batch('Coach WF 11PM IST', ['UK']);
-        $this->schedule($batch, 'Wednesday', '23:00:00', '23:45:00');
+        // Live data can store schedule rows in a different order than the name code.
         $this->schedule($batch, 'Friday', '23:00:00', '23:45:00');
+        $this->schedule($batch, 'Wednesday', '23:00:00', '23:45:00');
 
         $preview = $this->service->preview('uk-eu', 'test-autumn');
 
         $this->assertCount(1, $preview['rows']);
         $this->assertEmpty($preview['blocked']);
         $this->assertSame('Coach THS 12AM IST', $preview['rows'][0]['after']['name']);
-        $this->assertSame('Thursday', $preview['rows'][0]['after']['schedules'][0]['weekday']);
-        $this->assertSame('Saturday', $preview['rows'][0]['after']['schedules'][1]['weekday']);
+        $this->assertSame('Saturday', $preview['rows'][0]['after']['schedules'][0]['weekday']);
+        $this->assertSame('Thursday', $preview['rows'][0]['after']['schedules'][1]['weekday']);
         $this->assertSame('00:00:00', $preview['rows'][0]['after']['schedules'][0]['from_time']);
 
         $this->assertSame('Coach WF 11PM IST', $batch->fresh()->name);

@@ -255,8 +255,11 @@ class BatchDstAdjustmentService
             throw new RuntimeException('Batch name does not contain a supported AM/PM time.');
         }
 
-        $newStart = CarbonImmutable::createFromFormat('H:i:s', $shifted['schedules'][0]['from_time']);
-        $replacement = $this->formatNameTime($newStart, $match);
+        $nameTime = CarbonImmutable::createFromFormat(
+            'g:i A',
+            sprintf('%d:%02d %s', (int) $match[1], (int) ($match[3] ?? 0), strtoupper($match[5]))
+        );
+        $replacement = $this->formatNameTime($nameTime->addMinutes($minutes), $match);
         $shifted['name'] = preg_replace(self::TIME_PATTERN, $replacement, $name, 1);
 
         return $shifted;

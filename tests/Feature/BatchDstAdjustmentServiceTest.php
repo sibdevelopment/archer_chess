@@ -197,6 +197,18 @@ class BatchDstAdjustmentServiceTest extends TestCase
         );
     }
 
+    public function test_batch_name_time_shifts_relative_to_its_own_value(): void
+    {
+        $batch = $this->batch('ABHIJEET-MTH 11:00PM  IST UK', ['UK']);
+        $this->schedule($batch, 'Monday', '22:00:00', '22:59:00');
+        $this->schedule($batch, 'Thursday', '22:00:00', '22:59:00');
+
+        $forward = $this->service->preview('uk-eu', 'test-autumn')['rows'][0]['after'];
+
+        $this->assertSame('ABHIJEET-MTH 12:00AM  IST UK', $forward['name']);
+        $this->assertSame('23:00:00', $forward['schedules'][0]['from_time']);
+    }
+
     public function test_region_priority_prevents_a_shared_batch_from_being_shifted_twice(): void
     {
         $batch = $this->batch('Coach MF 12PM IST', ['AUSTRALIA', 'NEWZEALAND']);

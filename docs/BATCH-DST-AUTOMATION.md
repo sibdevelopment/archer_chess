@@ -44,38 +44,30 @@ php artisan batches:dst-rollback RUN_ID --dry-run
 php artisan batches:dst-rollback RUN_ID --confirm
 ```
 
-The daily scheduler calls `batches:dst-process` at 00:10 Asia/Kolkata. On a
-normal day it makes no changes. Australia 2026 is marked as manually handled,
-and New Zealand 2026 is disabled pending baseline confirmation.
+The daily scheduler calls `batches:dst-process` at 02:00 Asia/Kolkata. The
+two-hour delay after midnight gives operations time to update WhatsApp group
+names. On a normal day the command makes no changes. Australia and New Zealand
+2026 are marked as manually handled.
 
-## Temporary development rehearsal
+## Approved transition schedule
 
-The non-automatic `uk-eu:development-test-2026-10-22` transition exists only
-to rehearse the UK/EU 2026 adjustment on development. It uses the same +60
-minute behavior as the real transition but has a separate transition key, so
-it does not consume `uk-eu:2026-autumn`.
+| Region | Date | Run time (IST) | ERP shift |
+| --- | --- | --- | --- |
+| UK + EU | 2026-10-25 | 02:00 | +60 minutes |
+| USA + Canada | 2026-11-01 | 02:00 | +60 minutes |
+| USA + Canada | 2027-03-14 | 02:00 | -60 minutes |
+| UK + EU | 2027-03-28 | 02:00 | -60 minutes |
+| Australia | 2027-04-04 | 02:00 | +60 minutes |
+| New Zealand | 2027-04-04 | 02:00 | +60 minutes |
+| New Zealand | 2027-09-26 | 02:00 | -60 minutes |
+| Australia | 2027-10-03 | 02:00 | -60 minutes |
+| UK + EU | 2027-10-31 | 02:00 | +60 minutes |
+| USA + Canada | 2027-11-07 | 02:00 | +60 minutes |
 
-```bash
-php artisan batches:dst-adjust uk-eu development-test-2026-10-22 --dry-run
-php artisan batches:dst-adjust uk-eu development-test-2026-10-22 --confirm
-```
-
-After the client validates the development result, use the generated run ID to
-preview and execute an exact rollback. Remove the temporary transition before
-merging or deploying the feature to production.
-
-## Configured reverse transitions
-
-| Region | Date | ERP shift |
-| --- | --- | --- |
-| USA + Canada | 2027-03-14 | -60 minutes |
-| UK + EU | 2027-03-28 | -60 minutes |
-| Australia | 2027-04-04 | +60 minutes |
-| New Zealand | 2027-04-04 | +60 minutes |
-
-These are new seasonal transitions. They must not be implemented by rolling
-back the prior transition. Review `config/batch_dst.php` before each DST season
-in case a government changes its DST rules.
+Each row is a separate seasonal transition and must not be implemented by
+rolling back a prior transition. Dates are deliberately explicit rather than
+calculated from calendar rules. Update `config/batch_dst.php` only when the
+client confirms a revised schedule.
 
 ## Deployment sequence
 

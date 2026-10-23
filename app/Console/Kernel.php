@@ -46,7 +46,7 @@ class Kernel extends ConsoleKernel
 
         // The command itself enforces exact transition dates and one-time transition keys.
         $schedule->command('batches:dst-process')
-            ->dailyAt('00:10')
+            ->dailyAt(config('batch_dst.schedule_time'))
             ->timezone(config('batch_dst.timezone'))
             ->withoutOverlapping();
 

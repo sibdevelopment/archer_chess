@@ -20,12 +20,14 @@ return [
         ],
         'uk-eu' => [
             'label' => 'UK + EU',
-            'countries' => ['UK', 'EU'],
+            'countries' => ['UK', 'EU', 'EUROPEAN UNION'],
             'transitions' => [
                 // Temporary development-only rehearsal. Remove after validation and rollback.
                 'development-test-2026-10-22' => ['date' => '2026-10-22', 'minutes' => 60, 'automatic' => false],
                 'development-forward-roundtrip-2026-10-23' => ['date' => '2026-10-23', 'minutes' => 60, 'automatic' => false],
                 'development-reverse-test-2026-10-23' => ['date' => '2026-10-23', 'minutes' => -60, 'automatic' => false],
+                'development-forward-coverage-2026-10-23' => ['date' => '2026-10-23', 'minutes' => 60, 'automatic' => false],
+                'development-reverse-coverage-2026-10-23' => ['date' => '2026-10-23', 'minutes' => -60, 'automatic' => false],
                 '2026-autumn' => ['date' => '2026-10-25', 'minutes' => 60, 'automatic' => true],
                 '2027-spring' => ['date' => '2027-03-28', 'minutes' => -60, 'automatic' => true],
             ],

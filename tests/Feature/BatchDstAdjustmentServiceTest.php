@@ -31,7 +31,7 @@ class BatchDstAdjustmentServiceTest extends TestCase
         config()->set('batch_dst.regions', [
             'uk-eu' => [
                 'label' => 'UK + EU',
-                'countries' => ['UK', 'EU'],
+                'countries' => ['UK', 'EU', 'EUROPEAN UNION'],
                 'transitions' => [
                     'test-autumn' => ['date' => '2026-10-25', 'minutes' => 60, 'automatic' => true],
                     'test-spring' => ['date' => '2027-03-28', 'minutes' => -60, 'automatic' => true],
@@ -207,6 +207,17 @@ class BatchDstAdjustmentServiceTest extends TestCase
 
         $this->assertSame('ABHIJEET-MTH 12:00AM  IST UK', $forward['name']);
         $this->assertSame('23:00:00', $forward['schedules'][0]['from_time']);
+    }
+
+    public function test_european_union_country_label_is_included(): void
+    {
+        $batch = $this->batch('Coach MF 8 PM IST', ['EUROPEAN UNION']);
+        $this->schedule($batch, 'Monday', '20:00:00', '21:00:00');
+        $this->schedule($batch, 'Friday', '20:00:00', '21:00:00');
+
+        $preview = $this->service->preview('uk-eu', 'test-autumn');
+
+        $this->assertSame([$batch->id], collect($preview['rows'])->pluck('batch.id')->all());
     }
 
     public function test_region_priority_prevents_a_shared_batch_from_being_shifted_twice(): void

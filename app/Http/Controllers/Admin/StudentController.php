@@ -25,6 +25,7 @@ use App\Models\StudentAttendance;
 use App\Services\PaymentLevelService;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
@@ -821,23 +822,47 @@ class StudentController extends Controller
             ->values();
     }
 
+    private function activeEmployeeSelectionRules(): array
+    {
+        return [
+            'employee_ids' => ['required_if:status,CHANGECLASS', 'array', 'min:1'],
+            'employee_ids.*' => [
+                'required',
+                'integer',
+                'distinct',
+                function ($attribute, $value, $fail) {
+                    $isActiveEmployee = Employee::whereKey($value)
+                        ->whereHas('user', function ($query) {
+                            $query->where('status', 'ACTIVE');
+                        })
+                        ->exists();
+
+                    if (! $isActiveEmployee) {
+                        $fail('The selected employee is invalid or inactive.');
+                    }
+                },
+            ],
+        ];
+    }
+
     public function changeStatus(Request $request)
     {
-        // dd($request->all());
-        $rules = [
+        $rules = array_merge([
             'student_id' => 'required|exists:students,id',
-            'status'     => 'required',
-            'employee_id' => 'required_if:status,CHANGECLASS',
+            'status'     => 'required|in:INACTIVE,STANDBY,CHANGECLASS',
             'remark'     => 'required_if:status,CHANGECLASS,INACTIVE,STANDBY',
-        ];
+        ], $this->activeEmployeeSelectionRules());
 
         $customMessages = [
             'student_id.required' => 'Student ID is required.',
             'student_id.exists'   => 'The selected student does not exist.',
             'status.required'     => 'Please select status.',
             'status.in'           => 'The selected status is invalid.',
-            'employee_id.required_if' => 'Please select employee.',
-            'employee_id.exists'  => 'The selected employee does not exist.',
+            'employee_ids.required_if' => 'Please select at least one employee.',
+            'employee_ids.array' => 'Please select valid employees.',
+            'employee_ids.min' => 'Please select at least one employee.',
+            'employee_ids.*.integer' => 'Please select valid employees.',
+            'employee_ids.*.distinct' => 'The same employee cannot be selected more than once.',
             'remark.required_if'  => 'Please enter reason.',
         ];
 
@@ -846,7 +871,6 @@ class StudentController extends Controller
         $role    = $user->getRoleNames()->toArray();
         $isCoach = in_array("Coach", $role);
 
-        // Check if the user has the role 'Coach'
         if ($isCoach) {
             return response()->json([
                 'status'  => 'error',
@@ -855,81 +879,80 @@ class StudentController extends Controller
         }
 
 
-        $student = Student::find($request->student_id);
-        $privousStatus = $student->status;
-        // dd($priorStatus, $request->status);
-        // if ($student->status === 'STANDBY' && $request->status !== 'STANDBY') {
-            // $studentStatus = StudentStatus::where('student_id', $student->id)->where('type', 'STANDBY')->whereNull('to_date')->latest('from_date')->first();
-            // if ($studentStatus) {
-            //     $studentStatus->to_date = now();
-            //     $studentStatus->save();
-            // }
-        // }
-        $student->status = $request->status;
-        $student->status_reason = in_array($request->status, ['INACTIVE', 'STANDBY'], true)
-            ? $request->remark
-            : null;
-        $student->save();
+        $employeeIds = $request->status === 'CHANGECLASS'
+            ? array_values(array_unique(array_map('intval', $request->input('employee_ids', []))))
+            : [];
 
-        if ($request->status === 'CHANGECLASS') {
-            $studentlatestBatch = StudentBatch::where('student_id', $student->id)->latest('created_at')->first();
-            if ($studentlatestBatch) {
-                $studentlatestBatch->status = 'INACTIVE';
-                $studentlatestBatch->is_fees_due = 0;
-                $studentlatestBatch->end_date    = \Carbon\Carbon::today()->format('Y-m-d');
-                $studentlatestBatch->end_time   = Carbon::now()->format('H:i:s');
-                $studentlatestBatch->save();
-            }
+        $student = DB::transaction(function () use ($request, $employeeIds) {
+            $student = Student::findOrFail($request->student_id);
+            $previousStatus = $student->status;
 
-            $changeclass = new Changeclass();
-            $changeclass->student_id = $student->id;
-            $changeclass->employee_id = $request->employee_id;
-            $changeclass->employee_ids = array_map('intval', (array) $request->employee_id);
-            $changeclass->current_batch_id = $studentlatestBatch->batch_id;
-            $changeclass->remark = $request->remark;
-            $changeclass->save();
+            $student->status = $request->status;
+            $student->status_reason = in_array($request->status, ['INACTIVE', 'STANDBY'], true)
+                ? $request->remark
+                : null;
+            $student->save();
 
-            if ($privousStatus === 'ACTIVE') {
-                $priorStudentFees = StudentFee::where('student_id', $student->id)
-                    ->latest('end_date')
+            if ($request->status === 'CHANGECLASS') {
+                $studentLatestBatch = StudentBatch::where('student_id', $student->id)
+                    ->latest('created_at')
                     ->first();
 
-                $changeclass->start_date = $priorStudentFees->start_date;
-                $changeclass->end_date = $priorStudentFees->end_date;
-                $changeclass->receive_date = $priorStudentFees->receive_date;
-                $changeclass->currency = $priorStudentFees->currency;
-                $changeclass->fees = $priorStudentFees->monthly_fees;
-                $changeclass->received_fees = $priorStudentFees->total_amount_paid;
+                if ($studentLatestBatch) {
+                    $studentLatestBatch->status = 'INACTIVE';
+                    $studentLatestBatch->is_fees_due = 0;
+                    $studentLatestBatch->end_date = Carbon::today()->format('Y-m-d');
+                    $studentLatestBatch->end_time = Carbon::now()->format('H:i:s');
+                    $studentLatestBatch->save();
+                }
+
+                $changeclass = new Changeclass();
+                $changeclass->student_id = $student->id;
+                $changeclass->employee_id = $employeeIds[0];
+                $changeclass->employee_ids = $employeeIds;
+                $changeclass->current_batch_id = $studentLatestBatch?->batch_id;
+                $changeclass->remark = $request->remark;
                 $changeclass->save();
+
+                if ($previousStatus === 'ACTIVE') {
+                    $priorStudentFees = StudentFee::where('student_id', $student->id)
+                        ->latest('end_date')
+                        ->first();
+
+                    if ($priorStudentFees) {
+                        $changeclass->start_date = $priorStudentFees->start_date;
+                        $changeclass->end_date = $priorStudentFees->end_date;
+                        $changeclass->receive_date = $priorStudentFees->receive_date;
+                        $changeclass->currency = $priorStudentFees->currency;
+                        $changeclass->fees = $priorStudentFees->monthly_fees;
+                        $changeclass->received_fees = $priorStudentFees->total_amount_paid;
+                        $changeclass->save();
+                    }
+                }
             }
-        }
 
-        // If the new status is 'INACTIVE', update the StudentBatch model
-        if ($request->status === 'INACTIVE' || $request->status === 'STANDBY') {
-            StudentBatch::where('student_id', $student->id)->update(['status' => 'INACTIVE']);
-            $studentlatestBatch = StudentBatch::where('student_id', $student->id)->latest('created_at')->first();
-            if ($studentlatestBatch) {
-                $studentlatestBatch->status      = 'INACTIVE';
-                $studentlatestBatch->is_fees_due = 0;
-                $studentlatestBatch->end_date    = \Carbon\Carbon::today()->format('Y-m-d');
-                $studentlatestBatch->end_time   = Carbon::now()->format('H:i:s');
-                $studentlatestBatch->save();
+            if (in_array($request->status, ['INACTIVE', 'STANDBY'], true)) {
+                StudentBatch::where('student_id', $student->id)->update(['status' => 'INACTIVE']);
+                $studentLatestBatch = StudentBatch::where('student_id', $student->id)
+                    ->latest('created_at')
+                    ->first();
+
+                if ($studentLatestBatch) {
+                    $studentLatestBatch->is_fees_due = 0;
+                    $studentLatestBatch->end_date = Carbon::today()->format('Y-m-d');
+                    $studentLatestBatch->end_time = Carbon::now()->format('H:i:s');
+                    $studentLatestBatch->save();
+                }
             }
-        }
 
-        // if ($request->status === 'STANDBY') {
-        //     $studentStatus             = new StudentStatus();
-        //     $studentStatus->student_id = $student->id;
-        //     $studentStatus->type       = 'STANDBY';
-        //     $studentStatus->from_date  = now();
-        //     $studentStatus->save();
-        // }
+            $studentStatus = new StudentStatus();
+            $studentStatus->student_id = $student->id;
+            $studentStatus->type = $request->status;
+            $studentStatus->from_date = now();
+            $studentStatus->save();
 
-        $student_statuse = new StudentStatus();
-        $student_statuse->student_id = $student->id;
-        $student_statuse->type       = $request->status;
-        $student_statuse->from_date  = now();
-        $student_statuse->save();
+            return $student;
+        });
 
         return response()->json([
             'status'  => 'success',

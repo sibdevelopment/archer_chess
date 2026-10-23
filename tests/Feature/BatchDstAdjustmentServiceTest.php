@@ -34,6 +34,7 @@ class BatchDstAdjustmentServiceTest extends TestCase
                 'countries' => ['UK', 'EU'],
                 'transitions' => [
                     'test-autumn' => ['date' => '2026-10-25', 'minutes' => 60, 'automatic' => true],
+                    'test-spring' => ['date' => '2027-03-28', 'minutes' => -60, 'automatic' => true],
                 ],
             ],
             'australia' => [
@@ -169,6 +170,31 @@ class BatchDstAdjustmentServiceTest extends TestCase
         $this->assertSame('ROLLED_BACK', $rolledBack->status);
         $this->assertSame('Coach MF 8:30PM IST', $batch->fresh()->name);
         $this->assertSame('20:30:00', $batch->batchSchedules()->orderBy('id')->first()->from_time);
+    }
+
+    public function test_forward_and_reverse_transitions_restore_the_original_state(): void
+    {
+        $batch = $this->batch('Coach WF 11PM IST', ['UK']);
+        $this->schedule($batch, 'Wednesday', '23:00:00', '23:45:00');
+        $this->schedule($batch, 'Friday', '23:00:00', '23:45:00');
+
+        $this->service->apply('uk-eu', 'test-autumn', CarbonImmutable::parse('2026-10-25 00:10:00'));
+        $this->assertSame('Coach THS 12AM IST', $batch->fresh()->name);
+
+        $this->service->apply('uk-eu', 'test-spring', CarbonImmutable::parse('2027-03-28 00:10:00'));
+
+        $this->assertSame('Coach WF 11PM IST', $batch->fresh()->name);
+        $this->assertSame(
+            [
+                ['weekday' => 'Wednesday', 'from_time' => '23:00:00', 'to_time' => '23:45:00'],
+                ['weekday' => 'Friday', 'from_time' => '23:00:00', 'to_time' => '23:45:00'],
+            ],
+            $batch->batchSchedules()
+                ->orderBy('id')
+                ->get(['weekday', 'from_time', 'to_time'])
+                ->map(fn ($schedule) => $schedule->toArray())
+                ->all()
+        );
     }
 
     public function test_region_priority_prevents_a_shared_batch_from_being_shifted_twice(): void

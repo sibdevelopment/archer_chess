@@ -186,7 +186,11 @@ class ChangeclassController extends Controller
         }
 
         if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->employee_id);
+            $employeeId = (int) $request->employee_id;
+            $query->where(function ($query) use ($employeeId) {
+                $query->whereJsonContains('employee_ids', $employeeId)
+                    ->orWhere('employee_id', $employeeId);
+            });
         }
 
         if ($request->filled('batch_id')) {
@@ -400,8 +404,9 @@ class ChangeclassController extends Controller
             // $change_class = Changeclass::with('student')->findOrFail($change_class->id);
             // dd($change_class);
 
-            // $change_class->employee_ids    = $request->employee_ids;
-            $change_class->employee_ids = array_map('intval', $request->employee_ids);
+            $employeeIds = array_map('intval', $request->employee_ids);
+            $change_class->employee_ids = $employeeIds;
+            $change_class->employee_id = $employeeIds[0];
 
             $change_class->student_id    = $request->student_id;
             // $change_class->employee_id = (int) $request->employee_id;
@@ -459,7 +464,9 @@ class ChangeclassController extends Controller
                 $student = Student::findOrFail($request->student_id);
                 $batch = Batch::findOrFail($request->batch_id);
 
-                $change_class->employee_ids  = array_map('intval', $request->employee_ids);
+                $employeeIds = array_map('intval', $request->employee_ids);
+                $change_class->employee_ids = $employeeIds;
+                $change_class->employee_id = $employeeIds[0];
                 $change_class->student_id    = $request->student_id;
                 // $change_class->employee_id   =  (int) $request->employee_id;
                 $change_class->batch_id      = $request->batch_id;

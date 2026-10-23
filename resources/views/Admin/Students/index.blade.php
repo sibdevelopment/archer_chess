@@ -326,15 +326,15 @@
                         <br>
                         <div class="col-md-12" id="employee_div">
                             <fieldset class="form-group">
-                                <label for="employee" class="form-label">Assign Employee</label>
-                                <select name="employee_id" id="employee_id" class="form-select">
-                                    <option value="">Select Employee</option>
+                                <label for="employee_ids" class="form-label">Assign Employees</label>
+                                <select name="employee_ids[]" id="employee_ids" class="form-select select2"
+                                    multiple data-placeholder="Select Employees" style="width: 100%;">
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}">{{ $employee->user->first_name }}
                                             {{ $employee->user->last_name }}</option>
                                     @endforeach
                                 </select>
-                                <div id="employee_id-error" style="color:red"></div>
+                                <div id="employee_ids-error" style="color:red"></div>
                             </fieldset>
                         </div>
                         <br>
@@ -484,6 +484,12 @@
             // add placeholder to the coach_id
             $('#coach_id').select2({
                 placeholder: "Select Coach",
+            });
+
+            $('#employee_ids').select2({
+                placeholder: 'Select Employees',
+                dropdownParent: $('#statusChangeModal'),
+                width: '100%'
             });
 
             $('#model-status').on('change', function() {
@@ -807,7 +813,7 @@
             $('#routeKey').val(routeKey);
             $('#model-status').val('');
             $('#remark').val('');
-            $('#employee_id').val('');
+            $('#employee_ids').val(null).trigger('change');
             $('#employee_div').hide();
             $('#remark_div').hide();
         });
@@ -862,12 +868,16 @@
                         closeButton: true,
                     });
                     $.each(xhr.responseJSON.errors, function(key, value) {
-                        $('#' + key + '-error').html(value);
+                        var errorKey = key.split('.')[0];
+                        $('#' + errorKey + '-error').html(value);
                     });
-                    $('html, body').animate({
-                        scrollTop: $('#' + Object.keys(xhr.responseJSON.errors)[0] + '-error')
-                            .offset().top - 200
-                    }, 500);
+                    var firstErrorKey = Object.keys(xhr.responseJSON.errors)[0].split('.')[0];
+                    var firstError = $('#' + firstErrorKey + '-error');
+                    if (firstError.length) {
+                        $('html, body').animate({
+                            scrollTop: firstError.offset().top - 200
+                        }, 500);
+                    }
                 }
             });
         });

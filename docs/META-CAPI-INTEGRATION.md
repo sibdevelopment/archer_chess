@@ -20,9 +20,10 @@ availability never blocks an ERP status update.
    auditing. Failed events retry with exponential backoff up to the configured
    attempt limit.
 
-Initial `Lead` events are disabled by default because the website Pixel/GTM may
-already send that event. Enable `META_CAPI_SEND_INITIAL_LEAD` only after Pixel
-and CAPI use the same event ID for deduplication.
+Initial `SubmitApplication` events are disabled by default because the website
+Pixel/GTM already sends that primary lead event. Enable
+`META_CAPI_SEND_INITIAL_LEAD` only after Pixel and CAPI use the same event ID
+for deduplication.
 
 ## Default status mapping
 
@@ -49,6 +50,7 @@ META_CAPI_ACCESS_TOKEN=
 META_CAPI_TEST_EVENT_CODE=
 META_CAPI_API_VERSION=v26.0
 META_CAPI_LEAD_EVENT_SOURCE="Archer ERP"
+META_CAPI_INITIAL_EVENT_NAME=SubmitApplication
 META_CAPI_SEND_INITIAL_LEAD=false
 META_CAPI_ALLOW_LEGACY_LEADS=false
 META_CAPI_TEST_LEAD_IDS=

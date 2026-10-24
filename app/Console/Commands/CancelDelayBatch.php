@@ -455,7 +455,7 @@ class CancelDelayBatch extends Command
                 $demoSession->coach_attendance_status = 'CANCELLED';
                 $demoSession->save();
 
-                DemoLead::where('id', $demoSession->demolead_id)->update(['status' => 'CANCELLED']);
+                DemoLead::find($demoSession->demolead_id)?->update(['status' => 'CANCELLED']);
 
                 $this->demoOccurrencePenaltyQuery($demoSession, $date, $demoStartTime)
                     ->where('penalty_type', 'LATE')

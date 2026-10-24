@@ -13,6 +13,7 @@ class DemoLead extends BaseModel
     protected $table = 'demoleads';
     protected $fillable = [
         'user_id',
+        'demo_lead_enquiry_id',
         'first_name',
         'last_name',
         'age',
@@ -35,6 +36,11 @@ class DemoLead extends BaseModel
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function enquiry()
+    {
+        return $this->belongsTo(DemoLeadEnquiry::class, 'demo_lead_enquiry_id');
     }
 
     public function createdBy()

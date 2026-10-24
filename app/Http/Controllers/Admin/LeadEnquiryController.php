@@ -101,6 +101,7 @@ class LeadEnquiryController extends Controller
             // create DemoLead
             $demoLead = new DemoLead();
             $demoLead->user_id        = $user->id;
+            $demoLead->demo_lead_enquiry_id = $enquiry->id;
             $demoLead->first_name     = $data['first_name'];
             $demoLead->last_name      = $data['last_name'] ?? null;
             $demoLead->age            = $data['age'] ?? null;
@@ -423,6 +424,7 @@ class LeadEnquiryController extends Controller
             // 4) Create DemoLead
             $demoLead                  = new DemoLead();
             $demoLead->user_id         = $user->id;
+            $demoLead->demo_lead_enquiry_id = $enquiry->id;
             $demoLead->first_name      = $enquiry->kids_first_name;
             $demoLead->last_name       = $enquiry->kids_last_name;
             $demoLead->age             = $enquiry->age;

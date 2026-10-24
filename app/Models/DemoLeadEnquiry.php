@@ -25,6 +25,14 @@ class DemoLeadEnquiry extends BaseModel
         'ist_time',
         'utm_source',
         'utm_medium',
+        'meta_fbc',
+        'meta_fbp',
+        'meta_fbclid',
+        'meta_landing_url',
+        'meta_client_ip',
+        'meta_client_user_agent',
+        'meta_tracking_allowed',
+        'meta_tracking_consent_at',
         'timezone',
         'age',
         'mobile',
@@ -44,6 +52,11 @@ class DemoLeadEnquiry extends BaseModel
         'created_by',
         'updated_by',
         'is_hide'
+    ];
+
+    protected $casts = [
+        'meta_tracking_allowed' => 'boolean',
+        'meta_tracking_consent_at' => 'datetime',
     ];
 
     public static function boot()

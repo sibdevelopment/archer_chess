@@ -12,6 +12,8 @@ class EncryptCookies extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        '_fbc',
+        '_fbp',
+        'archer_cookie_consent',
     ];
 }

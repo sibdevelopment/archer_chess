@@ -50,6 +50,10 @@ class Kernel extends ConsoleKernel
             ->timezone(config('batch_dst.timezone'))
             ->withoutOverlapping();
 
+        $schedule->command('meta-capi:process')
+            ->everyMinute()
+            ->withoutOverlapping();
+
         // Reminder Emails
         // $schedule->command('masterclass:reminder')->hourly();
         // $schedule->command('demo:complete')->hourly();

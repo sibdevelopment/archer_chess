@@ -2411,11 +2411,9 @@ class ReportController extends Controller
         }
         // If the status is COMPLETED, update the status in DemoLead table to "DEMO DONE"
         if ($request->input('status') === 'COMPLETED') {
-            DemoLead::where('id', $request->input('demolead_id'))
-                ->update(['status' => 'DEMO DONE']);
+            DemoLead::find($request->input('demolead_id'))?->update(['status' => 'DEMO DONE']);
         } elseif ($request->input('status') === 'CANCELLED') {
-            DemoLead::where('id', $request->input('demolead_id'))
-                ->update(['status' => 'CANCELLED']);
+            DemoLead::find($request->input('demolead_id'))?->update(['status' => 'CANCELLED']);
         }
         // Save to StudentAttendances table
         $studentAttendanceAttributes = [

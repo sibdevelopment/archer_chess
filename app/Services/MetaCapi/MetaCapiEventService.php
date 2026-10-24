@@ -19,7 +19,7 @@ class MetaCapiEventService
             'demo_lead_enquiry',
             $enquiry->id,
             $enquiry,
-            'Lead',
+            config('meta_capi.initial_event_name'),
             $enquiry->status ?: 'CREATED',
             [
                 'email' => $enquiry->email,
@@ -66,11 +66,11 @@ class MetaCapiEventService
         return MetaCapiEvent::create([
             'event_id' => $eventId,
             'source_type' => 'system_test',
-            'event_name' => 'Lead',
+            'event_name' => config('meta_capi.initial_event_name'),
             'erp_status' => 'CAPI_TEST',
             'event_time' => now(),
             'payload' => [
-                'event_name' => 'Lead',
+                'event_name' => config('meta_capi.initial_event_name'),
                 'event_time' => now()->timestamp,
                 'event_id' => $eventId,
                 'action_source' => 'system_generated',

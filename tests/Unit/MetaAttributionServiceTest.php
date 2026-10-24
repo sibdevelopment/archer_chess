@@ -74,4 +74,26 @@ class MetaAttributionServiceTest extends TestCase
         $this->assertSame('fb.1.123.browser', $captured['meta_fbp']);
         $this->assertNotNull($captured['meta_tracking_consent_at']);
     }
+
+    public function test_it_captures_a_valid_meta_lead_id_from_common_webhook_fields(): void
+    {
+        $request = Request::create('/webhook', 'POST', [
+            'leadgen_id' => '12345678901234567',
+        ]);
+
+        $captured = (new MetaAttributionService())->capture($request);
+
+        $this->assertSame('12345678901234567', $captured['meta_lead_id']);
+    }
+
+    public function test_it_ignores_an_invalid_meta_lead_id(): void
+    {
+        $request = Request::create('/book-trial', 'POST', [
+            'lead_id' => 'erp-123',
+        ]);
+
+        $captured = (new MetaAttributionService())->capture($request);
+
+        $this->assertArrayNotHasKey('meta_lead_id', $captured);
+    }
 }

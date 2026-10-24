@@ -5,7 +5,8 @@ return [
     'dataset_id' => env('META_CAPI_DATASET_ID'),
     'access_token' => env('META_CAPI_ACCESS_TOKEN'),
     'test_event_code' => env('META_CAPI_TEST_EVENT_CODE'),
-    'api_version' => env('META_CAPI_API_VERSION', 'v24.0'),
+    'api_version' => env('META_CAPI_API_VERSION', 'v26.0'),
+    'lead_event_source' => env('META_CAPI_LEAD_EVENT_SOURCE', 'Archer ERP'),
     'send_initial_lead' => env('META_CAPI_SEND_INITIAL_LEAD', false),
     'allow_legacy_leads' => env('META_CAPI_ALLOW_LEGACY_LEADS', false),
     'test_lead_ids' => array_values(array_filter(array_map(

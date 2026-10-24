@@ -78,6 +78,8 @@ class MetaCapiEventService
                     'external_id' => [hash('sha256', 'archer-capi-development-test')],
                 ],
                 'custom_data' => [
+                    'event_source' => 'crm',
+                    'lead_event_source' => config('meta_capi.lead_event_source'),
                     'erp_status' => 'CAPI_TEST',
                     'environment' => app()->environment(),
                 ],
@@ -111,6 +113,7 @@ class MetaCapiEventService
             'ln' => $this->hashed($customer['last_name'] ?? null, fn ($value) => strtolower(trim($value))),
             'ct' => $this->hashed($customer['city'] ?? null, fn ($value) => strtolower(preg_replace('/\s+/', '', trim($value)))),
             'external_id' => [hash('sha256', "archer-enquiry-{$enquiry->id}")],
+            'lead_id' => $enquiry->meta_lead_id,
             'fbc' => $enquiry->meta_fbc,
             'fbp' => $enquiry->meta_fbp,
             'client_ip_address' => $enquiry->meta_client_ip,
@@ -125,6 +128,8 @@ class MetaCapiEventService
             'action_source' => 'system_generated',
             'user_data' => $userData,
             'custom_data' => array_filter([
+                'event_source' => 'crm',
+                'lead_event_source' => config('meta_capi.lead_event_source'),
                 'erp_status' => $erpStatus,
                 'utm_source' => $enquiry->utm_source,
                 'utm_medium' => $enquiry->utm_medium,

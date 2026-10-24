@@ -25,6 +25,7 @@ class DemoLeadEnquiry extends BaseModel
         'ist_time',
         'utm_source',
         'utm_medium',
+        'meta_lead_id',
         'meta_fbc',
         'meta_fbp',
         'meta_fbclid',

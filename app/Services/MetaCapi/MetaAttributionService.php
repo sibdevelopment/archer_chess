@@ -11,6 +11,7 @@ class MetaAttributionService
     {
         $landingUrl = $request->input('meta_landing_url') ?: $request->headers->get('referer');
         $fbclid = $request->input('fbclid') ?: $this->queryValue($landingUrl, 'fbclid');
+        $leadId = $this->leadId($request);
         $consent = $this->consent($request);
         $requiresConsent = $this->landingPageRequiresConsent($landingUrl);
         $trackingAllowed = $consent !== null
@@ -29,7 +30,8 @@ class MetaAttributionService
             $fbc = sprintf('fb.1.%d.%s', (int) floor(microtime(true) * 1000), $fbclid);
         }
 
-        return [
+        return array_filter([
+            'meta_lead_id' => $leadId,
             'meta_fbc' => $fbc,
             'meta_fbp' => $request->cookie('_fbp'),
             'meta_fbclid' => $fbclid,
@@ -38,7 +40,22 @@ class MetaAttributionService
             'meta_client_user_agent' => $request->userAgent(),
             'meta_tracking_allowed' => true,
             'meta_tracking_consent_at' => $this->consentTimestamp($consent),
-        ];
+        ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function leadId(Request $request): ?string
+    {
+        $value = $request->input('meta_lead_id')
+            ?: $request->input('lead_id')
+            ?: $request->input('leadgen_id');
+
+        if (! is_scalar($value)) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return preg_match('/^\d{15,17}$/', $value) === 1 ? $value : null;
     }
 
     private function consent(Request $request): ?array

@@ -10,7 +10,7 @@ availability never blocks an ERP status update.
 
 1. A website enquiry is created in `demoleadenquiries`.
 2. The enquiry observer records available `_fbc`, `_fbp`, `fbclid`, landing URL,
-   client context, and marketing-consent state.
+   Meta Lead ID, client context, and marketing-consent state.
 3. New demo leads retain an explicit link to their originating enquiry. Legacy
    records fall back to the existing user link.
 4. When the linked `demoleads.status` changes, the demo-lead observer maps the
@@ -47,7 +47,8 @@ META_CAPI_ENABLED=false
 META_CAPI_DATASET_ID=
 META_CAPI_ACCESS_TOKEN=
 META_CAPI_TEST_EVENT_CODE=
-META_CAPI_API_VERSION=v24.0
+META_CAPI_API_VERSION=v26.0
+META_CAPI_LEAD_EVENT_SOURCE="Archer ERP"
 META_CAPI_SEND_INITIAL_LEAD=false
 META_CAPI_ALLOW_LEGACY_LEADS=false
 META_CAPI_TEST_LEAD_IDS=
@@ -63,6 +64,13 @@ accepts comma-separated enquiry IDs, source IDs, or values such as
 `META_CAPI_ALLOW_LEGACY_LEADS` permits records created before attribution and
 consent fields existed to use hashed contact matching. Keep it off unless the
 client has explicitly approved those existing CRM records for Meta feedback.
+
+Every lifecycle payload identifies itself as a CRM event with
+`event_source=crm` and `lead_event_source` from configuration. A Meta Instant
+Form ID is accepted from `meta_lead_id`, `lead_id`, or `leadgen_id` when it is a
+15-17 digit value. Website leads can omit it and continue matching through
+click/browser identifiers and hashed customer information. Future imports can
+write the optional `meta_lead_id` column directly.
 
 ## Commands
 

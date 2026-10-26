@@ -75,9 +75,18 @@ class HomeController extends Controller
     }
     public function newGallery()
     {
-        $galleries = $this->activeGalleries();
+        $meetourkids = $this->activeArcherKids();
 
-        return view('Frontend.Design.gallery', compact('galleries'));
+        return view('Frontend.Design.gallery', compact('meetourkids'));
+    }
+
+    public function chessCoaches()
+    {
+        $meetourtutors = MeetOurTutor::where('status', 'ACTIVE')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return view('Frontend.Design.chess-coaches', compact('meetourtutors'));
     }
     public function newEvent()
     {
@@ -221,9 +230,9 @@ class HomeController extends Controller
 
     public function gallery(Request $request)
     {
-        $galleries = $this->activeGalleries();
+        $meetourkids = $this->activeArcherKids();
 
-        return view('Frontend.Design.gallery', compact('galleries'));
+        return view('Frontend.Design.gallery', compact('meetourkids'));
     }
 
     public function event(Request $request)
@@ -240,6 +249,13 @@ class HomeController extends Controller
                 $query->where('status', 'ACTIVE')->orderBy('index')->orderBy('id');
             }])
             ->orderBy('index')
+            ->orderBy('id')
+            ->get();
+    }
+
+    private function activeArcherKids()
+    {
+        return MeetOurKid::where('status', 'ACTIVE')
             ->orderBy('id')
             ->get();
     }

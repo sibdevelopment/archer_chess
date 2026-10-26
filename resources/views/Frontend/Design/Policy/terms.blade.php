@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Terms and Conditions - Archer Chess Academy')
+@section('description', "Read Archer Chess Academy's terms and conditions for website use, chess course registration, class bookings, rescheduling, and student services.")
 @section('content')
 <style>
      @media (max-width: 767px) {

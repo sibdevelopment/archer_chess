@@ -1,0 +1,26 @@
+# Archer Chess Academy
+
+> Archer Chess Academy is an online chess coaching academy offering structured online chess classes for kids aged 4–15. Our online chess tutors provide chess training for students of beginner, intermediate, advanced, and master levels. We offer online chess classes worldwide, serving students in India, USA, UK, Indonesia, Brazil, the Philippines, France, Russia, Türkiye, Canada, UAE, Australia, Singapore, New Zealand and and 20+ other countries.
+
+
+## Key Pages
+
+- [About Us](https://www.archerchessacademy.com/about): Our mission, founders, and more.
+- [Chess Coaches](https://www.archerchessacademy.com/chess-coaches): Meet Grandmaster Thejkumar M. S. and Archer Chess Academy's FIDE-rated online chess tutors.
+- [Beginner Level](https://www.archerchessacademy.com/online-chess-classes-for-beginners): Live online chess classes for beginners.
+- [Intermediate Level](https://www.archerchessacademy.com/online-chess-course-for-intermediate): Basic Tactics, Tactical Motif, Pawn Ending, Zugzwang, Mating Pattern, and Counter Attack.
+ and .
+- [Advanced Level](https://www.archerchessacademy.com/online-chess-classes-for-advanced): Advanced tactics, calculation, openings, positional play, endgames, and tournament preparation.
+- [Expert Level](https://www.archerchessacademy.com/online-chess-classes-for-expert): Expert calculation, decision-making, exchanges, fortress defence, piece improvement, and exploiting weaknesses.
+- [Online Chess Classes](https://archerchessacademy.com/online-chess-classes): Country and city-specific chess class pages.
+- [Blog](https://www.archerchessacademy.com/blog): Chess analysis blog, guides, openings, tactics and strategy.
+- [Contact](https://www.archerchessacademy.com/contact): Get in touch or book a free demo.
+
+## Blog Posts
+
+- [title](link)
+
+
+## Optional
+
+- [Sitemap](https://www.archerchessacademy.com/sitemap.xml)

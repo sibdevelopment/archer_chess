@@ -3,6 +3,25 @@
 @section('description', 'Live online chess classes for kids aged 5+ with FIDE-rated coaches and a Grandmaster. Small batches, weekly tournaments. Book a free trial class.')
 @section('content')
     <style>
+        html,
+        body {
+            overflow-x: hidden;
+        }
+
+        .home-hero-media {
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .home-hero-image {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
         #coaches .tutor-image-frame {
             width: 100%;
             aspect-ratio: 4 / 5;
@@ -95,8 +114,10 @@
                     </div>
                 </div>
                 <div class="col-lg-6" data-aos="zoom-in" data-aos-duration="1500">
-                    <div class="d-flex align-items-center justify-content-center bg-img">
-                        <img src="/frontend1/tcul-img/img/hero-section.png" alt="img" class="bg-img">
+                    <div class="home-hero-media d-flex align-items-center justify-content-center">
+                        <img src="/frontend1/tcul-img/img/hero-section.png"
+                            alt="Young student learning chess with a coach at Archer Chess Academy"
+                            class="home-hero-image">
                     </div>
                 </div>
             </div>
@@ -158,7 +179,7 @@
                             <h2 class="text-neutral-950 fw-bold tw-mb-7 h4 text-middle" data-aos="fade-up"
                                 data-aos-duration="600" data-aos-delay="150">Grandmaster Thejkumar M. S.</h2>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-2 line-height-28-px text-middle"
-                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">Thejkumar M. S. is India's 50th grandmaster and the first from Karnataka. He earned the title in September 2017, at 36, after years of steady rating growth and six norms. His FIDE rating peaked at 2500 (FIDE ID 5009154).</p>
+                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200"><a href="https://en.wikipedia.org/wiki/Thejkumar_M._S." target="_blank" rel="noopener noreferrer" class="text-main-600 text-decoration-underline">Thejkumar M. S.</a> is India's 50th grandmaster and the first from Karnataka. He earned the title in September 2017, at 36, after years of steady rating growth and six norms. His FIDE rating peaked at 2500 (<a href="https://lichess.org/fide/5009154/Thejkumar_M_S" target="_blank" rel="noopener noreferrer" class="text-main-600 text-decoration-underline">FIDE ID 5009154</a>).</p>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-7 line-height-28-px text-middle"
                                 data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">In June 2018, he won the Karnataka State Level Open Rapid tournament with a perfect 9/9 score. Before that, he represented Southwestern Railway at rating tournaments across India and abroad.</p>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-7 line-height-28-px text-middle"

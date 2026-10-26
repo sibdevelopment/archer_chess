@@ -81,7 +81,7 @@
     --body-font: "Source Sans Pro", "Pangolin";
   /* Font Size Variable Start */
     /* --heading-one: clamp(2.25rem, 1.4368rem + 4.3369vw, 5.5rem); */
-    --heading-one: clamp(2.25rem, 1.4368rem + 3.5vw, 4.5rem);
+    --heading-one: clamp(2.25rem, 1.4368rem + 3.5vw, 4.25rem);
     --heading-two: clamp(1.625rem, 1.0496rem + 3.0687vw, 4.5rem);
     --heading-three: clamp(1.875rem, 1.2608rem + 3.2757vw, 4.125rem);
     --heading-four: clamp(1.75rem, 1.3405rem + 2.1838vw, 3.25rem);

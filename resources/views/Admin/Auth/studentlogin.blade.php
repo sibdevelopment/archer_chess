@@ -2,12 +2,12 @@
 <html lang="en">
 
 <head>
-    <title>{{ config('app.name') }}</title>
+    <title>Student Login - Archer Chess Academy</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="handheldfriendly" content="true" />
     <meta name="MobileOptimized" content="width" />
-    <meta name="description" content="Mordenize" />
+    <meta name="description" content="Log in to Archer Chess Academy student dashboard with your registered mobile number to access your online chess classes." />
     <meta name="author" content="" />
     <meta name="keywords" content="Mordenize" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />

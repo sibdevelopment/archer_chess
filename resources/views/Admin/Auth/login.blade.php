@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>{{ config('app.name') }}</title>
+		<title>Sign in to your Admin Dashboard - Archer Chess Academy</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="handheldfriendly" content="true" />
 		<meta name="MobileOptimized" content="width" />
-		<meta name="description" content="Mordenize" />
+		<meta name="description" content="Staff and admin login for Archer Chess Academy. Sign in with your registered email and password to access the admin dashboard and manage classes." />
 		<meta name="author" content="" />
 		<meta name="keywords" content="Mordenize" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />

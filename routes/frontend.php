@@ -19,13 +19,17 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::get('/paynow', [HomeController::class, 'payNow'])->name('paynow');
 Route::post('/contact/submit', [HomeController::class, 'contactSubmit'])->name('contact.submit');
 Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
+Route::get('/chess-coaches', [HomeController::class, 'chessCoaches'])->name('chess.coaches');
 Route::get('/event', [HomeController::class, 'event'])->name('event');
 Route::get('/blog', [HomeController::class, 'blog'])->name('blog');
 Route::get('/blog/{slug}', [HomeController::class, 'blogDetails'])->name('blog.details');
-Route::get('/online-chess-course-for-beginners', [HomeController::class, 'newBeginnerCourse'])->name('explore.course.details.beginner');
+Route::redirect('/online-chess-course-for-beginners', '/online-chess-classes-for-beginners', 301);
+Route::get('/online-chess-classes-for-beginners', [HomeController::class, 'newBeginnerCourse'])->name('explore.course.details.beginner');
 Route::get('/online-chess-course-for-intermediate', [HomeController::class, 'newIntermediateCourse'])->name('explore.course.details.intermediate');
-Route::get('/online-chess-course-for-advanced', [HomeController::class, 'newAdvancedCourse'])->name('explore.course.details.advanced');
-Route::get('/online-chess-course-for-expert', [HomeController::class, 'newExpertCourse'])->name('explore.course.details.expert');
+Route::redirect('/online-chess-course-for-advanced', '/online-chess-classes-for-advanced', 301);
+Route::get('/online-chess-classes-for-advanced', [HomeController::class, 'newAdvancedCourse'])->name('explore.course.details.advanced');
+Route::redirect('/online-chess-course-for-expert', '/online-chess-classes-for-expert', 301);
+Route::get('/online-chess-classes-for-expert', [HomeController::class, 'newExpertCourse'])->name('explore.course.details.expert');
 
 
 // New design routes

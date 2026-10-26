@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Blog')
+@section('title', 'Archer Chess Academy Blogs — Chess Tips, Strategies & Guides')
+@section('description', 'Explore our chess analysis blog for game breakdowns, chess strategies, openings, tactics, and practical tips to improve your chess skills.')
 @section('content')
     <style>
         .arrow-btn {

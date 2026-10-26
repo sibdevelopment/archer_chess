@@ -1,5 +1,42 @@
 @extends('layouts.revamp')
-@section('title', 'Chess for Intermediate')
+@section('title', 'Online Chess Classes for Intermediate - Archer Chess Academy')
+@section('description', 'Join live online intermediate chess classes with FIDE-rated coaches. Master tactics, endgames & strategy. Book a free trial class today!')
+@section('head')
+    <link rel="canonical" href="https://www.archerchessacademy.com/online-chess-course-for-intermediate">
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@@type": "Question",
+                "name": "What is the intermediate level in chess?",
+                "acceptedAnswer": { "@@type": "Answer", "text": "Intermediate players know the rules, special moves and basic checkmates, and have played many games. At this level the focus shifts to tactics, calculation, pawn structures, endgames and planning, rather than learning how pieces move." }
+            },
+            {
+                "@@type": "Question",
+                "name": "How do I know if my child is ready for the intermediate online chess course?",
+                "acceptedAnswer": { "@@type": "Answer", "text": "If your child plays full games without help, knows castling, en passant and promotion, and can spot simple forks and pins, they are likely ready. Not sure? Book a free trial class and our coach will check their level." }
+            },
+            {
+                "@@type": "Question",
+                "name": "What will my child learn in this course?",
+                "acceptedAnswer": { "@@type": "Answer", "text": "Your child will learn tactics and tactical motifs, king and pawn endings, zugzwang, checkmate patterns, counter-attacking play, calculation, middlegame planning and how to analyse their own games." }
+            },
+            {
+                "@@type": "Question",
+                "name": "How is the intermediate course different from the beginner course?",
+                "acceptedAnswer": { "@@type": "Answer", "text": "The beginner course teaches the rules, piece movement and simple tactics. The intermediate course builds strategy and calculation on top of that, with deeper tactics, positional play and endgames." }
+            },
+            {
+                "@@type": "Question",
+                "name": "Can we try a class before enrolling?",
+                "acceptedAnswer": { "@@type": "Answer", "text": "Yes. Archer Chess Academy offers a free trial class. Fill in the registration form or message us on WhatsApp to book a slot." }
+            }
+        ]
+    }
+    </script>
+@endsection
 @section('content')
 <style>
      @media (max-width: 767px) {
@@ -29,12 +66,12 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Chess for Intermediate</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Online Chess Course for Intermediate Players</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
                                 <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
-                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Chess for Intermediate
+                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Online Chess Course for Intermediate Players
                                     </span> </li>
                             </ul>
                         </div>
@@ -49,19 +86,22 @@
             <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap tw-mb-2">
                 <div>
                     <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        About the Course</h2>
+                        About Our Intermediate Online Chess Course</h2>
                 </div>
             </div>
             <div class="row gy-4">
                 <div class="col-xl-12 col-lg-12 col-md-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
                     <div class="w-100 tw-mb-0">
-                        <div class="d-flex align-items-center tw-gap-3 tw-mb-3">
-                            <span class="fw-medium tw-text-5 text-paragraph-500">The intermediate level marks a significant
-                                milestone in one's journey towards mastery. At this stage, players have gained a solid
-                                understanding of the game's fundamentals and are ready to delve deeper into strategic
-                                concepts and tactical intricacies. Intermediate players often focus on developing their
-                                positional understanding, honing their ability to evaluate pawn structures, piece activity,
-                                and control of key squares.</span>
+                        <div class="d-flex flex-column tw-gap-3 tw-mb-3">
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Ready to move beyond the basics? Archer Chess Academy's online chess course for intermediate players is built for students who already know how the pieces move and can deliver simple checkmates, and now want to play with a plan. In live online classes, our FIDE-rated coaches teach you to calculate accurately, spot tactics faster, read pawn structures and convert endgames, the skills that turn casual players into confident competitors.</p>
+                            <p class="fw-medium tw-text-5 text-paragraph-500">The curriculum is curated by Grandmaster Thejkumar M. S. and delivered on a FIDE Online Recognised Platform. Every student gets practice puzzles, game analysis and coach feedback, and classes run in your own time zone, so your child can learn chess online from anywhere in the world.</p>
+                            <h3 class="fw-bold text-neutral-950 tw-mt-3">Who is this course for?</h3>
+                            <ul class="tw-text-5 text-paragraph-500 d-flex flex-column tw-gap-2">
+                                <li>Students who know all the rules, special moves and basic checkmates</li>
+                                <li>Players who have completed our beginner chess classes</li>
+                                <li>Kids and teens who play regularly but still lose to tactics and endgames</li>
+                                <li>Students ready to learn openings, middlegame planning and game analysis</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -82,7 +122,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Puzzle assigned
+                                    Practice Puzzles Assigned
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
                             </div>
@@ -96,7 +136,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Extra Class
+                                    Extra Classes
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
                             </div>
@@ -112,7 +152,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Age Group
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
+                                <h3 class="fw-normal text-main-600 numberFont">Ages 5+</h3>
                             </div>
                         </div>
                     </div>
@@ -124,7 +164,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Students
+                                    Students Trained
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
                             </div>
@@ -141,7 +181,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-12 mt-4">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold curriculum-title text-neutral-950">Curriculum</h2>
+                        <h2 class="fw-bold curriculum-title text-neutral-950">What You Will Learn in Our Intermediate Chess Classes</h2>
                     </div>
                     <div>
                         <div class="row gy-5">
@@ -250,5 +290,85 @@
             </div>
         </div>
     </section>
-    
+
+    <section class="py-80 bg-main-50">
+        <div class="container">
+            <h2 class="fw-bold text-neutral-950 tw-mb-6">Intermediate Chess Course Curriculum at a Glance</h2>
+            <p class="fw-medium tw-text-5 text-paragraph-500 tw-mb-5">Our intermediate chess coaching covers:</p>
+            <div class="row gy-3">
+                @foreach ([
+                    'Review of chess fundamentals',
+                    'Advanced tactical patterns',
+                    'Calculation techniques',
+                    'Opening principles and common chess openings',
+                    'Middlegame planning',
+                    'Positional play',
+                    'Pawn structures',
+                    'Attack and defense strategies',
+                    'Intermediate endgames',
+                    'Analysing your own games',
+                ] as $topic)
+                    <div class="col-md-6">
+                        <div class="bg-white tw-p-5 tw-rounded-lg h-100 d-flex align-items-center tw-gap-3">
+                            <i class="ph-bold ph-check-circle text-main-600 tw-text-2xl"></i>
+                            <span class="fw-medium text-neutral-950">{{ $topic }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    <section class="py-80">
+        <div class="container">
+            <h2 class="fw-bold text-neutral-950 tw-mb-6">Why Choose Archer for Online Chess Coaching?</h2>
+            <ul class="tw-text-5 text-paragraph-500 d-flex flex-column tw-gap-3 tw-mb-6">
+                <li><strong>FIDE-rated coaches:</strong> learn from tutors who play and compete at rated level</li>
+                <li><strong>Grandmaster-curated curriculum:</strong> designed by Grandmaster MS Thej Kumar</li>
+                <li><strong>FIDE Online Recognised Platform:</strong> structured, live and interactive classes</li>
+                <li><strong>Plenty of practice:</strong> 500+ puzzles assigned and extra classes</li>
+                <li><strong>Flexible timing:</strong> classes scheduled in your time zone, for families worldwide</li>
+                <li><strong>Free trial class:</strong> meet the coach before you enrol</li>
+            </ul>
+            <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-white"
+                data-block="button">
+                <span class="button__flair"></span>
+                <span class="button__label">Book a Free Trial Class</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="py-80 bg-main-50">
+        <div class="container">
+            <div class="text-center tw-mb-8">
+                <h2 class="fw-bold text-neutral-950">Frequently Asked Questions: Intermediate Chess Course</h2>
+            </div>
+            <div class="accordion" id="intermediateCourseFaq">
+                @php
+                    $intermediateFaqs = [
+                        ['What is the intermediate level in chess?', 'Intermediate players know the rules, special moves and basic checkmates, and have played many games. At this level the focus shifts to tactics, calculation, pawn structures, endgames and planning, rather than learning how pieces move.'],
+                        ['How do I know if my child is ready for the intermediate online chess course?', 'If your child plays full games without help, knows castling, en passant and promotion, and can spot simple forks and pins, they are likely ready. Not sure? Book a free trial class and our coach will check their level.'],
+                        ['What will my child learn in this course?', 'Your child will learn tactics and tactical motifs, king and pawn endings, zugzwang, checkmate patterns, counter-attacking play, calculation, middlegame planning and how to analyse their own games.'],
+                        ['How is the intermediate course different from the beginner course?', 'The beginner course teaches the rules, piece movement and simple tactics. The intermediate course builds strategy and calculation on top of that, with deeper tactics, positional play and endgames.'],
+                        ['Can we try a class before enrolling?', 'Yes. Archer Chess Academy offers a free trial class. Fill in the registration form or message us on WhatsApp to book a slot.'],
+                    ];
+                @endphp
+                @foreach ($intermediateFaqs as $index => $faq)
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="intermediateFaqHeading{{ $index }}">
+                            <button class="accordion-button {{ $index ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#intermediateFaqAnswer{{ $index }}" aria-expanded="{{ $index ? 'false' : 'true' }}"
+                                aria-controls="intermediateFaqAnswer{{ $index }}">{{ $faq[0] }}</button>
+                        </h3>
+                        <div id="intermediateFaqAnswer{{ $index }}" class="accordion-collapse collapse {{ $index ? '' : 'show' }}"
+                            aria-labelledby="intermediateFaqHeading{{ $index }}" data-bs-parent="#intermediateCourseFaq">
+                            <div class="accordion-body">{{ $faq[1] }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
 @endsection

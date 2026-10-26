@@ -1,5 +1,9 @@
 @extends('layouts.revamp')
-@section('title', 'Chess for Advanced')
+@section('title', 'Online Chess Classes for Advanced')
+@section('description', 'Build advanced chess skills with tactical combinations, deep calculation, opening preparation, and strategic training at Archer Chess Academy.')
+@section('head')
+    <link rel="canonical" href="https://www.archerchessacademy.com/online-chess-classes-for-advanced">
+@endsection
 @section('content')
 <style>
      @media (max-width: 767px) {
@@ -29,12 +33,12 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Chess for Advanced</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Online Chess Classes for Advanced</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
                                 <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
-                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Chess for Advanced
+                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Online Chess Classes for Advanced
                                     </span> </li>
                             </ul>
                         </div>
@@ -50,20 +54,16 @@
             <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap tw-mb-2">
                 <div>
                     <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        About the Course</h2>
+                        About Our Advanced Online Chess Course</h2>
                 </div>
             </div>
             <div class="row gy-4">
                 <div class="col-xl-12 col-lg-12 col-md-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
                     <div class="w-100 tw-mb-0">
-                        <div class="d-flex align-items-center tw-gap-3 tw-mb-3">
-                            <span class="fw-medium tw-text-5 text-paragraph-500">Advanced players possess a deep knowledge
-                                of opening theory, enabling them to navigate through the complexities of various openings
-                                with precision and flexibility. They understand the nuances of pawn structures, recognizing
-                                subtle positional advantages and formulating long-term strategic plans accordingly.
-                                Moreover, advanced players excel in tactical warfare, effortlessly spotting combinations and
-                                exploiting tactical motifs to gain material or positional superiority.
-                            </span>
+                        <div class="d-flex flex-column tw-gap-3 tw-mb-3">
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Our advanced online chess course is built for committed players who already know the fundamentals and want to compete at a higher level. Guided by FIDE-rated coaches, you will sharpen deep calculation, build a reliable opening repertoire, understand complex pawn structures and convert endgames with confidence.</p>
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Every lesson combines instruction, puzzle practice and game analysis, and the curriculum is curated by Grandmaster Thejkumar M. S. on a FIDE online recognised platform.</p>
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Whether you are preparing for rated tournaments or trying to break through a rating plateau, this advanced chess coaching program gives you a clear roadmap, regular practice and expert feedback.</p>
                         </div>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Puzzle assigned
+                                    Puzzles Assigned
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
                             </div>
@@ -98,7 +98,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Extra Class
+                                    Extra Classes
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
                             </div>
@@ -126,7 +126,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Students
+                                    Students Trained
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
                             </div>
@@ -143,7 +143,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-12 mt-4">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold curriculum-title text-neutral-950">Curriculum</h2>
+                        <h2 class="fw-bold curriculum-title text-neutral-950">Advanced Online Chess Course</h2>
                     </div>
                     <div>
                         <div class="row gy-5">
@@ -297,6 +297,71 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-80 bg-main-50">
+        <div class="container">
+            <h2 class="fw-bold text-neutral-950 tw-mb-6">Who Is This Advanced Chess Course For?</h2>
+            <ul class="tw-text-5 text-paragraph-500 d-flex flex-column tw-gap-3">
+                <li>Players who have completed our intermediate level or already play solid games with good tactical and opening knowledge.</li>
+                <li>Kids and teens preparing for rated, school, state or national tournaments.</li>
+                <li>Players stuck at a rating plateau who want structured, high-level improvement.</li>
+                <li>Not sure about your level? Book a free trial class and our coaches will recommend the right program.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="py-80">
+        <div class="container">
+            <h2 class="fw-bold text-neutral-950 tw-mb-6">Why Choose Archer Chess Academy for Advanced Chess Coaching?</h2>
+            <ul class="tw-text-5 text-paragraph-500 d-flex flex-column tw-gap-3 tw-mb-6">
+                <li>FIDE-rated coaches who teach advanced players.</li>
+                <li>Curriculum curated by Grandmaster MS Thej Kumar.</li>
+                <li>FIDE online recognised platform.</li>
+                <li>ISO-certified academy.</li>
+                <li>1500+ students trained and 500+ practice puzzles assigned.</li>
+                <li>Free trial class before you commit.</li>
+            </ul>
+            <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-white"
+                data-block="button">
+                <span class="button__flair"></span>
+                <span class="button__label">Book Your Free Trial</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="py-80 bg-main-50">
+        <div class="container">
+            <div class="text-center tw-mb-8">
+                <h2 class="fw-bold text-neutral-950">Advanced Chess Classes: Frequently Asked Questions</h2>
+            </div>
+            <div class="accordion" id="advancedCourseFaq">
+                @php
+                    $advancedFaqs = [
+                        ['Who should join the advanced online chess course?', 'The advanced course is designed for players who already understand opening basics, tactics and endgame fundamentals and want to compete at a higher level. It suits students preparing for rated tournaments, players stuck at a rating plateau, and young chess enthusiasts ready for structured, high-level coaching. Not sure of your level? Book a free trial class and our coaches will help you choose the right program.'],
+                        ['What topics are covered in the advanced chess classes?', 'The curriculum covers advanced tactical combinations, deep calculation and candidate moves, advanced opening preparation, positional sacrifices, strategic planning, advanced pawn structures, pro-level middlegame strategies, advanced endgame techniques, game analysis, and tournament preparation with psychological skills.'],
+                        ['Which chess openings will I study?', "You will study complex opening systems such as the Sicilian Defense, Ruy Lopez, Queen's Gambit, Nimzo-Indian Defense and Grünfeld Defense, focusing on key ideas, typical plans and transpositions rather than rote memorisation."],
+                        ['Will this course help me prepare for chess tournaments?', 'Yes. The program includes tournament preparation and psychological skills, along with game analysis methods that help you review your own games and fix recurring mistakes.'],
+                        ['Who teaches the advanced chess classes at Archer Chess Academy?', 'Classes are taught by FIDE-rated coaches, and the curriculum is curated by Grandmaster MS Thej Kumar.'],
+                        ['How do I book a free trial class?', 'Click “Book Your Free Trial”, fill in the registration form with the student’s name, age, city, WhatsApp number and email, and our team will schedule your trial class. You can also call +91-9152734675 or message us on WhatsApp.'],
+                    ];
+                @endphp
+                @foreach ($advancedFaqs as $index => $faq)
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="advancedFaqHeading{{ $index }}">
+                            <button class="accordion-button {{ $index ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#advancedFaqAnswer{{ $index }}" aria-expanded="{{ $index ? 'false' : 'true' }}"
+                                aria-controls="advancedFaqAnswer{{ $index }}">{{ $faq[0] }}</button>
+                        </h3>
+                        <div id="advancedFaqAnswer{{ $index }}" class="accordion-collapse collapse {{ $index ? '' : 'show' }}"
+                            aria-labelledby="advancedFaqHeading{{ $index }}" data-bs-parent="#advancedCourseFaq">
+                            <div class="accordion-body">{{ $faq[1] }}</div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>

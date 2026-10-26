@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <title>{{ config('app.name') }}</title>
+    @include('Frontend.partials.structured-data')
     <link rel="shortcut icon" type="image/x-icon" href="/frontend/tcul_img/home/archer_favicon.png">
     <link rel="stylesheet" href="/frontend/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/frontend/assets/plugins/fontawesome/css/fontawesome.min.css">
@@ -807,7 +808,7 @@
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="coursesDropdown">
                                         <li><a class="dropdown-item"
-                                                href="/online-chess-course-for-beginners">Beginner Chess
+                                                href="{{ route('explore.course.details.beginner') }}">Beginner Chess
                                                 Classes</a></li>
                                         <li><a class="dropdown-item"
                                                 href="/online-chess-course-for-intermediate">Intermediate
@@ -859,9 +860,7 @@
                                         class="img-fluid" style="width:200px !important;max-height: 85px !important;">
                                 </div>
                                 <div class="footer-about-content">
-                                    <p style="color: white;">Give your child the opportunity to learn and master chess
-                                        from the comfort of
-                                        their home.</p>
+                                    <p style="color: white;">Archer Chess Academy is an online chess coaching academy offering structured online chess classes for kids worldwide. Our FIDE-rated tutors provide chess training to students at beginner, intermediate, and advanced levels. Learn chess online under the mentorship and guidance of Grandmaster Thejkumar M. S.</p>
                                 </div>
                                 <div class="iso-img-header d-flex align-items-center justify-content-start my-3">
                                     <img src="/frontend/tcul_img/webp/iso-certification.webp" alt="Img"
@@ -875,7 +874,7 @@
                                         <li><a style="color: white;" href="https://x.com/ArcherChess"
                                                 target="_blank"><i class="feather-x"></i></a></li>
                                         <li><a style="color: white;"
-                                                href="https://www.youtube.com/@archerchessacademy4376"
+                                                href="https://www.youtube.com/@archerchessacademy88"
                                                 target="_blank"><i class="feather-youtube"></i></a></li>
                                         <li><a style="color: white;" href="mailto:support@archerchessacademy.com"
                                                 target="_blank"><i class="feather-mail"></i></a></li>

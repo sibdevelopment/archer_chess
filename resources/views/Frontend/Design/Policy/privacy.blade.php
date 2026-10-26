@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Privacy & Policy')
+@section('title', 'Privacy Policy - Archer Chess Academy')
+@section('description', 'Read privacy policy of Archer Chess Academy - We committed to creating a safe and secure online environment for you!')
 @section('content')
 
     <head>

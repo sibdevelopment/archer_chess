@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'About')
+@section('title', 'About Archer Chess Academy - Online Chess Coaching')
+@section('description', 'Archer Chess Academy is a global online Chess Coaching for kids aged 4-15 since 2015, with expert coaches and structured chess training.')
 @section('content')
 <style>
      @media (max-width: 767px) {

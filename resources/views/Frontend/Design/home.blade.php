@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Online Chess Classes for Kids - Archer Chess Academy')
+@section('description', 'Live online chess classes for kids aged 5+ with FIDE-rated coaches and a Grandmaster. Small batches, weekly tournaments. Book a free trial class.')
 @section('content')
     <style>
         #coaches .tutor-image-frame {
@@ -60,10 +61,10 @@
             <div class="row gy-4 align-items-center">
                 <div class="col-lg-6">
                     <div>
-                        <h2 class="fw-bold text-neutral-950 tw-mb-5 text-middle" data-aos="fade-up" data-aos-duration="600"
-                            data-aos-delay="100">From Beginner to Pro – Online Chess Classes for All Levels.</h2>
+                        <h1 class="fw-bold text-neutral-950 tw-mb-5 text-middle" data-aos="fade-up" data-aos-duration="600"
+                            data-aos-delay="100">Online Chess Classes for Kids with FIDE-rated Coaches</h1>
                         <p class="tw-text-lg fw-normal text-paragraph-600 tw-mb-8 max-w-550-px w-100 text-middle"
-                            data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">Join Archer’s online chess classes and take your game to the next level with expert guidance.</p>
+                            data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">Learn chess online in small groups, taught by FIDE-rated coaches, with weekly tournaments and monthly parent meetings. Book a free trial class.</p>
                         <div class="d-flex align-items-center tw-gap-4 flex-wrap" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="300">
                             <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
@@ -107,13 +108,13 @@
         <div class="container">
             <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap">
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
-                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">TRAINED STUDENTS</span>
+                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">STUDENTS TRAINED</span>
                     <h1 class="fw-bol text-main-600 counter">15000+</h1>
                 </div>
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
                     data-aos="fade-up" data-aos-duration="600" data-aos-delay="100"></span>
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">FIDE RATED</span>
+                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">FIDE-RATED COACHES</span>
                     <h1 class="fw-bol text-main-600 counter">250+</h1>
                 </div>
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
@@ -125,7 +126,7 @@
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
                     data-aos="fade-up" data-aos-duration="600" data-aos-delay="300"></span>
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
-                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">CHAMPIONS</span>
+                    <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">TOURNAMENT CHAMPIONS</span>
                     <h1 class="fw-bol text-main-600 counter">500+</h1>
                 </div>
             </div>
@@ -143,7 +144,7 @@
                 <div class="col-lg-6" data-aos="zoom-in" data-aos-duration="1500">
                     <div class="position-relative">
                         <span>
-                            <img src="/frontend1/tcul-img/img/gm-thejkumar.png" alt="img">
+                            <img src="/frontend1/tcul-img/img/gm-thejkumar.png" alt="Grandmaster Thejkumar M. S.">
                         </span>
                         <img src="/frontend1/assets/images/shape/kindergarden-shape4.png" alt="shape"
                             class="position-absolute top-0 tw-start-0 tw-mt-234-px tw-ms--72-px d-xl-block d-none animation-upDown">
@@ -153,13 +154,15 @@
                     <div class="d-flex justify-content-center">
                         <div class="max-w-520-px w-100 text-middle">
                             <span class="fw-normal tw-text-405 text-main-600 tw-mb-6 text-middle" data-aos="fade-up"
-                                data-aos-duration="600" data-aos-delay="100">Meet Our Experts</span>
+                                data-aos-duration="600" data-aos-delay="100">Grandmaster coach at Archer Chess Academy</span>
                             <h2 class="text-neutral-950 fw-bold tw-mb-7 h4 text-middle" data-aos="fade-up"
-                                data-aos-duration="600" data-aos-delay="150">Grandmaster MS Thejkumar</h2>
+                                data-aos-duration="600" data-aos-delay="150">Grandmaster Thejkumar M. S.</h2>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-2 line-height-28-px text-middle"
-                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">GM. Thejkumar is a distinguished chess Grandmaster with a career highlighted by significant national and international achievements. His tactical brilliance and deep understanding of chess have led to numerous victories in prestigious tournaments, earning him widespread recognition. Beyond his competitive success, he has made a lasting impact as a mentor, guiding and developing young talent within the chess community. </p>
+                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">Thejkumar M. S. is India's 50th grandmaster and the first from Karnataka. He earned the title in September 2017, at 36, after years of steady rating growth and six norms. His FIDE rating peaked at 2500 (FIDE ID 5009154).</p>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-7 line-height-28-px text-middle"
-                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200"> His contributions have been honored with various awards, reflecting his influence and dedication to the sport. GM. Thejkumar's legacy extends beyond his own achievements, as he continues to shape the future of chess through his mentorship and leadership.</p>
+                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">In June 2018, he won the Karnataka State Level Open Rapid tournament with a perfect 9/9 score. Before that, he represented Southwestern Railway at rating tournaments across India and abroad.</p>
+                            <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-7 line-height-28-px text-middle"
+                                data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">At Archer Chess Academy, he continues to shape the future of chess through his mentorship and leadership.</p>
                             {{-- <div class="tw-mb-11" data-aos="fade-up" data-aos-duration="600" data-aos-delay="260">
                                 <div class="">
                                     <span
@@ -314,26 +317,26 @@
                        Course Structure
                     </span> --}}
                     <h2 class="fw-bold text-white tw-mb-5 h4" data-aos="fade-up" data-aos-duration="600"
-                        data-aos-delay="200">Curriculum</h2>
+                        data-aos-delay="200">Online chess courses for every level</h2>
                     <p class="fw-normal tw-text-4 text-white" data-aos="fade-up" data-aos-duration="600"
-                        data-aos-delay="300">Explore our carefully curated courses designed to elevate your chess skills, <br/> whether you're a beginner or an aspiring master. Each course is tailored to ensure maximum learning and development.</p>
+                        data-aos-delay="300">Pick the level that fits your child. Every course combines live lessons, practice games, and weekly tournaments.</p>
                 </div>
                 <div class="swiper programSwiper">
                     <div class="swiper-wrapper">
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted--5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program01.png" alt="img">
+                                    <img src="/frontend1/tcul-img/img/program01.png" alt="Three children playing chess in a Beginner class">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
-                                        Beginners
+                                        <a href="{{ route('explore.course.details.beginner') }}">Beginner chess course</a>
                                     </h2>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
-                                        The Archer Beginner Course  is designed for new chess learners who want to build a strong foundation. Students learn the basic rules, piece movements, simple tactics, checkmates, and fundamental strategies through structured lessons and practice games, helping them develop confidence and a love for chess. ♟️
+                                        Learn piece moves, basic tactics, and checkmates through live lessons and practice games. 30 training sessions and 15+ online tournaments.
                                     </p>
                                     <div class="d-flex align-items-center justify-content-center">
-                                        <a href="#0" data-bs-toggle="modal" data-bs-target="#BeginnersCurriculumModal"
+                                        <a href="{{ route('explore.course.details.beginner') }}"
                                             class="tw-w-10 tw-h-10 bg-main-600 rounded-circle d-flex align-items-center justify-content-center tw-text-base text-white">
                                             <i class="ph-bold ph-arrow-right"></i>
                                         </a>
@@ -344,17 +347,17 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted-5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program02.png" alt="img">
+                                    <img src="/frontend1/tcul-img/img/program02.png" alt="Two kids playing chess in Intermediate class">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
-                                        Intermediate
+                                        <a href="https://www.archerchessacademy.com/online-chess-course-for-intermediate">Intermediate chess course</a>
                                     </h2>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
-                                        The Archer Intermediate Course is designed for players who already understand the basics of chess and want to improve their skills. The course focuses on tactical patterns, opening principles, basic strategy, and essential endgames to help students play stronger games and prepare for competitive tournaments. ♟️
+                                        For kids who know the basics. Build tactics, opening knowledge, and endgame skills across 60 sessions and 30+ online tournaments.
                                     </p>
                                     <div class="d-flex align-items-center justify-content-center">
-                                        <a href="#0" data-bs-toggle="modal" data-bs-target="#IntermediateCurriculumModal"
+                                        <a href="https://www.archerchessacademy.com/online-chess-course-for-intermediate"
                                             class="tw-w-10 tw-h-10 bg-main-600 rounded-circle d-flex align-items-center justify-content-center tw-text-base text-white">
                                             <i class="ph-bold ph-arrow-right"></i>
                                         </a>
@@ -365,17 +368,17 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted--5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program03.png" alt="img">
+                                    <img src="/frontend1/tcul-img/img/program03.png" alt="Kids playing chess in Advanced class">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
-                                        Advanced
+                                        <a href="{{ route('explore.course.details.advanced') }}">Advanced chess course</a>
                                     </h2>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
-                                       An advanced training program designed for serious chess players preparing to achieve their first FIDE rating. The course focuses on improving tactical calculation. Through structured training, classical practice games, and detailed analysis, players develop the strength and confidence required to compete successfully in FIDE-rated tournaments.
+                                        Prepare for a first FIDE rating with deeper calculations and game analysis. 90 sessions and 45+ online tournaments.
                                     </p>
                                     <div class="d-flex align-items-center justify-content-center">
-                                        <a href="#0" data-bs-toggle="modal" data-bs-target="#AdvancedCurriculumModal"
+                                        <a href="{{ route('explore.course.details.advanced') }}"
                                             class="tw-w-10 tw-h-10 bg-main-600 rounded-circle d-flex align-items-center justify-content-center tw-text-base text-white">
                                             <i class="ph-bold ph-arrow-right"></i>
                                         </a>
@@ -386,17 +389,17 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted-5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program04.png" alt="img">
+                                    <img src="/frontend1/tcul-img/img/program04.png" alt="Two kids playing chess in Grandmaster program">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
-                                        Grand Master
+                                        <a href="{{ route('explore.course.details.expert') }}">Grandmaster program</a>
                                     </h2>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
-                                        The Chesshika Grandmaster Program is designed for serious FIDE-rated players who aim to improve their rating and compete at higher levels. Opening preparation, middlegame strategy, endgame technique, and tournament skills. This advanced program is open to strong tournament players, national competitors, and titled players
+                                        For FIDE-rated and tournament players working on openings, middlegame strategy, and endgames. Offered with Chesshika.
                                     </p>
                                     <div class="d-flex align-items-center justify-content-center">
-                                        <a target="_blank" href="http://chesshika.com/"
+                                        <a href="{{ route('explore.course.details.expert') }}"
                                             class="tw-w-10 tw-h-10 bg-main-600 rounded-circle d-flex align-items-center justify-content-center tw-text-base text-white">
                                             <i class="ph-bold ph-arrow-right"></i>
                                         </a>
@@ -421,9 +424,9 @@
                         <span class="fw-normal tw-text-405 text-main-600 tw-mb-5 text-middle" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="100">Why Choose Us</span>
                         <h2 class="fw-bold text-neutral-950 tw-mb-5 h4 text-middle" data-aos="fade-up" data-aos-duration="600"
-                            data-aos-delay="150">We provide your child with an Opportunity</h2>
+                            data-aos-delay="150">Why parents choose our online chess academy</h2>
                         <p class="fw-normal tw-text-4 text-paragraph-500 text-middle" data-aos="fade-up" data-aos-duration="600"
-                            data-aos-delay="200">We help young players develop strong chess skills through structured training, expert guidance, and interactive learning. Our programs are designed to build focus, strategic thinking, and confidence while making chess enjoyable for every student.</p>
+                            data-aos-delay="200">We teach young players to develop strong chess skills through structured online chess training, expert guidance, and interactive learning. Our programs are designed to build focus, strategic thinking, and confidence while making chess enjoyable for every student.</p>
                     </div>
                     <div class="row gy-4">
                         <div class="col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
@@ -451,7 +454,7 @@
                                 <div class="why-us bg-main-50 text-middle tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all">
                                     <img src="/frontend1/tcul-img/img/expert-coaches.svg" alt="icon"
                                         class="tw-mb-5 animate__bounce d-block mx-sm-auto">
-                                    <span class="fw-medium tw-text-405 text-neutral-950 tw-mb-5">Expert Coaches</span>
+                                    <span class="fw-medium tw-text-405 text-neutral-950 tw-mb-5">FIDE-rated coaches</span>
                                     <p class="fw-normal text-paragraph-500">Learn from experienced and certified chess coaches who guide students step-by-step, helping them understand strategies, tactics, and advanced gameplay concepts.</p>
                                 </div>
                             </div>
@@ -460,7 +463,7 @@
                                     class="why-us bg-primary-100 text-middle tw-py-11 tw-px-8 tw-rounded-all animation-item tw-rounded-all">
                                     <img src="/frontend1/tcul-img/img/supportive-learning.svg" alt="icon"
                                         class="tw-mb-5 animate__bounce d-block mx-sm-auto">
-                                    <span class="fw-medium tw-text-405 text-neutral-950 tw-mb-5">Safe & Supportive Learning</span>
+                                    <span class="fw-medium tw-text-405 text-neutral-950 tw-mb-5">Safe &amp; Supportive Chess Coaching</span>
                                     <p class="fw-normal text-paragraph-500">Our online classes provide a safe, friendly, and engaging environment where children can learn, ask questions, and improve their skills with confidence.</p>
                                 </div>
                             </div>
@@ -477,14 +480,14 @@
     </section>
 
     <!--  Learn Chess from Expert Coaches  -->
-    <section style="background-image: url(/frontend1/tcul-img/img/cta-bg.png);" class="bg-img">
+    <section style="background-image: url(/frontend1/tcul-img/img/cta-bg.png);" class="bg-img" role="img" aria-label="Child learning chess in an online chess class with a FIDE-rated coach at Archer Chess Academy">
         <div class="pb-120 pt-120">
             <div class="container">
                 <div class="d-flex align-items-end tw-gap-5 flex-wrap align-middle">
                     <div class="">
                         <h2 class="fw-bold text-white tw-mb-2 h4 text-middle" data-aos="fade-up" data-aos-duration="200"
-                            data-aos-delay="100">Learn Chess from <br> Expert Coaches</h2>
-                        <p class="fw-normal tw-text-4 text-white tw-mb-10 aos-init aos-animate text-middle" data-aos="fade-up" data-aos-duration="200" data-aos-delay="100">Help your child develop focus, strategy, and confidence through engaging online chess classes guided by experienced coaches.</p>
+                            data-aos-delay="100">Learn Chess Online from FIDE-rated Coaches</h2>
+                        <p class="fw-normal tw-text-4 text-white tw-mb-10 aos-init aos-animate text-middle" data-aos="fade-up" data-aos-duration="200" data-aos-delay="100">Archer Chess Academy is an online chess academy where kids build focus, strategy and confidence through live chess coaching online. Our FIDE-rated coaches teach kids chess classes for every level, from chess classes for beginners to advanced training, in engaging sessions designed around how children learn.</p>
                         <div class="d-flex align-items-center tw-gap-4 flex-wrap" data-aos="fade-up"
                             data-aos-duration="300" data-aos-delay="100">
                             <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
@@ -570,7 +573,7 @@
                 <span class="fw-normal tw-text-405 text-main-600 tw-mb-2" data-aos="fade-up" data-aos-duration="600"
                     data-aos-delay="100">Where Learning Thrives</span>
                 <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600"
-                    data-aos-delay="200">Meet Our Tutors</h2>
+                    data-aos-delay="200">Meet Our FIDE-rated Online Chess Tutors</h2>
             </div>
             <div class="swiper coachSwiper">
                 <div class="swiper-wrapper">
@@ -935,6 +938,10 @@
         <img src="/frontend1/tcul-img/img/blog-element.svg" alt="shape"
             class="position-absolute top-0 tw-start-0 d-lg-block d-none tw-mt-186-px tw-ms-200-px animation-upDown">
         <div class="container">
+            <div class="text-center tw-mb-12">
+                <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600"
+                    data-aos-delay="100">See How Our Online Chess Classes for Kids Work</h2>
+            </div>
             <div class="swiper videoSwiper">
                 <div class="swiper-wrapper">
                     <div class="swiper-slide" data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
@@ -1161,10 +1168,10 @@
                             <span class="fw-normal tw-text-405 text-main-600 tw-mb-4 text-middle mb-sm-0" data-aos="fade-up"
                                 data-aos-duration="600" data-aos-delay="100">Start Your Chess Journey</span>
                             <h2 class="fw-bold text-neutral-950 line-height-62-px tw-mb-5 h4 chess-journey text-middle pt-sm-0" data-aos="fade-up"
-                                data-aos-duration="600" data-aos-delay="200">How to enroll your child in Archer Chess Classes?
+                                data-aos-duration="600" data-aos-delay="200">How to Enroll Your Child in Our Online Chess Academy?
                             </h2>
                             <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-6 text-middle" data-aos="fade-up"
-                                data-aos-duration="600" data-aos-delay="300">Give your child the opportunity to learn chess from expert coaches through interactive online sessions. Our structured programs help kids improve focus, strategy, and confidence while enjoying the game.</p>
+                                data-aos-duration="600" data-aos-delay="300">Give your child the opportunity to learn chess online from FIDE-rated coaches in interactive, live sessions. Our structured kid's chess classes, for beginners through advanced players, help children improve focus, strategy and confidence while enjoying the game. Start with a free trial class and see how your child learns.</p>
                             <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
                                 class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-white"
                                 data-block="button" data-aos="fade-up" data-aos-duration="600"
@@ -1250,61 +1257,51 @@
                         <div class="accordion" id="accordionExample">
                             <div class="accordion-item accordion-shadow tw-mb-4 tw-rounded-4xl" data-aos-delay="100" data-aos="fade-up" data-aos-duration="600">
                                 <button class="accordion-button fw-bold tw-text-5 text-neutral-950" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                    How do I enroll my child in a course at Archer Chess Academy?
+                                    How do I enroll my child in online chess classes at Archer Chess Academy?
                                 </button>
                                 <div id="collapseOne" class="accordion-collapse collapse show"  data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        <p class="fw-normal tw-text-4 text-paragraph-500">Enrollment is simple. Just visit our website, choose the course level that fits your
-                                    child, and fill out the registration form. Our team will guide you step by step to get
-                                    started.</p>
+                                        <p class="fw-normal tw-text-4 text-paragraph-500">Book a free trial class on our website, then choose the course level that fits your child (beginner, intermediate or expert) and complete the registration form. Our team will guide you through each step.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-item accordion-shadow tw-mb-4 tw-rounded-4xl" data-aos-delay="150" data-aos="fade-up" data-aos-duration="600">
                                 <button class="accordion-button collapsed fw-bold tw-text-5 text-neutral-950" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    What makes Archer Chess Academy different from other academies?
+                                    What makes Archer Chess Academy different from other online chess academies?
                                 </button>
                                 <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        <p class="fw-normal tw-text-4 text-paragraph-500">We don’t just teach moves—we build thinkers. Our structured programs focus on tactics,
-                                    strategy, and decision-making skills, while also making learning fun and engaging. Each
-                                    child receives personal attention, even in group classes.</p>
+                                        <p class="fw-normal tw-text-4 text-paragraph-500">We don’t just teach moves, we build thinkers. Our FIDE-rated coaches teach tactics, strategy and decision-making through a structured curriculum curated by Grandmaster Thejkumar M. S. Classes are small and fun, so every child gets personal attention.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-item accordion-shadow tw-mb-4 tw-rounded-4xl" data-aos-delay="200" data-aos="fade-up" data-aos-duration="600">
                                 <button class="accordion-button collapsed fw-bold tw-text-5 text-neutral-950" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                   What
-                                age groups can join your academy?
+                                    What age groups can join your chess classes?
                                 </button>
                                 <div id="collapseThree" class="accordion-collapse collapse"  data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        <p class="fw-normal tw-text-4 text-paragraph-500">We welcome learners from 5 years old all the way to adults. Our teaching style and
-                                    curriculum are tailored to the student’s age and skill level.</p>
+                                        <p class="fw-normal tw-text-4 text-paragraph-500">We teach online chess classes for kids aged 5 to 12 and also welcome older learners and adults. The curriculum and teaching style are matched to each student’s age and skill level.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-item accordion-shadow tw-mb-4 tw-rounded-4xl" data-aos-delay="250" data-aos="fade-up" data-aos-duration="600">
                                 <button class="accordion-button collapsed fw-bold tw-text-5 text-neutral-950" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                   Will
-                                my child get enough attention in group classes?
+                                    Will my child get enough attention in group chess classes?
                                 </button>
                                 <div id="collapseFour" class="accordion-collapse collapse"  data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        <p class="fw-normal tw-text-4 text-paragraph-500">Yes. Our groups are intentionally kept small so every student gets the guidance they
-                                    need. If you prefer, we also offer **one-on-one sessions** for focused learning.</p>
+                                        <p class="fw-normal tw-text-4 text-paragraph-500">Yes. We keep batches small so every student gets guidance. If you prefer, we also offer one-on-one online chess lessons for focused learning.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="accordion-item accordion-shadow tw-rounded-4xl" data-aos-delay="300" data-aos="fade-up" data-aos-duration="600"> 
                                 <button class="accordion-button collapsed fw-bold tw-text-5 text-neutral-950" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-                                   Do you
-                                prepare students for tournaments?
+                                    Do you prepare students for chess tournaments?
                                 </button>
                                 <div id="collapseFive" class="accordion-collapse collapse"  data-bs-parent="#accordionExample">
                                     <div class="accordion-body">
-                                        <p class="fw-normal tw-text-4 text-paragraph-500">Yes, we do. We train students not only in chess skills but also in tournament preparation
-                                    — including opening repertoire, time management, and handling pressure during games.</p>
+                                        <p class="fw-normal tw-text-4 text-paragraph-500">Yes. We train students in opening repertoire, time management and handling pressure, so they feel ready for online and over-the-board tournaments.</p>
                                     </div>
                                 </div>
                             </div>

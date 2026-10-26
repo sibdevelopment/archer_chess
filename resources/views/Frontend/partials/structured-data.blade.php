@@ -48,4 +48,53 @@
         ]
     }
     </script>
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "How do I enroll my child in online chess classes at Archer Chess Academy?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Book a free trial class on our website, then choose the course level that fits your child (beginner, intermediate or expert) and complete the registration form. Our team will guide you through each step."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What makes Archer Chess Academy different from other online chess academies?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "We don’t just teach moves, we build thinkers. Our FIDE-rated coaches teach tactics, strategy and decision-making through a structured curriculum curated by Grandmaster Thejkumar M. S. Classes are small and fun, so every child gets personal attention."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What age groups can join your chess classes?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "We teach online chess classes for kids aged 5 to 12 and also welcome older learners and adults. The curriculum and teaching style are matched to each student’s age and skill level."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Will my child get enough attention in group chess classes?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. We keep batches small so every student gets guidance. If you prefer, we also offer one-on-one online chess lessons for focused learning."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Do you prepare students for chess tournaments?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes. We train students in opening repertoire, time management and handling pressure, so they feel ready for online and over-the-board tournaments."
+                }
+            }
+        ]
+    }
+    </script>
 @endif

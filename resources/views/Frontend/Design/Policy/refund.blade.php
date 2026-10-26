@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Refund Policy - Archer Chess Academy')
+@section('description', "Review Archer Chess Academy's refund policy.")
 @section('content')
 <style>
      @media (max-width: 767px) {

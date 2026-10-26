@@ -74,6 +74,7 @@
         })(window, document, 'script', 'dataLayer', 'GTM-KCPKNMQ');
     </script>
     <!-- End Google Tag Manager -->
+    @include('Frontend.partials.structured-data')
 </head>
 
 <body onload='createCaptcha();'>

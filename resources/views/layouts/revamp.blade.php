@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description"
-        content="Archers Chess Academy is an online chess learning platform dedicated to providing high-quality chess education to students of all ages and skill levels. Our academy offers a comprehensive curriculum designed to help students develop their chess skills, strategic thinking, and love for the game. With experienced coaches, interactive lessons, and a supportive community, Archers Chess Academy is the perfect place for aspiring chess players to learn, grow, and excel in the world of chess.">
+    <meta name="description" content="@yield('description', 'Archers Chess Academy is an online chess learning platform dedicated to providing high-quality chess education to students of all ages and skill levels.')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('meta')
     <meta name="keywords"
@@ -33,6 +32,7 @@
     <!-- Title -->
     <title>@yield('title', config('app.name'))</title>
     @yield('head')
+    @include('Frontend.partials.structured-data')
     <!-- Favicon -->
     <link rel="icon" href="/frontend/tcul_img/home/archer_favicon.png" type="image/png">
     <!-- Bootstrap -->
@@ -507,7 +507,7 @@
                             <li><a href="{{ route('home') }}#faq">FAQ’s</a></li>
                         </ul>
                     </li>
-                     <li><a href="{{ route('home') }}#coaches">Coaches</a></li>
+                     <li><a href="{{ route('chess.coaches') }}">Coaches</a></li>
                      <li><a href="{{ route('contact') }}">Contact</a></li>
                      <li><a href="{{ route('blog') }}">Blog</a></li>
                 </ul>
@@ -602,7 +602,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a target="_blank" href="https://www.youtube.com/@archerchessacademy4376"
+                                    <a target="_blank" href="https://www.youtube.com/@archerchessacademy88"
                                         class="tw-text-xl text-black hover-text-main-600 tw-duration-300">
                                         <i class="ph-fill ph-youtube-logo"></i>
                                     </a>
@@ -754,7 +754,7 @@
                         </li>
                        
                         <li class="nav-menu__item">
-                            <a href="{{ route('home') }}#coaches"
+                            <a href="{{ route('chess.coaches') }}"
                                 class="nav-menu__link tw-pe-5 text-neutral-950 tw-py-5 fw-medium w-100">Coaches</a>
                         </li>
                         <li class="nav-menu__item {{ Route::is('contact') ? 'activePage' : '' }}">
@@ -832,7 +832,7 @@
                                 <a href="{{ route('home') }}" class="tw-mb-2">
                                     <img src="/frontend1/tcul-img/img/archer-new-logo.png" alt="logo">
                                 </a>
-                                <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-6">Give your child the opportunity to learn and master chess from the comfort of their home.</p>
+                                <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-6">Archer Chess Academy is an online chess coaching academy offering structured online chess classes for kids worldwide. Our FIDE-rated tutors provide chess training to students at beginner, intermediate, and advanced levels. Learn chess online under the mentorship and guidance of Grandmaster Thejkumar M. S.</p>
                                 <ul class="d-flex align-items-center tw-gap-2 flex-wrap mt-3">
                                     <li>
                                         <a target="_blank" href="https://www.facebook.com/makekidssmarter"
@@ -859,7 +859,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a target="_blank" href="https://www.youtube.com/@archerchessacademy4376"
+                                        <a target="_blank" href="https://www.youtube.com/@archerchessacademy88"
                                             class="tw-w-9 tw-h-9 bg-white text-black tw-rounded-lg hover-bg-main-600 hover-text-white tw-duration-300 tw-text-405 d-flex align-items-center justify-content-center">
                                             <i class="ph-fill ph-youtube-logo"></i>
                                         </a>
@@ -876,7 +876,7 @@
                         <div class="col-xl-2 col-lg-6 col-sm-6 col-6 aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="200">
                             <div>
-                                <h1 class="fw-bold text-neutral-950 h5">Quick Links</h1>
+                                <h2 class="fw-bold text-neutral-950 h5">Quick Links</h2>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
                                 <div class="d-flex flex-column tw-gap-3">
                                     <a href="{{ route('about') }}"
@@ -903,7 +903,7 @@
                                         Courses
                                     </a>
 
-                                    <a href="{{ route('home') }}#coaches"
+                                    <a href="{{ route('chess.coaches') }}"
                                         class="tw-text-4 text-paragraph-600 d-flex align-items-center tw-gap-2 hover-text-main-600 tw-duration-300">
                                         <span class="tw-text-405">
                                             <i class="ph-bold ph-caret-double-right"></i>
@@ -1006,7 +1006,7 @@
                         <div class="col-xl-3 col-lg-6 col-sm-6 aos-init aos-animate" data-aos="fade-up"
                             data-aos-duration="600" data-aos-delay="300">
                             <div>
-                                <h1 class="fw-bold text-neutral-950 h5">Recent Posts</h1>
+                                <h2 class="fw-bold text-neutral-950 h5">Recent Posts</h2>
                                 <span class="tw-w-82-px tw-h-05 tw-border-gradient tw-mb-7 tw-mt-5"></span>
                                 @forelse(($revampFooterBlogs ?? collect()) as $footerBlog)
                                     <div class="d-flex align-items-center tw-gap-4 flex-sm-nowrap flex-lg-wrap tw-mb-4">
@@ -1158,11 +1158,11 @@
                                     <span class="fw-medium tw-text-4 text-paragraph-600 tw-mb-2">
                                         Address
                                     </span>
-                                    <h1 class="fw-semibold text-neutral-950 h5">
+                                    <p class="fw-semibold text-neutral-950 h5">
                                         Archer Chess Academy Pvt. Ltd. <br/>
                                        5A, Shatrunjay Height Co-Op Housing Society, Near Kailash Mansarovar, Bhayandar West - 401101, Mumbai
 
-                                    </h1>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -1281,7 +1281,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 tw-rounded-2xl bg-main-two-300 position-relative z-2">
                 <div class="modal-header border-0 pb-2">
-                    <h5 class="modal-title text-main-600"> Beginner Course Topics (for Course Section) <br/> <span class="fs-20">Topics covered in the course:</span></h5>
+                    <h5 class="modal-title text-main-600">Beginner Course Topics <br/> <span class="fs-20">Topics covered in the course:</span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

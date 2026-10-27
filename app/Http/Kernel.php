@@ -70,5 +70,6 @@ class Kernel extends HttpKernel
         'preventBackHistory' => \App\Http\Middleware\PreventBackHistory::class,
         'basic_auth' => \App\Http\Middleware\BasicAuth::class,
         'token' => \App\Http\Middleware\Token::class,
+        'make.webhook' => \App\Http\Middleware\AuthenticateMakeWebhook::class,
     ];
 }

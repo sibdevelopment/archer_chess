@@ -739,7 +739,7 @@
                     <div class="course-box flex-fill">
                         <div class="product">
                             <div class="product-img">
-                                <a href="/online-chess-course-for-beginners">
+                                <a href="{{ route('explore.course.details.beginner') }}">
                                     <img class="img-fluid courses-img" alt="Img"
                                         src="/frontend/tcul_img/webp/home/home-course-1.webp">
                                 </a>
@@ -749,7 +749,7 @@
                             </div>
                             <div class="product-content">
                                 <h3 class="title instructor-text">
-                                    <a href="/online-chess-course-for-beginners">Beginners</a>
+                                    <a href="{{ route('explore.course.details.beginner') }}">Beginners</a>
                                 </h3>
                             </div>
                         </div>
@@ -779,7 +779,7 @@
                     <div class="course-box flex-fill">
                         <div class="product">
                             <div class="product-img">
-                                <a href="/online-chess-course-for-advanced">
+                                <a href="{{ route('explore.course.details.advanced') }}">
                                     <img class="img-fluid courses-img" alt="Img"
                                         src="/frontend/tcul_img/webp/home/home-course-3.webp">
                                 </a>
@@ -789,7 +789,7 @@
                             </div>
                             <div class="product-content">
                                 <h3 class="title instructor-text">
-                                    <a href="/online-chess-course-for-advanced">Advanced</a>
+                                    <a href="{{ route('explore.course.details.advanced') }}">Advanced</a>
                                 </h3>
                             </div>
                         </div>
@@ -799,7 +799,7 @@
                     <div class="course-box flex-fill">
                         <div class="product">
                             <div class="product-img">
-                                <a href="/online-chess-course-for-expert">
+                                <a href="{{ route('explore.course.details.expert') }}">
                                     <img class="img-fluid courses-img" alt="Img"
                                         src="/frontend/tcul_img/webp/home/home-course-4.webp">
                                 </a>
@@ -809,7 +809,7 @@
                             </div>
                             <div class="product-content">
                                 <h3 class="title instructor-text">
-                                    <a href="/online-chess-course-for-expert">Expert</a>
+                                    <a href="{{ route('explore.course.details.expert') }}">Expert</a>
                                 </h3>
                             </div>
                         </div>

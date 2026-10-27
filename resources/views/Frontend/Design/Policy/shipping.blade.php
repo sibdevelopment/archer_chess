@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Shipping Policy - Archer Chess Academy')
+@section('description', 'Archer Chess Academy offers online chess classes, with no physical shipping. Class access details are sent via WhatsApp, email or SMS.')
 @section('content')
 
 <style>

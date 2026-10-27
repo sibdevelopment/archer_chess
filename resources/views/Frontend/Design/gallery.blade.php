@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Image Gallery')
+@section('title', 'Our Archer Kids - Chess Champions')
+@section('description', 'Explore photos of chess champions, student achievements, tournaments, and memorable moments. See our young chess players in action.')
 @section('content')
 <style>
      @media (max-width: 767px) {
@@ -46,43 +47,22 @@
     <!-- ==================== Breadcrumb End Here ==================== -->
 
     <!-- ===================== image gallery section start ========================= -->
-    <div class="py-110">
+    <section class="py-110">
         <div class="container">
             <div class="row gy-4">
-                @php
-                    $galleryImages = ($galleries ?? collect())->flatMap(function ($gallery) {
-                        return $gallery->galleryImages;
-                    });
-                @endphp
-
-                @forelse($galleryImages as $galleryImage)
+                @foreach(($meetourkids ?? collect()) as $kid)
                     @php
-                        $imageUrl = $galleryImage->image ? asset('storage/' . $galleryImage->image) : null;
+                        $kidImageUrl = $kid->image ? asset('storage/' . $kid->image) : '/frontend1/tcul-img/gallery/gallery1.png';
                     @endphp
-                    @if($imageUrl)
-                        <div class="col-lg-3 col-md-4 col-sm-6">
-                            <div class="gallery-thumb position-relative">
-                                <img src="{{ $imageUrl }}" alt="{{ optional($galleryImage->gallery)->title ?? 'Gallery image' }}"
-                                    class="w-100 square-img" style="aspect-ratio:1/1;object-fit:cover;">
-                                <a href="{{ $imageUrl }}"
-                                    class="gallery-thumb__link-two gallery-popup position-absolute top-50 start-50 translate-middle">
-                                    <span class="bg-white rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width:40px; height:40px;">
-                                        <i class="ph-bold ph-plus text-main-600"></i>
-                                    </span>
-                                </a>
-                            </div>
-                        </div>
-                    @endif
-                @empty
-                    <div class="col-12">
-                        <div class="text-center bg-white tw-rounded-20-px tw-p-10">
-                            <p class="mb-0 text-neutral-600">No gallery images available.</p>
-                        </div>
+                    <div class="col-lg-4 col-md-6 archer-kid-gallery-item">
+                        <a href="{{ $kidImageUrl }}" class="gallery-thumb gallery-popup d-block">
+                            <img src="{{ $kidImageUrl }}" alt="{{ $kid->name ?: 'Archer Kid' }}"
+                                class="w-100 square-img" style="aspect-ratio:1/1;object-fit:cover;">
+                        </a>
                     </div>
-                @endforelse
+                @endforeach
             </div>
         </div>
-    </div>
+    </section>
     <!-- ===================== image gallery section end ========================= -->
 @endsection

@@ -1,5 +1,6 @@
 @extends('layouts.revamp')
-@section('title', 'Home')
+@section('title', 'Contact Archer Chess Academy - Learn Chess Online')
+@section('description', 'Contact Archer Chess Academy today? Speak with our team about online chess classes for kids and get free trial. Free consultation available!')
 @section('content')
 
     <head>

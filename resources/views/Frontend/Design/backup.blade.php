@@ -1891,13 +1891,13 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a target="_blank" href="https://www.youtube.com/@archerchessacademy4376"
+                                            <a target="_blank" href="https://www.youtube.com/@archerchessacademy88"
                                                 class="tw-w-9 tw-h-9 bg-white text-black tw-rounded-lg hover-bg-main-600 hover-text-white tw-duration-300 tw-text-405 d-flex align-items-center justify-content-center">
                                                 <i class="ph-fill ph-linkedin-logo"></i>
                                             </a>
                                         </li>
                                         <li>
-                                            <a target="_blank" href="https://www.youtube.com/"
+                                            <a target="_blank" href="https://www.youtube.com/@archerchessacademy88"
                                                 class="tw-w-9 tw-h-9 bg-white text-black tw-rounded-lg hover-bg-main-600 hover-text-white tw-duration-300 tw-text-405 d-flex align-items-center justify-content-center">
                                                 <i class="ph-fill ph-youtube-logo"></i>
                                             </a>

@@ -1,5 +1,9 @@
 @extends('layouts.revamp')
-@section('title', 'Chess for Expert')
+@section('title', 'Online Chess Classes for Expert - Archer Chess Academy')
+@section('description', 'Online expert chess course: sharpen calculation, decision-making, smart exchanges and fortress defence with coaches. Book a free trial class.')
+@section('head')
+    <link rel="canonical" href="https://www.archerchessacademy.com/online-chess-classes-for-expert">
+@endsection
 @section('content')
 <style>
      @media (max-width: 767px) {
@@ -30,12 +34,12 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Chess for Expert</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Online Chess Classes for Expert Level</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
                                 <li><i class="text-main-600 hover-text-main-700 tw-text-405">/</i></li>
-                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Chess for Expert
+                                <li> <span class="text-main-600 hover-text-main-700 tw-text-405"> Online Chess Classes for Expert Level
                                     </span> </li>
                             </ul>
                         </div>
@@ -51,26 +55,16 @@
             <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap tw-mb-2">
                 <div>
                     <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
-                        About the Course</h2>
+                        About Our Expert Online Chess Classes</h2>
                 </div>
             </div>
             <div class="row gy-4">
                 <div class="col-xl-12 col-lg-12 col-md-12" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
                     <div class="w-100 tw-mb-0">
-                        <div class="d-flex align-items-center tw-gap-3 tw-mb-3">
-                            <span class="fw-medium tw-text-5 text-paragraph-500">At the expert level in chess, players
-                                demonstrate a deep understanding of both tactics and strategy, consistently making precise
-                                moves while foreseeing complex combinations many moves ahead. Experts have a solid grasp of
-                                opening theory, allowing them to develop their pieces effectively while controlling key
-                                areas of the board. They are skilled in middle-game planning, knowing how to attack and
-                                defend based on the unique characteristics of the position. Furthermore, their endgame
-                                knowledge is extensive, enabling them to convert small advantages into wins or defend
-                                difficult positions to secure a draw. Experts are also adept at psychological aspects of the
-                                game, understanding how to create pressure and force mistakes from their opponents. Their
-                                games reflect a balance between creativity and calculation, making them formidable and
-                                versatile competitors.
-
-                            </span>
+                        <div class="d-flex flex-column tw-gap-3 tw-mb-3">
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Our online chess course for expert players is built for students who already play strong, tournament-level chess and want to reach the next rating level. At this stage, small improvements decide games: sharper calculation, better decisions in complex positions and cleaner endgame technique.</p>
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Learn online from FIDE-rated coaches, with a curriculum curated by Grandmaster MS Thej Kumar. Each class focuses on how strong players think. You will learn to calculate long variations, choose the right exchanges, build and defend fortresses, and exploit your opponent’s weaknesses. You will also learn to handle pressure across the opening, middlegame and endgame.</p>
+                            <p class="fw-medium tw-text-5 text-paragraph-500">Study from home, practise with puzzles after every class and get personal feedback on your games.</p>
                         </div>
                     </div>
                 </div>
@@ -91,7 +85,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Puzzle assigned
+                                    Practice Puzzles Assigned
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
                             </div>
@@ -105,7 +99,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Extra Class
+                                    Extra Classes
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
                             </div>
@@ -118,10 +112,8 @@
                                     class="animate__swing">
                             </span>
                             <div>
-                                <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Age Group
-                                </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
+                                <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">Age Group</span>
+                                <h3 class="fw-normal text-main-600 numberFont" style="font-size: var(--heading-four);">Ages 5 and Above</h3>
                             </div>
                         </div>
                     </div>
@@ -133,7 +125,7 @@
                             </span>
                             <div>
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
-                                    Students
+                                    Students Trained
                                 </span>
                                 <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
                             </div>
@@ -150,7 +142,7 @@
             <div class="row justify-content-center">
                 <div class="col-xl-12 mt-4">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold curriculum-title text-neutral-950">Curriculum</h2>
+                        <h2 class="fw-bold curriculum-title text-neutral-950">Curriculum: Expert Level</h2>
                     </div>
                     <div>
                         <div class="row gy-5">
@@ -271,6 +263,59 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-80 bg-main-50">
+        <div class="container">
+            <h2 class="fw-bold text-neutral-950 tw-mb-5">Is the Expert Course Right for You?</h2>
+            <p class="fw-medium tw-text-5 text-paragraph-500 tw-mb-5">This online chess course suits players who already know opening principles, tactics and basic endgames and now want to play stronger, tournament-level chess. It is a good fit if you:</p>
+            <ul class="tw-text-5 text-paragraph-500 d-flex flex-column tw-gap-3">
+                <li>Play in school, district, state or online tournaments and want to win more games</li>
+                <li>Lose games in the middlegame or miss tactics in sharp positions</li>
+                <li>Want to convert better positions into wins and save worse ones</li>
+                <li>Have finished our <a href="{{ route('explore.course.details.advanced') }}" class="text-main-600 text-decoration-underline">Advanced Chess Classes</a> and want to go further</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="py-80">
+        <div class="container">
+            <div class="text-center tw-mb-8">
+                <h2 class="fw-bold text-neutral-950">Expert Chess Course: FAQs</h2>
+            </div>
+            <div class="accordion" id="expertCourseFaq">
+                @php
+                    $expertFaqs = [
+                        ['What is the expert online chess course?', 'It is Archer Chess Academy’s top-level program for strong players. It covers deep calculation, decision making, smart exchanges, fortress defence and exploiting weaknesses, taught online by FIDE-rated coaches.'],
+                        ['Who should join the expert chess classes?', 'Students who already play tournament-level chess and want to improve their rating, especially those who have completed the advanced level.'],
+                        ['Will this course help me prepare for tournaments?', 'Yes. Calculation, decision making and endgame skills are the areas that decide tournament games, and these are the focus of the course.'],
+                        ['Are the classes held online?', 'Yes. Students learn from home with Archer Chess Academy coaches, from India, the USA, the UK, the Middle East and other countries.'],
+                        ['Can we try a class before enrolling?', 'Yes. Book a free trial class and meet the coach first. There is no obligation.'],
+                    ];
+                @endphp
+                @foreach ($expertFaqs as $index => $faq)
+                    <div class="accordion-item">
+                        <h3 class="accordion-header" id="expertFaqHeading{{ $index }}">
+                            <button class="accordion-button {{ $index ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#expertFaqAnswer{{ $index }}" aria-expanded="{{ $index ? 'false' : 'true' }}"
+                                aria-controls="expertFaqAnswer{{ $index }}">{{ $faq[0] }}</button>
+                        </h3>
+                        <div id="expertFaqAnswer{{ $index }}" class="accordion-collapse collapse {{ $index ? '' : 'show' }}"
+                            aria-labelledby="expertFaqHeading{{ $index }}" data-bs-parent="#expertCourseFaq">
+                            <div class="accordion-body">{{ $faq[1] }}</div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="text-center tw-mt-8">
+                <a href="#0" data-bs-toggle="modal" data-bs-target="#registrationModal"
+                    class="btn btn-main-two hover-style-two button--stroke active-scale-094 tw-duration-100 d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-rounded-2xl tw-text-4 tw-border-bottom-white"
+                    data-block="button">
+                    <span class="button__flair"></span>
+                    <span class="button__label">Book a Free Trial Class</span>
+                </a>
             </div>
         </div>
     </section>

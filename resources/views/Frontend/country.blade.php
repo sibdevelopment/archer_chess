@@ -199,6 +199,7 @@
            </script>
            <!-- End Google Tag Manager -->
        @endunless
+       @include('Frontend.partials.structured-data')
    </head>
 
    <body>
@@ -1705,7 +1706,7 @@
                                            class="fab fa-instagram"></i></a></li>
                                <li><a href="https://www.linkedin.com/in/archer-chess-academy-736a23327"><i
                                            class="fab fa-linkedin-in"></i></a></li>
-                               <li><a href="https://www.youtube.com/@archerchessacademy4376"><i
+                               <li><a href="https://www.youtube.com/@archerchessacademy88"><i
                                            class="fab fa-youtube"></i></a></li>
                            </ul>
                        </div>

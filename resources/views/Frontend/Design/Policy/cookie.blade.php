@@ -1,5 +1,5 @@
 @extends('layouts.revamp')
-@section('title', 'Cookie Policy')
+@section('title', 'Cookie Policy - Archer Chess Academy')
 @section('content')
 
     <style>

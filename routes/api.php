@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\Integrations\MetaInstantLeadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +38,7 @@ Route::middleware(['basic_auth'])->group(function () {
         });
     });
 });
+
+Route::post('integrations/make/meta-instant-leads', MetaInstantLeadController::class)
+    ->middleware('make.webhook')
+    ->name('api.integrations.make.meta-instant-leads');

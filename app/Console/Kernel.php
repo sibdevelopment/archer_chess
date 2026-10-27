@@ -8,12 +8,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
 
-    protected $commands = [
-        \App\Console\Commands\Email\Reminder\MasterclassMail::class,
-        \App\Console\Commands\Email\Reminder\DemoClassMail::class,
-        \App\Console\Commands\Email\Reminder\TournamentMail::class,
-    ];
-
     /**
      * Define the application's command schedule.
      *

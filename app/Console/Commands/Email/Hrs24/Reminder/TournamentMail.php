@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Email\Reminder;
+namespace App\Console\Commands\Email\Hrs24\Reminder;
 
 use App\Models\Tournament;
 use App\Mail\TournamentMail as TournamentMailTemplate;

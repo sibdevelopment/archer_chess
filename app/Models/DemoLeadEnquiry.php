@@ -25,7 +25,19 @@ class DemoLeadEnquiry extends BaseModel
         'ist_time',
         'utm_source',
         'utm_medium',
+        'integration_source',
+        'integration_external_id',
+        'source_created_at',
         'meta_lead_id',
+        'meta_form_id',
+        'meta_form_name',
+        'meta_page_id',
+        'meta_campaign_id',
+        'meta_campaign_name',
+        'meta_adset_id',
+        'meta_adset_name',
+        'meta_ad_id',
+        'meta_ad_name',
         'meta_fbc',
         'meta_fbp',
         'meta_fbclid',
@@ -56,6 +68,7 @@ class DemoLeadEnquiry extends BaseModel
     ];
 
     protected $casts = [
+        'source_created_at' => 'datetime',
         'meta_tracking_allowed' => 'boolean',
         'meta_tracking_consent_at' => 'datetime',
     ];

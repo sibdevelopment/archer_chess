@@ -11,7 +11,10 @@ class MetaCapiEventService
 {
     public function recordInitialLead(DemoLeadEnquiry $enquiry): ?MetaCapiEvent
     {
-        if (! config('meta_capi.send_initial_lead')) {
+        if (
+            ! config('meta_capi.send_initial_lead')
+            || $enquiry->integration_source === 'META_INSTANT_FORM'
+        ) {
             return null;
         }
 

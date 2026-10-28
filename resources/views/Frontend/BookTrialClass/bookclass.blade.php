@@ -55,7 +55,7 @@
             <div class="row">
                 <div class="col-md-12 col-12">
                     <div class="breadcrumb-list">
-                        <h2 class="breadcrumb-title">Book A Trial Class</h2>
+                        <h1 class="breadcrumb-title">Book A Trial Class</h1>
                         <nav aria-label="breadcrumb" class="page-breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -89,8 +89,8 @@
             </div>
             <div class="section-header aos mb-1" data-aos="fade-up">
             <div class="section-sub-head">
-                <h4 class="mt-2" style="font-weight: 700;   color: #0b0b0b;">Welcome To Archer Chess Academy! Book A
-                    Level Assessment Class</h4>
+                <h3 class="mt-2 h4" style="font-weight: 700;   color: #0b0b0b;">Welcome To Archer Chess Academy! Book A
+                    Level Assessment Class</h3>
             </div>
             <div class="all-btn all-category d-flex align-items-center">
             </div>
@@ -213,7 +213,7 @@
                                 </div>
                                 @if ($kid->title)
                                     <div class="instructors-content text-center">
-                                        <h5><a href="#">{{ $kid->title }}</a></h5>
+                                        <h3 class="h5"><a href="#">{{ $kid->title }}</a></h3>
                                     </div>
                                 @endif
                             </div>

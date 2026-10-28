@@ -15,7 +15,7 @@
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-lg-8 text-center">
-                        <h3 class="tw-mb-6 text-neutral-950">Thank You</h3>
+                        <p class="tw-mb-6 text-neutral-950 h3">Thank You</p>
                         <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                             <li>
                                 <a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405">
@@ -40,7 +40,7 @@
                             class="tw-w-16 tw-h-16 bg-main-600 text-white d-flex align-items-center justify-content-center rounded-circle tw-text-8 tw-mb-7">
                             <i class="ph-bold ph-check"></i>
                         </span>
-                        <h3 class="fw-bold text-neutral-950 tw-mb-5">Thank You for Booking a Trial Class!</h3>
+                        <h1 class="fw-bold text-neutral-950 tw-mb-5 h3">Thank You for Booking a Trial Class!</h1>
                         <p class="fw-semibold tw-text-405 text-neutral-700 tw-mb-4">
                             Dear {{ session('demo_lead_enquiry')['kids_first_name'] ?? 'Guest' }},
                         </p>
@@ -62,7 +62,7 @@
                 </div>
                 <div class="col-lg-5">
                     <div class="h-100 bg-white border tw-rounded-2xl tw-p-10">
-                        <h4 class="fw-bold text-neutral-950 tw-mb-3">Welcome to Archer Chess Academy</h4>
+                        <h2 class="fw-bold text-neutral-950 tw-mb-3 h4">Welcome to Archer Chess Academy</h2>
                         <p class="fw-normal tw-text-4 text-paragraph-500 tw-mb-7">
                             Please sign in to view your student profile.
                         </p>

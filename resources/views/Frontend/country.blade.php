@@ -613,7 +613,7 @@
 
                    <div class="row align-items-center mb-5">
                        <div class="col-lg-7">
-                           <h5 class="sub_heading fontWeight600 mb-2 text-dark">Grandmaster MS Thejkumar</h5>
+                           <h3 class="sub_heading fontWeight600 mb-2 text-dark h5">Grandmaster MS Thejkumar</h3>
                            <p>
                                A chess legend with numerous national and international accolades, GM Thejkumar is
                                celebrated for his tactical brilliance and mentorship. As Karnataka’s first Grandmaster
@@ -684,8 +684,8 @@
                            <div class="col-md-6 col-lg-3">
                                <div
                                    class="card h-100 shadow-lg border-0 rounded-4 text-center p-4 hover-shadow itemCourseHome">
-                                   <h4 class="fw-bold text-primary">Beginners</h4>
-                                   <h6 class="text-muted">Explore The World Of Chess</h6>
+                                   <h3 class="fw-bold text-primary h4">Beginners</h3>
+                                   <h4 class="text-muted h6">Explore The World Of Chess</h4>
                                    <hr>
                                    <ul class="list-unstyled text-start small">
                                        <li><i class="fas fa-chess-pawn text-primary me-2"></i>30 Training Sessions –
@@ -716,8 +716,8 @@
                            <div class="col-md-6 col-lg-3">
                                <div
                                    class="card h-100 shadow-lg border-0 rounded-4 text-center p-4 hover-shadow itemCourseHome">
-                                   <h4 class="fw-bold text-success">Intermediate</h4>
-                                   <h6 class="text-muted">Road to Championship</h6>
+                                   <h3 class="fw-bold text-success h4">Intermediate</h3>
+                                   <h4 class="text-muted h6">Road to Championship</h4>
                                    <hr>
                                    <ul class="list-unstyled text-start small">
                                        <li><i class="fas fa-chess-pawn text-primary me-2"></i>60 Training Sessions</li>
@@ -745,8 +745,8 @@
                            <div class="col-md-6 col-lg-3">
                                <div
                                    class="card h-100 shadow-lg border-0 rounded-4 text-center p-4 hover-shadow itemCourseHome">
-                                   <h4 class="fw-bold text-warning">Advanced</h4>
-                                   <h6 class="text-muted">Ready To Get FIDE Rating</h6>
+                                   <h3 class="fw-bold text-warning h4">Advanced</h3>
+                                   <h4 class="text-muted h6">Ready To Get FIDE Rating</h4>
                                    <hr>
                                    <ul class="list-unstyled text-start small">
                                        <li><i class="fas fa-chess-pawn text-primary me-2"></i>60 Training Sessions</li>
@@ -777,8 +777,8 @@
                            <div class="col-md-6 col-lg-3">
                                <div
                                    class="card h-100 shadow-lg border-0 rounded-4 text-center p-4 hover-shadow itemCourseHome">
-                                   <h4 class="fw-bold text-danger">Expert</h4>
-                                   <h6 class="text-muted">FIDE Rating Course</h6>
+                                   <h3 class="fw-bold text-danger h4">Expert</h3>
+                                   <h4 class="text-muted h6">FIDE Rating Course</h4>
                                    <hr>
                                    <ul class="list-unstyled text-start small">
                                        <li><i class="fas fa-chess-pawn text-primary me-2"></i>GM/IM/FM Training

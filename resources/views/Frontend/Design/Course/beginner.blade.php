@@ -185,7 +185,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Puzzle assigned
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">500+</p>
                             </div>
                         </div>
                     </div>
@@ -199,7 +199,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Extra Class
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">12+</p>
                             </div>
                         </div>
                     </div>
@@ -213,7 +213,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Age Group
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">5+</p>
                             </div>
                         </div>
                     </div>
@@ -227,7 +227,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Students
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">1500+</p>
                             </div>
                         </div>
                     </div>
@@ -252,7 +252,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img1.png" alt="">
                         <div class="content">
-                            <h5>Introduction</h5>
+                            <h3 class="h5">Introduction</h3>
                             <p>
                                 Let's get started with an introduction to the board- naming the squares and how to set the
                                 board. Learn about the pieces of chess board and their movement, followed by a short review.
@@ -266,7 +266,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img2.png" alt="">
                         <div class="content">
-                            <h5>Gaining Material</h5>
+                            <h3 class="h5">Gaining Material</h3>
                             <p>
                                 In this module we cover pawn promotion, draw and how to capture an unprotected piece. Also
                                 learn how to gain by exchange.
@@ -280,7 +280,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img3.png" alt="">
                         <div class="content">
-                            <h5>Attack</h5>
+                            <h3 class="h5">Attack</h3>
                             <p>
                                 You know that developing is very important in the opening, but how does one win with a lead
                                 in development? The key is to "attack". Learn how to create an attack and polish your
@@ -295,7 +295,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img4.png" alt="">
                         <div class="content">
-                            <h5>Defence</h5>
+                            <h3 class="h5">Defence</h3>
                             <p>
                                 We have learnt how to attack, but how do we avoid or protect yourself against an undesirable
                                 outcome? This module is an introduction to "defense".
@@ -309,7 +309,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img3.png" alt="">
                         <div class="content">
-                            <h5>Special Moves</h5>
+                            <h3 class="h5">Special Moves</h3>
                             <p>
                                 Get introduced to the first special rule of chess- castling.Halfway through the beginner
                                 module- it's now time to learn another special move, called "En passant".
@@ -323,7 +323,7 @@
                     <div class="curriculum-card h-100">
                         <img src="/frontend1/assets/images/thumbs/why-choose-us-three-img4.png" alt="">
                         <div class="content">
-                            <h5>Mate</h5>
+                            <h3 class="h5">Mate</h3>
                             <p>
                                 Did you know that one side can force your king to the edge of the board? Learn about the
                                 double rook checkmate for your winning move! Also learn about the famous "mate" or checkmate

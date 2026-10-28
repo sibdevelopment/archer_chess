@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-12 col-12">
                     <div class="breadcrumb-list">
-                        <h2 class="breadcrumb-title">Pay Now</h2>
+                        <h1 class="breadcrumb-title">Pay Now</h1>
                         <nav aria-label="breadcrumb" class="page-breadcrumb">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/">Home</a></li>
@@ -37,7 +37,7 @@
                     <div class="col-xl-3 col-lg-4 col-md-6">
                         <div class="card h-100 border-0 shadow-sm">
                             <div class="card-body d-flex flex-column align-items-start">
-                                <h5 class="mb-3">{{ $country }}</h5>
+                                <h3 class="mb-3 h5">{{ $country }}</h3>
                                 <p class="text-muted flex-grow-1 mb-4">Proceed to the payment page for {{ $country }}.</p>
                                 <a href="{{ $link }}" target="_blank" rel="noopener noreferrer"
                                     class="btn btn-primary w-100">

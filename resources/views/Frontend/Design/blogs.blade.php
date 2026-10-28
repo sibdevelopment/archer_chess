@@ -45,7 +45,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Our Blogs</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Our Blogs</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405">
                                         <i class="las la-home"></i> Home</a></li>

@@ -28,7 +28,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950"> About Us</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">About Us</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
@@ -106,8 +106,8 @@
                 <div class="col-lg-6">
                     <h2 class="fw-bold mb-2 text-neutral-950" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="150">Jatin Goyal</h2>
-                    <h6 class="text-main-600 mb-3" data-aos="fade-up" data-aos-duration="600"
-                            data-aos-delay="150">Archer Founder</h6>
+                    <h3 class="text-main-600 mb-3" data-aos="fade-up" data-aos-duration="600"
+                            data-aos-delay="150">Archer Founder</h3>
                     <p class="text-muted" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="200">
                         Jatin Goyal is the Founder and CEO of the company. He is an accomplished chess player with a FIDE
@@ -133,8 +133,8 @@
                 <div class="col-lg-6 order-lg-1">
                     <h2 class="fw-bold mb-2 text-neutral-950" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="150">Deepak Kapuria</h2>
-                    <h6 class="text-main-600 mb-3" data-aos="fade-up" data-aos-duration="600"
-                            data-aos-delay="150">Archer Co-Founder</h6>
+                    <h3 class="text-main-600 mb-3" data-aos="fade-up" data-aos-duration="600"
+                            data-aos-delay="150">Archer Co-Founder</h3>
                     <p class="text-muted" data-aos="fade-up" data-aos-duration="600"
                             data-aos-delay="200">
                         Deepak Kapuria is the company’s Co-Founder and Chief Marketing Officer (CMO). He has successfully

@@ -8,12 +8,6 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
 
-    protected $commands = [
-        \App\Console\Commands\Email\Reminder\MasterclassMail::class,
-        \App\Console\Commands\Email\Reminder\DemoClassMail::class,
-        \App\Console\Commands\Email\Reminder\TournamentMail::class,
-    ];
-
     /**
      * Define the application's command schedule.
      *
@@ -48,6 +42,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('batches:dst-process')
             ->dailyAt(config('batch_dst.schedule_time'))
             ->timezone(config('batch_dst.timezone'))
+            ->withoutOverlapping();
+
+        $schedule->command('meta-capi:process')
+            ->everyMinute()
             ->withoutOverlapping();
 
         // Reminder Emails

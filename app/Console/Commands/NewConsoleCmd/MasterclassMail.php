@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Email\Reminder;
+namespace App\Console\Commands\NewConsoleCmd;
 
 use Carbon\Carbon;
 use App\Models\Batch;
@@ -10,7 +10,7 @@ use App\Models\StudentBatch;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class MasterclassMailaa extends Command
+class MasterclassMail extends Command
 {
     protected $signature = 'masterclass:reminderaa';
     protected $description = 'Send email reminders to students ~3 hours before a masterclass (runs every 30 minutes)';

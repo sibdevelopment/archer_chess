@@ -25,6 +25,30 @@ class DemoLeadEnquiry extends BaseModel
         'ist_time',
         'utm_source',
         'utm_medium',
+        'utm_campaign',
+        'utm_content',
+        'utm_term',
+        'integration_source',
+        'integration_external_id',
+        'source_created_at',
+        'meta_lead_id',
+        'meta_form_id',
+        'meta_form_name',
+        'meta_page_id',
+        'meta_campaign_id',
+        'meta_campaign_name',
+        'meta_adset_id',
+        'meta_adset_name',
+        'meta_ad_id',
+        'meta_ad_name',
+        'meta_fbc',
+        'meta_fbp',
+        'meta_fbclid',
+        'meta_landing_url',
+        'meta_client_ip',
+        'meta_client_user_agent',
+        'meta_tracking_allowed',
+        'meta_tracking_consent_at',
         'timezone',
         'age',
         'mobile',
@@ -44,6 +68,12 @@ class DemoLeadEnquiry extends BaseModel
         'created_by',
         'updated_by',
         'is_hide'
+    ];
+
+    protected $casts = [
+        'source_created_at' => 'datetime',
+        'meta_tracking_allowed' => 'boolean',
+        'meta_tracking_consent_at' => 'datetime',
     ];
 
     public static function boot()

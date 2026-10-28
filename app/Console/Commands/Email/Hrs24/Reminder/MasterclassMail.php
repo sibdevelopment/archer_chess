@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Email\Reminder;
+namespace App\Console\Commands\Email\Hrs24\Reminder;
 
 use Carbon\Carbon;
 use App\Models\Masterclass;

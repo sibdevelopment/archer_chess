@@ -718,7 +718,7 @@
                         style="
                         width: 30px;
                         height: auto;">
-                    <h6 class="mt-2"> &nbsp; CHOOSE YOUR COUNTRY</h6>
+                    <span class="mt-2 h6 d-block"> &nbsp; CHOOSE YOUR COUNTRY</span>
                 </div>
             </a>
         </div> --}}
@@ -727,7 +727,7 @@
                 <div class="book-class-online">
                     <img src="/frontend/assets/img/icon/icon-07.svg" alt="Img" class="img-fluid"
                         style=" width: 30px; height: auto;">
-                    <h6 class="mt-2"> &nbsp; BOOK YOUR FREE TRIAL</h6>
+                    <span class="mt-2 h6 d-block"> &nbsp; BOOK YOUR FREE TRIAL</span>
                 </div>
             </a>
         </div>
@@ -735,7 +735,7 @@
             <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon">
                     <i class="fab fa-whatsapp my-float"></i>
-                    <h6 class="mt-2" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</h6>
+                    <span class="mt-2 h6 d-block" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</span>
                 </div>
             </a>
         </div>
@@ -747,7 +747,7 @@
                         style="
                         width: 30px;
                         height: auto;">
-                    <h6 class="mt-2"> &nbsp; BOOK YOUR FREE TRIAL</h6>
+                    <span class="mt-2 h6 d-block"> &nbsp; BOOK YOUR FREE TRIAL</span>
                 </div>
             </a>
         </div>
@@ -755,7 +755,7 @@
             <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
                 <div class="tcul-contact_icon_mobile">
                     <i class="fab fa-whatsapp my-float"></i>
-                    <h6 class="mt-2" style="color: #fff;"></h6>
+                    <span class="mt-2 h6 d-block" style="color: #fff;"></span>
                 </div>
             </a>
         </div>
@@ -865,7 +865,7 @@
                                 <div class="iso-img-header d-flex align-items-center justify-content-start my-3">
                                     <img src="/frontend/tcul_img/webp/iso-certification.webp" alt="Img"
                                         class="me-1">
-                                    <h6 class="mt-2 fw-bold" style="color: #ffe88f;">ISO CERTIFIED</h6>
+                                    <p class="mt-2 fw-bold h6" style="color: #ffe88f;">ISO CERTIFIED</p>
                                 </div>
                                 <div class="social-icon">
                                     <ul>

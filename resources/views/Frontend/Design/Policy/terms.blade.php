@@ -48,7 +48,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950"> Terms & Conditions</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Terms & Conditions</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
@@ -71,8 +71,8 @@
             <div class="section-header aos pb-4" data-aos="fade-up">
                 <div class="section-sub-head">
                     <span class="fw-normal tw-text-405 text-main-600 tw-mb-5">Terms & Conditions</span>
-                    <h4 style="font-size: 30px;">Please read the Terms and Conditions of the Company with respect to
-                        registration with us.</h4>
+                    <h2 style="font-size: 30px;">Please read the Terms and Conditions of the Company with respect to
+                        registration with us.</h2>
                 </div>
             </div>
             <div class="row">
@@ -101,7 +101,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Terms of Use</h5>
+                    <h2 class="h5">Terms of Use</h2>
                 </div>
             </div>
             <div class="row">
@@ -126,7 +126,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Using Our Website</h5>
+                    <h2 class="h5">Using Our Website</h2>
                 </div>
             </div>
             <div class="row">
@@ -152,7 +152,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Protecting Your Information</h5>
+                    <h2 class="h5">Protecting Your Information</h2>
                 </div>
             </div>
             <div class="row">
@@ -177,7 +177,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Ownership and Intellectual Property</h5>
+                    <h2 class="h5">Ownership and Intellectual Property</h2>
                 </div>
             </div>
             <div class="row">
@@ -202,7 +202,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Communicating with Us</h5>
+                    <h2 class="h5">Communicating with Us</h2>
                 </div>
             </div>
             <div class="row">
@@ -227,7 +227,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Governing Law</h5>
+                    <h2 class="h5">Governing Law</h2>
                 </div>
             </div>
             <div class="row">
@@ -253,7 +253,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>User-Generated Content</h5>
+                    <h2 class="h5">User-Generated Content</h2>
                 </div>
             </div>
             <div class="row">
@@ -279,7 +279,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Accessing Our Website</h5>
+                    <h2 class="h5">Accessing Our Website</h2>
                 </div>
             </div>
             <div class="row">
@@ -304,7 +304,7 @@
         <div class="container">
             <div class="section-header aos" data-aos="fade-up">
                 <div class="section-sub-head">
-                    <h5>Account Responsibility</h5>
+                    <h2 class="h5">Account Responsibility</h2>
                 </div>
             </div>
             <div class="row">

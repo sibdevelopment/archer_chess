@@ -102,12 +102,12 @@
                                 </span>
                                 <div>
                                     <span class="fw-normal tw-text-4 text-black tw-mb-2">Call Now</span>
-                                    <h2 class="h5">
+                                    <p class="h5 mb-0">
                                         <a href="tel:+919152734675"
                                             class="fw-bold text-main-600 hover-underline tw-duration-300 mobile-no">
                                             +91-9152734675
                                         </a>
-                                    </h2>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -131,25 +131,25 @@
             <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap">
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="100">
                     <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">STUDENTS TRAINED</span>
-                    <h1 class="fw-bol text-main-600 counter">15000+</h1>
+                    <p class="fw-bol text-main-600 counter h1 mb-0">15000+</p>
                 </div>
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
                     data-aos="fade-up" data-aos-duration="600" data-aos-delay="100"></span>
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="200">
                     <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">FIDE-RATED COACHES</span>
-                    <h1 class="fw-bol text-main-600 counter">250+</h1>
+                    <p class="fw-bol text-main-600 counter h1 mb-0">250+</p>
                 </div>
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
                     data-aos="fade-up" data-aos-duration="600" data-aos-delay="200"></span>
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
                     <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">COUNTRIES</span>
-                    <h1 class="fw-bol text-main-600 counter">20+</h1>
+                    <p class="fw-bol text-main-600 counter h1 mb-0">20+</p>
                 </div>
                 <span class="tw-h-96-px tw-w-px tw-border-dashed border-neutral-300 border d-xl-block d-none"
                     data-aos="fade-up" data-aos-duration="600" data-aos-delay="300"></span>
                 <div data-aos="fade-up" data-aos-duration="600" data-aos-delay="350">
                     <span class="fw-semibold tw-text-405 text-neutral-600 tw-mb-4">TOURNAMENT CHAMPIONS</span>
-                    <h1 class="fw-bol text-main-600 counter">500+</h1>
+                    <p class="fw-bol text-main-600 counter h1 mb-0">500+</p>
                 </div>
             </div>
         </div>
@@ -205,14 +205,14 @@
                                         <img src="/frontend1/tcul-img/img/eklavya-award.png" alt="icon"
                                             class="animate__swing">
                                     </span>
-                                    <h2 class="fw-bold text-neutral-950 line-height-28-px h6">Eklavya award <span><br/></span> winner</h2>
+                                    <h3 class="fw-bold text-neutral-950 line-height-28-px h6">Eklavya award <span><br/></span> winner</h3>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-4 animation-item">
                                     <span>
                                         <img src="/frontend1/tcul-img/img/grandmaster.png" alt="icon"
                                             class="animate__swing">
                                     </span>
-                                    <h2 class="fw-bold text-neutral-950 line-height-28-px h6">1st grandmaster <span><br/></span> of state of Karnataka</h2>
+                                    <h3 class="fw-bold text-neutral-950 line-height-28-px h6">1st grandmaster <span><br/></span> of state of Karnataka</h3>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center tw-gap-4 flex-wrap" data-aos="fade-up"
@@ -353,9 +353,9 @@
                                          loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
-                                    <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
+                                    <h3 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
                                         <a href="{{ route('explore.course.details.beginner') }}">Beginner chess course</a>
-                                    </h2>
+                                    </h3>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
                                         Learn piece moves, basic tactics, and checkmates through live lessons and practice games. 30 training sessions and 15+ online tournaments.
                                     </p>
@@ -375,9 +375,9 @@
                                          loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
-                                    <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
+                                    <h3 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
                                         <a href="https://www.archerchessacademy.com/online-chess-course-for-intermediate">Intermediate chess course</a>
-                                    </h2>
+                                    </h3>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
                                         For kids who know the basics. Build tactics, opening knowledge, and endgame skills across 60 sessions and 30+ online tournaments.
                                     </p>
@@ -397,9 +397,9 @@
                                          loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
-                                    <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
+                                    <h3 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
                                         <a href="{{ route('explore.course.details.advanced') }}">Advanced chess course</a>
-                                    </h2>
+                                    </h3>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
                                         Prepare for a first FIDE rating with deeper calculations and game analysis. 90 sessions and 45+ online tournaments.
                                     </p>
@@ -419,9 +419,9 @@
                                          loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
-                                    <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
+                                    <h3 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
                                         <a href="{{ route('explore.course.details.expert') }}">Grandmaster program</a>
-                                    </h2>
+                                    </h3>
                                     <p class="fw-normal tw-text-base text-paragraph-500 tw-mb-4 text-middle">
                                         For FIDE-rated and tournament players working on openings, middlegame strategy, and endgames. Offered with Chesshika.
                                     </p>
@@ -461,7 +461,7 @@
                                 <img src="/frontend1/tcul-img/img/icons/students-trained.svg" alt="icon"
                                     class="tw-mb-5 animate__bounce d-block mx-auto">
                                 <span class="fw-medium tw-text-405 text-white tw-mb-5">Batches Conducted</span>
-                                <h2 class="fw-bol text-white h2">1.5L+</h2>
+                                <p class="fw-bol text-white h2 mb-0">1.5L+</p>
                             </div>
                         </div>
                         <div class="col-sm-6 col-6" data-aos="fade-up" data-aos-duration="600" data-aos-delay="400">
@@ -469,7 +469,7 @@
                                 <img src="/frontend1/tcul-img/img/icons/experience.svg" alt="icon"
                                     class="tw-mb-5 animate__bounce d-block mx-auto">
                                 <span class="fw-medium tw-text-405 text-white tw-mb-5">Years of Experience</span>
-                                <h2 class="fw-bol text-white h2">10+</h2>
+                                <p class="fw-bol text-white h2 mb-0">10+</p>
                             </div>
                         </div>
                     </div>
@@ -532,11 +532,11 @@
                                     <img src="/frontend1/assets/images/icon/about-us-icon1.png" style="rotate: 110deg;" class="mobile-icon" alt="icon">
                                     <div>
                                         <span class="fw-normal tw-text-4 text-white tw-mb-1">Call Now</span>
-                                        <h2 class="h5">
+                                        <p class="h5 mb-0">
                                             <a href="tel:+919152734675" class="fw-bold text-main-two-600 mobile-no">
                                                 +91-9152734675
                                             </a>
-                                        </h2>
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -634,11 +634,11 @@
                                     </div>
                                 </div>
                                 <div class="text-center tw-mt-6">
-                                    <h2 class="h5">
+                                    <h3 class="h5">
                                         <a href="#0" class="fw-bold text-neutral-950 tw-mb-2">
                                             {{ $tutor->name }}
                                         </a>
-                                    </h2>
+                                    </h3>
                                     @if (!empty($tutor->designation))
                                         <p class="fw-normal tw-text-405 text-neutral-600 mb-1">{{ $tutor->designation }}</p>
                                     @endif
@@ -1245,9 +1245,9 @@
                             <img src="{{ $kid->image ? asset('storage/' . $kid->image) : '/frontend1/tcul-img/gallery/gallery1.png' }}"
                                  alt="{{ $kid->name }}" loading="lazy" decoding="async"
                                  style="width:100%;aspect-ratio:1/1;object-fit:cover;">
-                            <h5 class="text-dark mt-3">{{ $kid->name }}</h5>
+                            <h3 class="text-dark mt-3 h5">{{ $kid->name }}</h3>
                             @if($kid->title)
-                                <h6 class="text-dark t_orange">({{ $kid->title }})</h6>
+                                <p class="text-dark t_orange h6">({{ $kid->title }})</p>
                             @endif
                         </div>
                     </div>
@@ -1255,8 +1255,8 @@
                     <div class="swiper-slide">
                         <div>
                             <img src="/frontend1/tcul-img/gallery/gallery1.png" alt="Archer Kid" loading="lazy" decoding="async">
-                            <h5 class="text-dark mt-3">Archer Kids</h5>
-                            <h6 class="text-dark t_orange">(Victory Belongs To Those Who Never Surrender)</h6>
+                            <h3 class="text-dark mt-3 h5">Archer Kids</h3>
+                            <p class="text-dark t_orange h6">(Victory Belongs To Those Who Never Surrender)</p>
                         </div>
                     </div>
                 @endforelse
@@ -1373,11 +1373,11 @@
                                     <span class="fw-normal tw-text-4 text-neutral-600">Feb 21, 2026</span>
                                 </div>
                             </div>
-                            <h2 class="h5">
+                            <h3 class="h5">
                                 <a href="#0" class="fw-bold text-neutral-950 tw-mb-8">
                                     Mastering the Opening: The Archer’s Approach to the First 10 Moves
                                 </a>
-                            </h2>
+                            </h3>
                             <div class="d-flex align-items-center tw-gap-3 justify-content-between flex-wrap">
                                 <div class="d-flex align-items-center tw-gap-2">
                                     <div>
@@ -1408,11 +1408,11 @@
                                     <span class="fw-normal tw-text-4 text-neutral-600">Feb 07, 2026</span>
                                 </div>
                             </div>
-                            <h2 class="h5">
+                            <h3 class="h5">
                                 <a href="#0" class="fw-bold text-neutral-950 tw-mb-8">
                                     Archer Chess Academy – Building Future Grandmasters from..
                                 </a>
-                            </h2>
+                            </h3>
                             <div class="d-flex align-items-center tw-gap-3 justify-content-between flex-wrap">
                                 <div class="d-flex align-items-center tw-gap-2">
                                     <div>
@@ -1443,11 +1443,11 @@
                                     <span class="fw-normal tw-text-4 text-neutral-600">Feb 14, 2026</span>
                                 </div>
                             </div>
-                            <h2 class="h5">
+                            <h3 class="h5">
                                 <a href="#0" class="fw-bold text-neutral-950 tw-mb-8">
                                     Archer Chess Academy – Building Smart Minds Through Chess
                                 </a>
-                            </h2>
+                            </h3>
                             <div class="d-flex align-items-center tw-gap-3 justify-content-between flex-wrap">
                                 <div class="d-flex align-items-center tw-gap-2">
                                     <div>
@@ -1503,11 +1503,11 @@
                                             </span>
                                         </div>
                                     </div>
-                                    <h2 class="h5">
+                                    <h3 class="h5">
                                         <a href="{{ route('blog.details', $blog->slug) }}" class="fw-bold text-neutral-950 tw-mb-8">
                                             {{ \Illuminate\Support\Str::limit($blog->title, 72) }}
                                         </a>
-                                    </h2>
+                                    </h3>
                                     <div class="d-flex align-items-center tw-gap-3 justify-content-between flex-wrap">
                                         <div class="d-flex align-items-center tw-gap-2">
                                             <span class="fw-normal tw-text-305 text-neutral-500">Read More</span>

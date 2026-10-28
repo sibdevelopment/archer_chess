@@ -36,7 +36,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Blog Details</h3>
+                            <p class="text-center tw-mb-6 text-neutral-950 h3">Blog Details</p>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405">
                                         <i class="las la-home"></i> Home</a></li>
@@ -81,11 +81,11 @@
                                 <span class="fw-normal tw-text-4 text-paragraph-500">{{ $blog->label }}</span>
                             @endif
                         </div>
-                        <h4 class="fw-bold text-neutral-950 tw-text-44-px tw-mb-6">
+                        <h1 class="fw-bold text-neutral-950 tw-text-44-px tw-mb-6">
                             {{ $blog->title }}
-                        </h4>
+                        </h1>
                         <template id="{{ $descriptionTemplateId }}">
-                            {!! $blog->description !!}
+                            {!! preg_replace('/<(\/?)h[1-6]\b/i', '<$1h2', $blog->description) !!}
                         </template>
                         <iframe id="{{ $descriptionFrameId }}" class="revamp-blog-description-frame tw-mb-7"
                             title="{{ $blog->title }} content" loading="lazy"
@@ -149,7 +149,7 @@
                 </div>
                 <div class="col-xl-3 col-lg-4 ms-xl-auto">
                     <div class="tw-py-705 tw-ps-705 tw-pe-6 border tw-rounded-xl tw-mb-10 bg-white mobilePadd">
-                        <h5 class="fw-bold text-neutral-950 tw-mb-6">Recent Blogs</h5>
+                        <h2 class="fw-bold text-neutral-950 tw-mb-6 h5">Recent Blogs</h2>
                         @forelse ($similarBlogs as $similarBlog)
                             @php
                                 $similarImage = $similarBlog->cover_img ?: $similarBlog->main_img;

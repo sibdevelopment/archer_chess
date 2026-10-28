@@ -117,6 +117,7 @@
                     <div class="home-hero-media d-flex align-items-center justify-content-center">
                         <img src="/frontend1/tcul-img/img/hero-section.png"
                             alt="Young student learning chess with a coach at Archer Chess Academy"
+                             loading="eager" decoding="async" fetchpriority="high"
                             class="home-hero-image">
                     </div>
                 </div>
@@ -165,7 +166,8 @@
                 <div class="col-lg-6" data-aos="zoom-in" data-aos-duration="1500">
                     <div class="position-relative">
                         <span>
-                            <img src="/frontend1/tcul-img/img/gm-thejkumar.png" alt="Grandmaster Thejkumar M. S.">
+                            <img src="/frontend1/tcul-img/img/gm-thejkumar.png" alt="Grandmaster Thejkumar M. S."
+                                 loading="lazy" decoding="async">
                         </span>
                         <img src="/frontend1/assets/images/shape/kindergarden-shape4.png" alt="shape"
                             class="position-absolute top-0 tw-start-0 tw-mt-234-px tw-ms--72-px d-xl-block d-none animation-upDown">
@@ -347,7 +349,8 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted--5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program01.png" alt="Three children playing chess in a Beginner class">
+                                    <img src="/frontend1/tcul-img/img/program01.png" alt="Three children playing chess in a Beginner class"
+                                         loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
@@ -368,7 +371,8 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted-5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program02.png" alt="Two kids playing chess in Intermediate class">
+                                    <img src="/frontend1/tcul-img/img/program02.png" alt="Two kids playing chess in Intermediate class"
+                                         loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
@@ -389,7 +393,8 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted--5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program03.png" alt="Kids playing chess in Advanced class">
+                                    <img src="/frontend1/tcul-img/img/program03.png" alt="Kids playing chess in Advanced class"
+                                         loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
@@ -410,7 +415,8 @@
                         <div class="swiper-slide">
                             <div class="bg-white tw-py-4 tw-px-4 tw-rounded-2xl w-100 h-100 tw-transform-roted-5">
                                 <span class="tw-mb-5">
-                                    <img src="/frontend1/tcul-img/img/program04.png" alt="Two kids playing chess in Grandmaster program">
+                                    <img src="/frontend1/tcul-img/img/program04.png" alt="Two kids playing chess in Grandmaster program"
+                                         loading="lazy" decoding="async">
                                 </span>
                                 <div class="text-center tw-pb-6 pb-sm-0">
                                     <h2 class="fw-bold tw-text-30-px text-main-600 tw-mb-3 h5">
@@ -491,7 +497,7 @@
                         </div>
                         <span class="d-flex align-items-center justify-content-center" data-aos="zoom-in"
                             data-aos-duration="1500">
-                            <img src="/frontend1/tcul-img/img/why-us.png" alt="img"
+                            <img src="/frontend1/tcul-img/img/why-us.png" alt="img" loading="lazy" decoding="async"
                                 class="tw-mt-5">
                         </span>
                     </div>
@@ -608,7 +614,8 @@
                             <div class="our-teacher-thumb {{ $rotationClasses[$index % count($rotationClasses)] }}">
                                 <div class="position-relative tutor-image-frame">
                                     <a href="#0" class="d-block h-100">
-                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}" class="tutor-image">
+                                        <img src="{{ $tutorImage }}" alt="{{ $tutor->name ?? 'Tutor' }}"
+                                             loading="lazy" decoding="async" class="tutor-image">
                                     </a>
                                     <div class="our-teacher-link">
                                         <ul class="d-flex align-items-center tw-gap-2 position-absolute tw-start-0 bottom-0 tw-mb-9 translate-middle-x tw-start-50">
@@ -1069,7 +1076,7 @@
             {{-- <div class="tw-mt--250-px z-2">
                 <div class="container">
                     <div class="position-relative" data-aos="zoom-in" data-aos-duration="1500">
-                        <img src="/frontend1/tcul-img/img/video.png" alt="img"
+                        <img src="/frontend1/tcul-img/img/video.png" alt="img" loading="lazy" decoding="async"
                             class="w-100">
                         <a href="https://www.youtube.com/watch?v=MFLVmAE4cqg"
                             class="play-button play-button-two border-main-two-600 border rounded-circle d-flex align-items-center justify-content-center position-absolute top-0 tw-start-0 top-50 tw-start-50 translate-middle">
@@ -1152,6 +1159,7 @@
                                         <div class="d-flex align-items-center tw-gap-3">
                                             <span>
                                                 <img src="{{ $testimonialImageUrl }}" alt="img"
+                                                     loading="lazy" decoding="async"
                                                     style="width: 76px; height: 76px; object-fit: cover; border-radius: 50%;">
                                             </span>
                                             <div>
@@ -1209,7 +1217,7 @@
                     <div class="col-xl-6" data-aos="zoom-in" data-aos-duration="1500">
                         <div class="d-xl-block d-none">
                             <span class="d-flex align-items-end justify-content-center z-n1 position-relative">
-                                <img src="/frontend1/tcul-img/img/cta-img.png" alt="img">
+                                <img src="/frontend1/tcul-img/img/cta-img.png" alt="img" loading="lazy" decoding="async">
                                 <img src="/frontend1/tcul-img/img/cta3.svg" alt="shape"
                                     class="position-absolute top-0 tw-start-0 tw-mt-114-px d-xl-block d-none animation-upDown">
                             </span>
@@ -1235,7 +1243,8 @@
                     <div class="swiper-slide">
                         <div>
                             <img src="{{ $kid->image ? asset('storage/' . $kid->image) : '/frontend1/tcul-img/gallery/gallery1.png' }}"
-                                alt="{{ $kid->name }}" style="width:100%;aspect-ratio:1/1;object-fit:cover;">
+                                 alt="{{ $kid->name }}" loading="lazy" decoding="async"
+                                 style="width:100%;aspect-ratio:1/1;object-fit:cover;">
                             <h5 class="text-dark mt-3">{{ $kid->name }}</h5>
                             @if($kid->title)
                                 <h6 class="text-dark t_orange">({{ $kid->title }})</h6>
@@ -1245,7 +1254,7 @@
                 @empty
                     <div class="swiper-slide">
                         <div>
-                            <img src="/frontend1/tcul-img/gallery/gallery1.png" alt="Archer Kid">
+                            <img src="/frontend1/tcul-img/gallery/gallery1.png" alt="Archer Kid" loading="lazy" decoding="async">
                             <h5 class="text-dark mt-3">Archer Kids</h5>
                             <h6 class="text-dark t_orange">(Victory Belongs To Those Who Never Surrender)</h6>
                         </div>
@@ -1261,7 +1270,7 @@
             <div class="row gy-4 align-items-center">
                 <div class="col-lg-5" data-aos="zoom-in" data-aos-duration="1500">
                     <span class="bg-img">
-                        <img src="/frontend1/tcul-img/home/faq.png" alt="img" class="bg-img">
+                        <img src="/frontend1/tcul-img/home/faq.png" alt="img" loading="lazy" decoding="async" class="bg-img">
                     </span>
                 </div>
                 <div class="col-lg-7">
@@ -1480,6 +1489,7 @@
                                 <span class="overflow-hidden tw-rounded-20-px tw-rounded-top-20-px w-100">
                                     <img src="{{ $blog->cover_img ? asset('storage/' . $blog->cover_img) : '/frontend1/tcul-img/img/blog.png' }}"
                                         alt="{{ $blog->title }}" class="tw-duration-300 course-item__img bg-img"
+                                         loading="lazy" decoding="async"
                                         style="aspect-ratio:16/9;object-fit:cover;">
                                 </span>
                                 <div class="tw-p-7 bg-white tw-rounded-bottom-20-px tw-border-bottom-header">

@@ -66,7 +66,7 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h3 class="text-center tw-mb-6 text-neutral-950"> Contact Us</h3>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Contact Us</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li><a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405"> <i
                                             class="las la-home"></i> Home</a> </li>
@@ -86,9 +86,9 @@
             <div class="tw-mb-15">
                 <span class="fw-normal tw-text-405 text-main-600 tw-mb-5" data-aos="fade-up" data-aos-duration="800"
                     data-aos-delay="100">Contact Us</span>
-                <h4 class="fw-bold text-neutral-950" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">Contact
+                <h2 class="fw-bold text-neutral-950 h4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">Contact
                     Us
-                    For Your Kids Learning</h4>
+                    For Your Kids Learning</h2>
             </div>
             <div class="row gy-4">
                 <div class="col-lg-5">
@@ -100,11 +100,11 @@
                         </span>
                         <div>
                             <span class="fw-medium tw-text-4 text-paragraph-500 tw-mb-1 d-block">Call Us 7/24</span>
-                            <h5>
+                            <h3 class="h5">
                                 <a href="tel:+919152734675" class="fw-semibold text-neutral-950">
                                     +91-9152734675
                                 </a>
-                            </h5>
+                            </h3>
                         </div>
                     </div>
                     <div class="d-flex align-items-lg-center tw-gap-3 tw-mb-10" data-aos="fade-up" data-aos-duration="800"
@@ -115,11 +115,11 @@
 
                         <div>
                             <span class="fw-medium tw-text-4 text-paragraph-500 tw-mb-1 d-block">Location</span>
-                            <h5 class="fw-semibold text-neutral-950">
+                            <h3 class="fw-semibold text-neutral-950 h5">
                                 Archer Chess Academy Pvt. Ltd.
                                 5A, Shatrunjay Height Co-Op Housing Society, Near Kailash Mansarovar, Bhayandar West -
                                 401101, Mumbai
-                            </h5>
+                            </h3>
                         </div>
                     </div>
                     <div class="d-flex align-items-lg-center tw-gap-3" data-aos="fade-up" data-aos-duration="800"
@@ -130,11 +130,11 @@
                         </span>
                         <div>
                             <span class="fw-medium tw-text-4 text-paragraph-500 tw-mb-1 d-block">Make a Quote</span>
-                            <h5>
+                            <h3 class="h5">
                                 <a href="mailto:support@archerchessacademy.com" class="fw-semibold text-neutral-950">
                                     support@archerchessacademy.com
                                 </a>
-                            </h5>
+                            </h3>
                         </div>
                     </div>
                 </div>

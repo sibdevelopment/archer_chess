@@ -420,7 +420,7 @@
             <div class="book-class-online">
                 <img src="/frontend/assets/img/icon/icon-07.svg" alt="Img" class="img-fluid"
                     style=" width: 30px; height: auto;">
-                <h6 class="mt-1 fs-14" style="color: #002058;"> &nbsp; BOOK YOUR FREE TRIAL</h6>
+                <span class="mt-1 fs-14 d-block" style="color: #002058;"> &nbsp; BOOK YOUR FREE TRIAL</span>
             </div>
         </a>
     </div>
@@ -428,7 +428,7 @@
         <a target="_blank" href="https://api.whatsapp.com/send?phone=9152734675&text=hii">
             <div class="tcul-contact_icon">
                 <img src="/frontend1/tcul-img/icons/whatsapp.svg" alt="">
-                <h6 class="fs-14 hide-mobile" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</h6>
+                <span class="fs-14 hide-mobile" style="color: #fff;"> &nbsp; &nbsp; CHAT WITH US</span>
             </div>
         </a>
     </div>
@@ -1193,7 +1193,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 tw-rounded-2xl bg-main-two-300 position-relative z-2">
                 <div class="modal-header border-0 pb-2">
-                    <h5 class="modal-title text-main-600">Student Registration</h5>
+                    <h3 class="modal-title text-main-600 h5">Student Registration</h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1281,7 +1281,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 tw-rounded-2xl bg-main-two-300 position-relative z-2">
                 <div class="modal-header border-0 pb-2">
-                    <h5 class="modal-title text-main-600">Beginner Course Topics <br/> <span class="fs-20">Topics covered in the course:</span></h5>
+                    <h3 class="modal-title text-main-600 h5">Beginner Course Topics <br/> <span class="fs-20">Topics covered in the course:</span></h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1293,9 +1293,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Introduction to Chess
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
@@ -1303,9 +1303,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Chessboard Setup
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1313,9 +1313,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             How Each Piece Moves
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1323,9 +1323,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Special Moves (Castling, En Passant, Promotion)
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1333,9 +1333,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Basic Opening Principles
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1343,9 +1343,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Simple Tactics (Fork, Pin, Skewer) 
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1353,9 +1353,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Check, Checkmate & Stalemate
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1363,9 +1363,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Basic Endgames
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1373,9 +1373,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Beginner Strategies
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
@@ -1383,9 +1383,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                            Practice Games
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                             </div>
@@ -1416,7 +1416,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered ">
             <div class="modal-content border-0 tw-rounded-2xl bg-main-two-300 position-relative z-2">
                 <div class="modal-header border-0 pb-2">
-                    <h5 class="modal-title text-main-600">Intermediate Program Curriculum <br/> <span class="fs-20">Topics covered in the course:</span> </h5>
+                    <h3 class="modal-title text-main-600 h5">Intermediate Program Curriculum <br/> <span class="fs-20">Topics covered in the course:</span> </h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1429,9 +1429,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Review of Chess Fundamentals
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1440,9 +1440,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Advanced Tactical Patterns
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1451,9 +1451,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Calculation Techniques
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1462,9 +1462,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Opening Principles & Common Openings
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1473,9 +1473,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Middlegame Planning
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 
@@ -1484,9 +1484,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Positional Play
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1494,9 +1494,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Pawn Structures
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1504,9 +1504,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Attack and Defense Strategies
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1514,9 +1514,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Intermediate Endgames
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1524,9 +1524,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Analyzing Your Own Games
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                             </div>
@@ -1557,7 +1557,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 tw-rounded-2xl bg-main-two-300 position-relative z-2">
                 <div class="modal-header border-0 pb-2">
-                    <h5 class="modal-title text-main-600">Advanced Program Curriculum <br/> <span class="fs-20">Topics covered in the course:</span> </h5>
+                    <h3 class="modal-title text-main-600 h5">Advanced Program Curriculum <br/> <span class="fs-20">Topics covered in the course:</span> </h3>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1569,10 +1569,10 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Advanced Tactical Combinations
 
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1580,9 +1580,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Deep Calculation & Candidate Moves
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1590,9 +1590,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Advanced Opening Preparation
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1600,9 +1600,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Positional Sacrifices
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1610,9 +1610,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Strategic Planning in Complex Positions
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1620,9 +1620,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Advanced Pawn Structures
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1630,9 +1630,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Pro-Level Middlegame Strategies
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1640,9 +1640,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Advanced Endgame Techniques
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1650,9 +1650,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Game Analysis & Improvement Methods
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center tw-gap-3 tw-mb-2" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
@@ -1660,9 +1660,9 @@
                                         <i class="ph ph-caret-double-right"></i>
                                     </span>
                                     <div>
-                                        <h6 class="fw-semibold text-neutral-950 fs-18">
+                                        <h4 class="fw-semibold text-neutral-950 fs-18 h6">
                                             Tournament Preparation & Psychological Skills
-                                        </h6>
+                                        </h4>
                                     </div>
                                 </div>
 

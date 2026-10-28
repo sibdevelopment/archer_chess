@@ -86,7 +86,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Puzzles Assigned
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">500+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">500+</p>
                             </div>
                         </div>
                     </div>
@@ -100,7 +100,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Extra Classes
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">12+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">12+</p>
                             </div>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Age Group
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">5+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">5+</p>
                             </div>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
                                 <span class="fw-semibold tw-text-405 text-neutral-600 d-block tw-mb-2">
                                     Students Trained
                                 </span>
-                                <h3 class="fw-normal text-main-600 counter numberFont">1500+</h3>
+                                <p class="fw-normal text-main-600 counter numberFont h3 mb-0">1500+</p>
                             </div>
                         </div>
                     </div>

@@ -21,7 +21,7 @@ Thankyou | ArcherKids
         </div>
     </div>
     <div class="error-box col-md-6">
-        <h3 class="h2 mb-3 text-dark">Thankyou for contacting us!</h3>
+        <h1 class="h2 mb-3 text-dark">Thank you for contacting us!</h1>
         <p class="h4 font-weight-normal">Your message is currently under review. We will get back to you as soon as possible</p>
         <div class="all-btn all-category text-center">
             <a href="/" class="btn btn-primary">Back to home</a>

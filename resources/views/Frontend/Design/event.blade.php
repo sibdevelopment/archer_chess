@@ -46,8 +46,8 @@
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
                         <div>
-                            <h6 class="text-center tw-mb-6 text-neutral-950">EVERY EVENT IS NEW CHANCE TO GROW</h6>
-                            <h3 class="text-center tw-mb-6 text-neutral-950">Events</h3>
+                            <p class="text-center tw-mb-6 text-neutral-950 h6">EVERY EVENT IS A NEW CHANCE TO GROW</p>
+                            <h1 class="text-center tw-mb-6 text-neutral-950">Events</h1>
                             <ul class="d-flex align-items-center justify-content-center tw-gap-4">
                                 <li>
                                     <a href="{{ route('home') }}" class="text-main-600 hover-text-main-700 tw-text-405">
@@ -86,9 +86,9 @@
                                     </span>
                                 </div>
 
-                                <h5 class="fw-bold text-neutral-950 tw-mb-3">
+                                <h2 class="fw-bold text-neutral-950 tw-mb-3 h5">
                                     {{ $event->title }}
-                                </h5>
+                                </h2>
 
                                 @if($event->location)
                                     <div class="d-flex align-items-start tw-gap-2 tw-mb-3">

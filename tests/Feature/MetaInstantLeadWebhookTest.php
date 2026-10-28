@@ -61,6 +61,9 @@ class MetaInstantLeadWebhookTest extends TestCase
             $table->string('lead_status')->nullable();
             $table->string('utm_source')->nullable();
             $table->string('utm_medium')->nullable();
+            $table->string('utm_campaign')->nullable();
+            $table->string('utm_content')->nullable();
+            $table->string('utm_term')->nullable();
             $table->string('is_hide')->default('0');
             $table->timestamps();
         });
@@ -88,6 +91,9 @@ class MetaInstantLeadWebhookTest extends TestCase
             'city' => 'Mumbai',
             'age' => 9,
             'campaign_id' => 'campaign-123',
+            'campaign_name' => 'UK Free Trial Campaign',
+            'adset_name' => 'UK Parents',
+            'ad_name' => 'Free Demo Creative',
         ];
 
         $headers = ['Authorization' => 'Bearer make-test-secret'];
@@ -109,8 +115,11 @@ class MetaInstantLeadWebhookTest extends TestCase
             'email' => 'parent@example.com',
             'mobile' => '+919876543210',
             'country' => 'INDIA',
-            'utm_source' => 'facebook_instant_form',
+            'utm_source' => 'facebook',
             'utm_medium' => 'paid_social',
+            'utm_campaign' => 'UK Free Trial Campaign',
+            'utm_content' => 'Free Demo Creative',
+            'utm_term' => 'UK Parents',
             'status' => 'ACTIVE',
         ]);
     }

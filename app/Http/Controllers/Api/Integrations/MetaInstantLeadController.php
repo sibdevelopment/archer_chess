@@ -46,8 +46,11 @@ class MetaInstantLeadController extends Controller
                 'duration' => '25_minutes',
                 'status' => 'ACTIVE',
                 'lead_status' => 'ACTIVE',
-                'utm_source' => 'facebook_instant_form',
-                'utm_medium' => 'paid_social',
+                'utm_source' => $data['utm_source'] ?? 'facebook',
+                'utm_medium' => $data['utm_medium'] ?? 'paid_social',
+                'utm_campaign' => $data['utm_campaign'] ?? $data['campaign_name'] ?? null,
+                'utm_content' => $data['utm_content'] ?? $data['ad_name'] ?? null,
+                'utm_term' => $data['utm_term'] ?? $data['adset_name'] ?? null,
                 'meta_tracking_allowed' => true,
                 'is_hide' => '0',
             ]

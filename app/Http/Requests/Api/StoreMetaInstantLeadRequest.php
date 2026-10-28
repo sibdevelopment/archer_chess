@@ -52,6 +52,12 @@ class StoreMetaInstantLeadRequest extends FormRequest
             'adset_name' => ['nullable', 'string', 'max:191'],
             'ad_id' => ['nullable', 'string', 'max:64'],
             'ad_name' => ['nullable', 'string', 'max:191'],
+
+            'utm_source' => ['nullable', 'string', 'max:191'],
+            'utm_medium' => ['nullable', 'string', 'max:191'],
+            'utm_campaign' => ['nullable', 'string', 'max:191'],
+            'utm_content' => ['nullable', 'string', 'max:191'],
+            'utm_term' => ['nullable', 'string', 'max:191'],
         ];
     }
 }

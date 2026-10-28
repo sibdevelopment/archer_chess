@@ -47,13 +47,20 @@ https://dev.archerchessacademy.com/api/integrations/make/meta-instant-leads
   "adset_id": "adset-123",
   "adset_name": "UK Parents",
   "ad_id": "ad-123",
-  "ad_name": "Free Trial"
+  "ad_name": "Free Trial",
+  "utm_source": "facebook",
+  "utm_medium": "paid_social",
+  "utm_campaign": "UK Trial Campaign",
+  "utm_content": "Free Trial",
+  "utm_term": "UK Parents"
 }
 ```
 
 Required fields are `meta_lead_id`, `form_id`, `email`, `phone`, `country`, and either `kids_first_name` or `full_name`. Make may send the aliases `lead_id` or `leadgen_id` for `meta_lead_id`, and `phone_number` or `mobile` for `phone`.
 
 Send phone numbers in E.164 format when possible, such as `+447700900123`. If the form returns only a national number, also send `country_code`, such as `+44`.
+
+The five `utm_*` fields are optional. When omitted, the endpoint defaults `utm_source` to `facebook`, `utm_medium` to `paid_social`, and derives campaign, content, and term from `campaign_name`, `ad_name`, and `adset_name` respectively.
 
 ## Responses
 

@@ -119,7 +119,7 @@ class ZoomMeetingService
                 'Content-Type' => 'application/json',
             ])->post("https://api.zoom.us/v2/users/{$userId}/meetings", [
                 'topic'      => $validated['title'],
-                'type'       => 1, // Instant meeting
+                'type'       => 2,
                 'start_time' => Carbon::parse($validated['start_date_time'])->toIso8601String(),
                 'duration'   => $validated['duration_in_minute'],
                 'settings' => [
@@ -135,6 +135,18 @@ class ZoomMeetingService
         } catch (RequestException $e) {
             throw $e;
         }
+    }
+
+    public function getMeeting($meetingId): array
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->generateToken(),
+            'Content-Type' => 'application/json',
+        ])->get('https://api.zoom.us/v2/meetings/' . rawurlencode((string) $meetingId));
+
+        $response->throw();
+
+        return $response->json();
     }
 
     // public function createNewUserMeeting(array $meetingData, $userId): array

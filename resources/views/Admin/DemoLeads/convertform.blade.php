@@ -122,21 +122,7 @@
                                             name="student_id" />
                                         <div id="student_id-error" style="color:red"></div>
                                     </div>
-                                    @php
-                                        $portal_password = 'AKids';
-                                        $student_country = isset($demolead) ? $demolead->country : '';
-                                        if ($student_country) {
-                                            if (
-                                                $student_country == 'AUSTRALIA' ||
-                                                $student_country == 'INDIA' ||
-                                                $student_country == 'NEWZEALAND' ||
-                                                $student_country == 'SINGAPORE' ||
-                                                $student_country == 'UAE'
-                                            ) {
-                                                $portal_password = 'ARCHERCHESS';
-                                            }
-                                        }
-                                    @endphp
+                                    @php($portal_password = 'ARCHERCHESS')
                                     <div class="col-sm-12 col-md-4">
                                         <label class="control-label col-form-label">Chesslang Portal Password <sup
                                                 class="tcul-star-restrict"></sup></label>

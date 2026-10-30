@@ -955,7 +955,7 @@ class DashboardController extends Controller
                                                 ->where('start_date', '<=', $date)
                                                 ->where('end_date', '>=', $date)
                                                 ->count(),
-                    'start_url'       => $coverup->start_url, // 🔥 important
+                    'start_url'       => route('admin.dashboard.coverupClass.start', ['coverup' => $coverup->id]),
                     'is_teachable'    => ! in_array($status, ['CANCELLED', 'ON LEAVE', 'COVERED', 'HOLIDAY']),
                 ];
             }
@@ -1137,7 +1137,7 @@ class DashboardController extends Controller
                         ->where('start_date', '<=', $date)
                         ->where('end_date', '>=', $date)
                         ->count(),
-                    'start_url' => $coverup->start_url ?? $batch->start_url,
+                    'start_url' => route('admin.dashboard.coverupClass.start', ['coverup' => $coverup->id]),
                     'homework_link' => $latestAttendance ? $latestAttendance->homework_link : null,
                     'attendance_exists' => (bool) $latestAttendance,
                     'attendance_time' => $latestAttendance ? $latestAttendance->created_at->format('Y-m-d H:i:s') : null,
@@ -1587,6 +1587,94 @@ class DashboardController extends Controller
         return redirect()->away($demoSession->start_url);
     }
 
+    public function startCoverupClass(Coverupclass $coverup): RedirectResponse
+    {
+        $coach = Coach::where('user_id', auth()->id())->first();
+
+        abort_unless($coach && (int) $coverup->new_coach_id === (int) $coach->id, 403);
+
+        $coverup->loadMissing(['batch', 'batchSchedule', 'schedule']);
+        $batch = $coverup->batch;
+        $schedule = $coverup->batchSchedule ?: $coverup->schedule;
+
+        abort_if(! $batch || $batch->status !== 'ACTIVE' || ! $schedule, 404);
+        abort_if(
+            empty($coach->zoom_id)
+                || empty($coach->zoom_api_key)
+                || empty($coach->zoom_client_secret)
+                || empty($coach->zoom_user_id),
+            422,
+            'Zoom credentials are not configured for this coach.'
+        );
+
+        $scheduledStart = Carbon::parse($coverup->date . ' ' . $schedule->from_time);
+        $scheduledEnd = Carbon::parse($coverup->date . ' ' . $schedule->to_time);
+        if ($scheduledEnd->lte($scheduledStart)) {
+            $scheduledEnd->addDay();
+        }
+
+        abort_if(
+            now()->lt($scheduledStart->copy()->subMinutes(10))
+                || now()->gt($scheduledStart->copy()->addMinutes(80)),
+            403,
+            'This cover-up class cannot be started at this time.'
+        );
+
+        $zoom = new ZoomMeetingService(
+            $coach->zoom_api_key,
+            $coach->zoom_client_secret,
+            $coach->zoom_id
+        );
+
+        $meeting = null;
+        if ($coverup->zoom_meeting_id) {
+            try {
+                $existingMeeting = $zoom->getMeeting($coverup->zoom_meeting_id);
+                $hostMatches = ($existingMeeting['host_id'] ?? null) === $coach->zoom_user_id
+                    || (isset($existingMeeting['host_email'])
+                        && strcasecmp($existingMeeting['host_email'], $coach->zoom_user_id) === 0);
+
+                if ($hostMatches && ! empty($existingMeeting['start_url'])) {
+                    $meeting = $existingMeeting;
+                }
+            } catch (\Throwable $exception) {
+                Log::warning('Unable to refresh cover-up Zoom meeting; creating a replacement.', [
+                    'coverup_id' => $coverup->id,
+                    'meeting_id' => $coverup->zoom_meeting_id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if (! $meeting) {
+            try {
+                $meeting = $zoom->createCoverUpClassMeeting([
+                    'title' => 'Cover Up - ' . $coach->user->first_name . ' - ' . $batch->name,
+                    'duration_in_minute' => max(1, $scheduledStart->diffInMinutes($scheduledEnd)),
+                    'start_date_time' => $scheduledStart->toIso8601String(),
+                ], $coach->zoom_user_id);
+            } catch (\Throwable $exception) {
+                Log::error('Unable to create cover-up Zoom meeting.', [
+                    'coverup_id' => $coverup->id,
+                    'coach_id' => $coach->id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                abort(502, 'Unable to prepare the Zoom meeting. Please contact support.');
+            }
+        }
+
+        abort_if(empty($meeting['start_url']), 502, 'Zoom did not return a host URL.');
+
+        $coverup->start_url = $meeting['start_url'];
+        $coverup->join_url = $meeting['join_url'] ?? $coverup->join_url;
+        $coverup->zoom_meeting_id = $meeting['id'] ?? $coverup->zoom_meeting_id;
+        $coverup->zoom_meeting_uuid = $meeting['uuid'] ?? $coverup->zoom_meeting_uuid;
+        $coverup->save();
+
+        return redirect()->away($meeting['start_url']);
+    }
+
     public function pendingDelayedBatchNotices()
     {
         $coach = Coach::where('user_id', auth()->id())->first();
@@ -2031,7 +2119,24 @@ class DashboardController extends Controller
             }
         }
 
-        return response()->json(['status' => 'success', 'message' => 'Attendance recorded successfully', 'start_url' => $batch->start_url], 200);
+        $startUrl = $batch->start_url;
+        if (strtoupper($request->input('type', 'BATCH')) === 'COVERUP') {
+            $coverup = Coverupclass::where('batch_id', $batch->id)
+                ->where('batchschedule_id', $schedule->id)
+                ->where('new_coach_id', $coachId)
+                ->whereDate('date', $attendanceDate)
+                ->first();
+
+            if ($coverup) {
+                $startUrl = route('admin.dashboard.coverupClass.start', ['coverup' => $coverup->id]);
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Attendance recorded successfully',
+            'start_url' => $startUrl,
+        ], 200);
     }
 
     public function preBatchAttendance(Request $request)

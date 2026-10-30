@@ -295,7 +295,9 @@ class LeaveRequestController extends Controller
                         $meetingData = [
                             'title' => 'Cover Up - '.$coach->user->first_name.' - '.$batch->name,
                             'duration_in_minute' => 40,
-                            'start_date_time' => now()->addMinutes(5)->toIso8601String(),
+                            'start_date_time' => Carbon::parse(
+                                $occurrenceDate . ' ' . $schedule->from_time
+                            )->toIso8601String(),
                         ];
 
                         $zoomResponse = $zoomMeetingService->createCoverUpClassMeeting($meetingData, $coach->zoom_user_id);

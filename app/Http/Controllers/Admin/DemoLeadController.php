@@ -771,7 +771,9 @@ Archer Chess Academy";
             $student->level_id = $request->level_id;
         }
 
-        $student->portal_password = !empty($request->portal_password) ? $request->portal_password : '';
+        $student->portal_password = $request->filled('portal_password')
+            ? $request->portal_password
+            : 'ARCHERCHESS';
         $student->currency = !empty($request->currency) ? $request->currency : '';
         $student->monthly_fees = !empty($request->monthly_fees) ? $request->monthly_fees : '';
         $student->lastpayment_level_id = $request->payment_level_id;

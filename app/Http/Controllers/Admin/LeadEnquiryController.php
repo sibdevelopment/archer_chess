@@ -250,6 +250,21 @@ class LeadEnquiryController extends Controller
                 $time = '' . Carbon::parse($enquiry->created_at)->format('h:i A');
                 return '<span style="white-space: nowrap;">' . $date . ' &nbsp; |  &nbsp; ' . $time . '</span>';
             })
+            ->addColumn('lead_source', function ($enquiry) {
+                $isMetaInstantForm = $enquiry->lead_source_label === 'Meta Instant Form';
+                $badgeColor = $isMetaInstantForm ? 'primary' : 'success';
+                $utmSource = trim((string) $enquiry->utm_source);
+
+                $source = '<span class="badge bg-' . $badgeColor . ' fs-1">'
+                    . e($enquiry->lead_source_label)
+                    . '</span>';
+
+                if ($utmSource !== '') {
+                    $source .= '<div class="small text-muted mt-1">UTM: ' . e($utmSource) . '</div>';
+                }
+
+                return '<div style="white-space: nowrap;">' . $source . '</div>';
+            })
             ->editColumn('language_preference', function ($enquiry) {
                 if ($enquiry->language_preference != null) {
                     if ($enquiry->language_preference == 'agree') {
@@ -360,7 +375,7 @@ class LeadEnquiryController extends Controller
                 return $enquiry->email;
             })
             ->addIndexColumn()
-            ->rawColumns(['datetime', 'full_name', 'action', 'status', 'email_verified', 'demo_datetime', 'age', 'mobile', 'email'])
+            ->rawColumns(['datetime', 'lead_source', 'full_name', 'action', 'status', 'email_verified', 'demo_datetime', 'age', 'mobile', 'email'])
             ->setRowId('id')
             ->make(true);
     }

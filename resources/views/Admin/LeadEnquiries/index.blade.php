@@ -98,6 +98,9 @@
                                         <th>
                                             <h6 class="fs-3 fw-semibold mb-0">Lead : Date | Time</h6>
                                         </th>
+                                        <th>
+                                            <h6 class="fs-3 fw-semibold mb-0">Lead Source</h6>
+                                        </th>
                                         <th width="15% !important">
                                             <h6 class="fs-3 fw-semibold mb-0"> Name</h6>
                                         </th>
@@ -298,6 +301,12 @@
                     {
                         data: 'datetime',
                         name: 'demoleadenquiries.created_at',
+                        searchable: false,
+                        orderable: false
+                    },
+                    {
+                        data: 'lead_source',
+                        name: 'demoleadenquiries.integration_source',
                         searchable: false,
                         orderable: false
                     },

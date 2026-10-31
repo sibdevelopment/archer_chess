@@ -103,6 +103,17 @@ class DemoLeadEnquiry extends BaseModel
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function getLeadSourceLabelAttribute(): string
+    {
+        $integrationSource = strtoupper(trim((string) $this->integration_source));
+
+        if ($integrationSource === 'META_INSTANT_FORM' || ! empty($this->meta_lead_id)) {
+            return 'Meta Instant Form';
+        }
+
+        return 'Website Landing Page';
+    }
+
 }
 
 

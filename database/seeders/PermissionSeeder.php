@@ -54,6 +54,7 @@ class PermissionSeeder extends Seeder
                     'pendingDelayedBatchNotices',
                     'acknowledgeDelayedBatchNotice',
                     'startDemoSession',
+                    'startCoverupClass',
                 ],
                 'availability-view' => [
                     'availabilityIndex',

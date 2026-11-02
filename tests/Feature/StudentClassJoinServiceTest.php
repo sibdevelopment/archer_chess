@@ -28,7 +28,6 @@ class StudentClassJoinServiceTest extends TestCase
             $table->id();
             $table->unsignedBigInteger('batch_id');
             $table->unsignedBigInteger('batchschedule_id')->nullable();
-            $table->unsignedBigInteger('schedule_id')->nullable();
             $table->date('date');
             $table->text('join_url')->nullable();
         });

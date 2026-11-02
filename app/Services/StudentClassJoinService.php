@@ -14,10 +14,10 @@ class StudentClassJoinService
             ->whereDate('date', $date);
 
         if ($scheduleId) {
-            $scheduledCoverup = (clone $coverupQuery)->where(function ($query) use ($scheduleId) {
-                $query->where('batchschedule_id', $scheduleId)
-                    ->orWhere('schedule_id', $scheduleId);
-            })->latest('id')->first();
+            $scheduledCoverup = (clone $coverupQuery)
+                ->where('batchschedule_id', $scheduleId)
+                ->latest('id')
+                ->first();
 
             if ($scheduledCoverup) {
                 return $this->cleanUrl($scheduledCoverup->join_url);

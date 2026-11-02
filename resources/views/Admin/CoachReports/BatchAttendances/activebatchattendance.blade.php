@@ -78,16 +78,7 @@
         <tbody>
             @php
                 $i = 1;
-
-                $studentBatches = app\Models\StudentBatch::where('batch_id', $data->id)
-                ->eligibleOn($date)
-                ->with('student')
-                ->select('student_id')  // Select only student_id
-                ->distinct()  // Ensure uniqueness
-                ->get();
-
-            // dd($studentBatches);
-
+                $studentBatches = $data->studentBatches->unique('student_id');
             @endphp
             @foreach ($studentBatches as $studentBatch)
                 {{-- @if ($studentBatch->status != 'INACTIVE') --}}

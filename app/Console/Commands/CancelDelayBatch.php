@@ -198,7 +198,7 @@ class CancelDelayBatch extends Command
         $date = $now->toDateString();
         $today = $now->format('l');
 
-        $coverups = Coverupclass::with(['batch.level', 'batchSchedule', 'schedule'])
+        $coverups = Coverupclass::with(['batch.level', 'batchSchedule'])
             ->whereDate('date', $date)
             ->whereNotNull('new_coach_id')
             ->get();
@@ -211,7 +211,6 @@ class CancelDelayBatch extends Command
             }
 
             $schedule = $coverup->batchSchedule
-                ?: $coverup->schedule
                 ?: BatchSchedule::where('batch_id', $batch->id)
                     ->where('weekday', $today)
                     ->where('status', 'ACTIVE')

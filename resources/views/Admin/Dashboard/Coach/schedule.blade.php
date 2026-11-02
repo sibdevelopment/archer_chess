@@ -226,6 +226,18 @@
                                     Mark Attendance
                                 </a>
                             @endif
+                    {{-- Cover-up start initializes attendance and launches the replacement coach's meeting. --}}
+                    @elseif ($schedule['type'] === 'COVERUP' && $schedule['status'] !== 'CANCELLED')
+                        @php
+                            $showFrom = $slotStartTime->copy()->subMinutes(10);
+                            $showTill = $slotStartTime->copy()->addMinutes(80);
+                        @endphp
+
+                        @if ($now->between($showFrom, $showTill))
+                            <a href="{{ $schedule['start_url'] }}" target="_blank"
+                                class="btn btn-primary-theme-outline">Start</a>
+                        @endif
+
                         {{-- 3. Attendance already marked (not cancelled, not demo) --}}
                     @elseif ($isAttendaceMarked && $schedule['status'] !== 'CANCELLED')
                         @php

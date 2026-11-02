@@ -1593,9 +1593,9 @@ class DashboardController extends Controller
 
         abort_unless($coach && (int) $coverup->new_coach_id === (int) $coach->id, 403);
 
-        $coverup->loadMissing(['batch', 'batchSchedule', 'schedule']);
+        $coverup->loadMissing(['batch', 'batchSchedule']);
         $batch = $coverup->batch;
-        $schedule = $coverup->batchSchedule ?: $coverup->schedule;
+        $schedule = $coverup->batchSchedule;
 
         abort_if(! $batch || $batch->status !== 'ACTIVE' || ! $schedule, 404);
         abort_if(
@@ -1672,7 +1672,64 @@ class DashboardController extends Controller
         $coverup->zoom_meeting_uuid = $meeting['uuid'] ?? $coverup->zoom_meeting_uuid;
         $coverup->save();
 
+        $this->markCoverupStartAttendance($coverup, $coach, $batch);
+
         return redirect()->away($meeting['start_url']);
+    }
+
+    private function markCoverupStartAttendance(
+        Coverupclass $coverup,
+        Coach $coach,
+        Batch $batch
+    ): void {
+        $attendanceDate = Carbon::parse($coverup->date)->toDateString();
+        $attendanceTime = now()->format('H:i:s');
+
+        DB::transaction(function () use ($attendanceDate, $attendanceTime, $coach, $batch) {
+            $coachAttendance = CoachAttendance::where('batch_id', $batch->id)
+                ->where('coach_id', $coach->id)
+                ->whereDate('date', $attendanceDate)
+                ->whereRaw('UPPER(type) = ?', ['COVERUP'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $coachAttendance) {
+                $lastSessionNumber = CoachAttendance::where('batch_id', $batch->id)
+                    ->max('number_of_batch_sessions') ?? 0;
+
+                CoachAttendance::create([
+                    'coach_id' => $coach->id,
+                    'type' => 'COVERUP',
+                    'batch_id' => $batch->id,
+                    'date' => $attendanceDate,
+                    'time' => $attendanceTime,
+                    'status' => 'COMPLETED',
+                    'number_of_batch_sessions' => $lastSessionNumber + 1,
+                ]);
+            }
+
+            $students = StudentBatch::where('batch_id', $batch->id)
+                ->assignedOn($attendanceDate)
+                ->get();
+
+            foreach ($students as $studentBatch) {
+                StudentAttendance::firstOrCreate(
+                    [
+                        'student_id' => $studentBatch->student_id,
+                        'batch_id' => $batch->id,
+                        'coach_id' => $coach->id,
+                        'type' => 'COVERUP',
+                        'date' => $attendanceDate,
+                    ],
+                    [
+                        'level_id' => $studentBatch->level_id ?? $batch->level_id,
+                        'time' => $attendanceTime,
+                        'status' => 'ABSENT',
+                        'remark' => '',
+                    ]
+                );
+            }
+        });
     }
 
     public function pendingDelayedBatchNotices()

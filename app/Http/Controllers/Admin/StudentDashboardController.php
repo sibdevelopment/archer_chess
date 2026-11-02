@@ -25,6 +25,7 @@ use App\Models\StudentAttendance;
 use App\Http\Controllers\Controller;
 use App\Services\BatchOccurrenceService;
 use App\Services\StudentEventAudienceService;
+use App\Services\StudentClassJoinService;
 use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
@@ -201,10 +202,11 @@ class StudentDashboardController extends Controller
             ->first();
     }
 
-    public function markAttendance(Request $request)
+    public function markAttendance(Request $request, StudentClassJoinService $joinService)
     {
         $batchId = $request->input('id');
         $studentId = $request->input('student_id');
+        $scheduleId = $request->integer('schedule_id') ?: null;
         $today = Carbon::now()->toDateString();
 
         if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
@@ -212,6 +214,14 @@ class StudentDashboardController extends Controller
                 'message' => 'Class is not active for this student yet.',
                 'status' => 'error'
             ], 403);
+        }
+
+        $joinUrl = $joinService->resolve((int) $batchId, $today, $scheduleId);
+        if (!$joinUrl) {
+            return response()->json([
+                'message' => 'The current class link is not available. Please contact support.',
+                'status' => 'error',
+            ], 404);
         }
 
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)
@@ -234,7 +244,8 @@ class StudentDashboardController extends Controller
                 $studentAttendance->save();
                 return response()->json([
                     'message' => 'Attendance marked successfully',
-                    'status' => 'success'
+                    'status' => 'success',
+                    'join_url' => $joinUrl,
                 ], 200);
             } else {
                 // dd(22);
@@ -261,7 +272,8 @@ class StudentDashboardController extends Controller
                     $studentAttendance->save();
                     return response()->json([
                         'message' => 'Attendance marked successfully',
-                        'status' => 'success'
+                        'status' => 'success',
+                        'join_url' => $joinUrl,
                     ], 200);
                 } else {
                     return response()->json([
@@ -282,19 +294,24 @@ class StudentDashboardController extends Controller
     /**
      * Mark attendance and redirect to join URL (works without JavaScript - mobile/tablet fallback).
      */
-    public function joinClass(Request $request)
+    public function joinClass(Request $request, StudentClassJoinService $joinService)
     {
         $batchId = $request->input('id');
         $studentId = $request->input('student_id');
-        $joinUrl = $request->input('join_url');
+        $scheduleId = $request->integer('schedule_id') ?: null;
         $today = Carbon::now()->toDateString();
 
-        if (!$batchId || !$studentId || !$joinUrl) {
+        if (!$batchId || !$studentId) {
             return redirect()->back()->with('error', 'Invalid join link.');
         }
 
         if (!$this->eligibleStudentBatch($studentId, $batchId, $today)) {
             return redirect()->back()->with('error', 'Class is not active for this student yet.');
+        }
+
+        $joinUrl = $joinService->resolve((int) $batchId, $today, $scheduleId);
+        if (!$joinUrl) {
+            return redirect()->back()->with('error', 'The current class link is not available. Please contact support.');
         }
 
         $coachAttendance = CoachAttendance::where('batch_id', $batchId)

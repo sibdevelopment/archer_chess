@@ -11,6 +11,9 @@ use Illuminate\Http\Request;
 use App\Models\BatchSchedule;
 use App\Http\Controllers\Controller;
 use App\Services\CoachAvailabilityService;
+use App\Services\CoverupMeetingService;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class CoverupclassController extends Controller
 {
@@ -180,7 +183,7 @@ class CoverupclassController extends Controller
         return View('Admin.Coverupclass.change_coach', compact('coaches', 'coverup_class_id'));
     }
 
-    public function changeCoach(Request $request, CoachAvailabilityService $availability)
+    public function changeCoach(Request $request, CoachAvailabilityService $availability, CoverupMeetingService $meetingService)
     {
         $coverupclass = Coverupclass::find($request->coverupclass_id);
         $schedule = BatchSchedule::where('id', $coverupclass->batchschedule_id)->first();
@@ -204,7 +207,31 @@ class CoverupclassController extends Controller
             return response()->json(['error' => $coachValidation['message'], 'status' => 'error'], 422);
         }
 
-        $coverupclass->new_coach_id = $request->new_coach_id;
+        $coach = Coach::with('user')->find($request->new_coach_id);
+        if (!$coach) {
+            return response()->json(['error' => 'Coach not found.', 'status' => 'error'], 404);
+        }
+
+        try {
+            $meeting = $meetingService->create($coverupclass, $coach, $schedule);
+        } catch (Throwable $exception) {
+            Log::error('Unable to replace cover-up Zoom meeting', [
+                'coverup_id' => $coverupclass->id,
+                'coach_id' => $coach->id,
+                'exception' => $exception,
+            ]);
+
+            return response()->json([
+                'error' => 'Coach was not changed because a new Zoom meeting could not be created.',
+                'status' => 'error',
+            ], 422);
+        }
+
+        $coverupclass->new_coach_id = $coach->id;
+        $coverupclass->start_url = $meeting['start_url'];
+        $coverupclass->join_url = $meeting['join_url'];
+        $coverupclass->zoom_meeting_id = $meeting['id'];
+        $coverupclass->zoom_meeting_uuid = $meeting['uuid'] ?? null;
         $coverupclass->save();
 
         return response()->json(['success' => 'Coach Changed Successfully', 'status' => 'success']);

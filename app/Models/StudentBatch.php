@@ -58,6 +58,15 @@ class StudentBatch extends BaseModel
             ->whereDate('end_date', '>=', $date);
     }
 
+    public function scopeAssignedOn($query, $date)
+    {
+        $date = Carbon::parse($date)->toDateString();
+
+        return $query
+            ->whereDate('start_date', '<=', $date)
+            ->whereDate('end_date', '>=', $date);
+    }
+
     public function scopeCountableForClassOn($query, $date)
     {
         $date = Carbon::parse($date)->toDateString();

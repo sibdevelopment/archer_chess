@@ -1135,9 +1135,7 @@ class ReportController extends Controller
                 }
 
                 $unique_student_count = StudentBatch::where('batch_id', $batch->id)
-                    ->where('status', 'ACTIVE')
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date)
+                    ->assignedOn($date)
                     ->distinct('student_id')
                     ->count('student_id');
 
@@ -1367,12 +1365,8 @@ class ReportController extends Controller
         with(['batchSchedules' => function ($query) use ($dayName, $date) {
             $query->where('weekday', $dayName);
         }])
-            ->
-            withCount(['studentBatches as active_students_count' => function ($query) use ($date) {
-                $query->countableForClassOn($date);
-            }])
             ->whereHas('studentBatches', function ($query) use ($date) {
-                $query->countableForClassOn($date);
+                $query->assignedOn($date);
             })
             ->whereIn('id', $coverupClassBatchIds)
             // ->where('status', 'ACTIVE')
@@ -1380,6 +1374,11 @@ class ReportController extends Controller
 
         // dd($coverupClassBatches);
         foreach ($coverupClassBatches as $batch) {
+            $uniqueStudentCount = StudentBatch::where('batch_id', $batch->id)
+                ->assignedOn($date)
+                ->distinct('student_id')
+                ->count('student_id');
+
             // if ($batch->id == '4238') {
                 foreach ($batch->batchSchedules as $schedule) {
                     $status = $schedule->status;
@@ -1404,7 +1403,7 @@ class ReportController extends Controller
                         'status'          => $status,
                         'type'            => 'Coverup',
                         'batchStatus'     => $batch->status,
-                        'active_students' => $batch->active_students_count,
+                        'active_students' => $uniqueStudentCount,
                     ];
                 }
             // }

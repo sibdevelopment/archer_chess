@@ -1785,7 +1785,7 @@ class ReportController extends Controller
         $data = Batch::where('id', $id)
         // ->where('coach_id', $coachId)
             ->with(['batchSchedules', 'studentBatches' => function ($query) use ($date) {
-                $query->eligibleOn($date)->with('student')->distinct('student_id');
+                $query->assignedOn($date)->with('student')->distinct('student_id');
             }, 'coach', 'parent'])
             ->first();
 
@@ -1816,9 +1816,7 @@ class ReportController extends Controller
 
         $totalSessionsCompleted = $latestCompletedSession ? $latestCompletedSession->number_of_batch_sessions : 0;
         $studentAttendances     = StudentAttendance::with(['student', 'batch'])
-            ->whereHas('batch', function ($query) use ($id) {
-                $query->where('batch_id', $id);
-            })
+            ->where('batch_id', $id)
             ->whereDate('date', $date)
             ->get();
 

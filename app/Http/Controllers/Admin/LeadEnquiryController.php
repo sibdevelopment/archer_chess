@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class LeadEnquiryController extends Controller
 {
@@ -75,6 +76,7 @@ class LeadEnquiryController extends Controller
                 $user = User::findOrFail($enquiry->user_id);
             } else {
                 $user = new User();
+                $user->password = Hash::make(Str::random(40));
                 $isNewUser = true;
             }
 
@@ -411,6 +413,7 @@ class LeadEnquiryController extends Controller
                 $user = User::findOrFail($enquiry->user_id);
             } else {
                 $user = new User();
+                $user->password = Hash::make(Str::random(40));
                 $isNewUser = true;
             }
 

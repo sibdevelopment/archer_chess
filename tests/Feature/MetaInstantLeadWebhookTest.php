@@ -56,6 +56,7 @@ class MetaInstantLeadWebhookTest extends TestCase
             $table->string('timezone')->nullable();
             $table->string('language_preference')->nullable();
             $table->string('level')->nullable();
+            $table->text('remark')->nullable();
             $table->string('duration')->nullable();
             $table->string('status')->nullable();
             $table->string('lead_status')->nullable();
@@ -90,6 +91,7 @@ class MetaInstantLeadWebhookTest extends TestCase
             'country' => 'India',
             'city' => 'Mumbai',
             'age' => 9,
+            'remark' => 'Meta country code: IN',
             'campaign_id' => 'campaign-123',
             'campaign_name' => 'UK Free Trial Campaign',
             'adset_name' => 'UK Parents',
@@ -115,6 +117,7 @@ class MetaInstantLeadWebhookTest extends TestCase
             'email' => 'parent@example.com',
             'mobile' => '+919876543210',
             'country' => 'INDIA',
+            'remark' => 'Meta country code: IN',
             'utm_source' => 'facebook',
             'utm_medium' => 'paid_social',
             'utm_campaign' => 'UK Free Trial Campaign',

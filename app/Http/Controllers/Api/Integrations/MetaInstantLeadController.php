@@ -43,6 +43,7 @@ class MetaInstantLeadController extends Controller
                 'timezone' => $data['timezone'] ?? null,
                 'language_preference' => $data['language_preference'] ?? null,
                 'level' => $data['level'] ?? null,
+                'remark' => $data['remark'] ?? null,
                 'duration' => '25_minutes',
                 'status' => 'ACTIVE',
                 'lead_status' => 'ACTIVE',

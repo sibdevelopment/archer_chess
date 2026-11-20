@@ -45,6 +45,7 @@ class StoreMetaInstantLeadRequest extends FormRequest
             'timezone' => ['nullable', 'string', 'max:191'],
             'language_preference' => ['nullable', 'string', 'max:191'],
             'level' => ['nullable', 'string', 'max:191'],
+            'remark' => ['nullable', 'string', 'max:255'],
 
             'campaign_id' => ['nullable', 'string', 'max:64'],
             'campaign_name' => ['nullable', 'string', 'max:191'],

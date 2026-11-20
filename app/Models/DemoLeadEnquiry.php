@@ -59,6 +59,7 @@ class DemoLeadEnquiry extends BaseModel
         'enrollment_plan',
         'language_preference',
         'level',
+        'remark',
         'duration',
         'email_otp',
         'mobile_verified',

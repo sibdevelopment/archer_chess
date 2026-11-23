@@ -8,6 +8,7 @@ return [
     'api_version' => env('META_CAPI_API_VERSION', 'v26.0'),
     'lead_event_source' => env('META_CAPI_LEAD_EVENT_SOURCE', 'Archer ERP'),
     'initial_event_name' => env('META_CAPI_INITIAL_EVENT_NAME', 'SubmitApplication'),
+    'enrollment_event_name' => env('META_CAPI_ENROLLMENT_EVENT_NAME', 'CompleteRegistration'),
     'send_initial_lead' => env('META_CAPI_SEND_INITIAL_LEAD', false),
     'allow_legacy_leads' => env('META_CAPI_ALLOW_LEGACY_LEADS', false),
     'test_lead_ids' => array_values(array_filter(array_map(
@@ -26,6 +27,10 @@ return [
         'INTERESTED' => 'QualifiedLead',
         'NOT INTERESTED' => 'UnqualifiedLead',
         'CANCELLED' => 'DemoCancelled',
-        'CONVERTED' => 'CompleteRegistration',
+    ],
+
+    'lead_feedback_events' => [
+        'INTERESTED' => 'QualifiedLead',
+        'NOT_INTERESTED' => 'UnqualifiedLead',
     ],
 ];

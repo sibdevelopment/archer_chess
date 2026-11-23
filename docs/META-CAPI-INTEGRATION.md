@@ -14,9 +14,17 @@ availability never blocks an ERP status update.
 3. New demo leads retain an explicit link to their originating enquiry. Legacy
    records fall back to the existing user link.
 4. When the linked `demoleads.status` changes, the demo-lead observer maps the
-   status to a Meta event and writes an immutable payload to `meta_capi_events`.
-5. Laravel Scheduler runs `meta-capi:process` every minute.
-6. Successful and failed Meta responses remain available in the outbox for
+   demo lifecycle status to a Meta event and writes an immutable payload to
+   `meta_capi_events`.
+5. `CONVERTED` is handled separately: `CompleteRegistration` is queued only
+   after the Student and New Enrollment records, including received fee amount
+   and currency, have been saved successfully.
+6. Lead Enquiries also provide an audited CAPI Feedback action. An admin can
+   record `INTERESTED` or `NOT_INTERESTED` with a mandatory internal note.
+   Only the mapped Meta event is queued; the note and submitting admin are
+   retained only in the ERP.
+7. Laravel Scheduler runs `meta-capi:process` every minute.
+8. Successful and failed Meta responses remain available in the outbox for
    auditing. Failed events retry with exponential backoff up to the configured
    attempt limit.
 
@@ -41,6 +49,17 @@ for deduplication.
 `ROWLEAD` is not sent because it represents the transition from enquiry to the
 operational demo-lead record, not a new customer conversion.
 
+`CONVERTED` is not emitted by the generic status observer. It is emitted by the
+successful Demo Lead conversion flow after the New Enrollment fee details are
+stored. The event includes `value`, `currency`, `new_enrollment_id`, and
+`payment_level_id`, and duplicate enrollment events for the same Demo Lead are
+not created.
+
+Lead Enquiry feedback maps `INTERESTED` to `QualifiedLead` and
+`NOT_INTERESTED` to `UnqualifiedLead`. An exact repeat is ignored. A note-only
+edit is retained in feedback history without sending another event, while an
+outcome change creates a new decision and queues its mapped event.
+
 ## Configuration
 
 ```env
@@ -51,6 +70,7 @@ META_CAPI_TEST_EVENT_CODE=
 META_CAPI_API_VERSION=v26.0
 META_CAPI_LEAD_EVENT_SOURCE="Archer ERP"
 META_CAPI_INITIAL_EVENT_NAME=SubmitApplication
+META_CAPI_ENROLLMENT_EVENT_NAME=CompleteRegistration
 META_CAPI_SEND_INITIAL_LEAD=false
 META_CAPI_ALLOW_LEGACY_LEADS=false
 META_CAPI_TEST_LEAD_IDS=

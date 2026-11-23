@@ -21,6 +21,7 @@ use App\Models\CoachAttendance;
 use App\Exports\DemoleadsExport;
 use App\Models\StudentAttendance;
 use App\Mail\ConvertedStudentMail;
+use App\Services\MetaCapi\MetaCapiEventService;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
@@ -798,6 +799,12 @@ Archer Chess Academy";
         $new_enrollment->received_fees = $request->received_fees;
         $new_enrollment->currency      = $request->currency;
         $new_enrollment->save();
+
+        try {
+            app(MetaCapiEventService::class)->recordEnrollment($demolead->fresh(), $new_enrollment);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
 
         Mail::to($user->email)->send(new ConvertedStudentMail($student));
 

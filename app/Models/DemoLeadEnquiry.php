@@ -104,6 +104,11 @@ class DemoLeadEnquiry extends BaseModel
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function capiFeedbacks()
+    {
+        return $this->hasMany(LeadEnquiryCapiFeedback::class, 'lead_enquiry_id');
+    }
+
     public function getLeadSourceLabelAttribute(): string
     {
         $integrationSource = strtoupper(trim((string) $this->integration_source));

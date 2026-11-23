@@ -11,11 +11,14 @@ use App\Models\DemoLead;
 use App\Models\Timezone;
 use Illuminate\Http\Request;
 use App\Models\DemoLeadEnquiry;
+use App\Models\LeadEnquiryCapiFeedback;
+use App\Services\MetaCapi\LeadEnquiryFeedbackService;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class LeadEnquiryController extends Controller
 {
@@ -204,6 +207,12 @@ class LeadEnquiryController extends Controller
                 // Basic buttons
                 $show = '<a href="' . route('admin.leadenquiries.show', ['leadenquiry' => $enquiry->id]) . '" class="badge bg-info fs-1 modal-one-btn" data-entity="leadenquiries" data-title="DemoLeadEnquiry" data-route-key="' . $enquiry->id . '"><i class="fa fa-eye"></i></a>';
 
+                $feedback = '<button type="button" class="badge border-0 bg-primary fs-1 capi-feedback-btn"'
+                    . ' data-url="' . route('admin.leadenquiries.capi-feedback.history', $enquiry->id) . '"'
+                    . ' data-name="' . e(trim(($enquiry->kids_first_name ?? '') . ' ' . ($enquiry->kids_last_name ?? ''))) . '"'
+                    . ' title="CAPI feedback" aria-label="CAPI feedback">'
+                    . '<i class="ti ti-message-report"></i></button>';
+
 
                 // If lead already hidden
                 if ($enquiry->is_hide == 1) {
@@ -243,7 +252,7 @@ class LeadEnquiryController extends Controller
 
                 // Return buttons
                 return '<div style="display:inline-flex; gap:5px;">'
-                    . $convert . $reject . $show . $delete .
+                    . $convert . $reject . $feedback . $show . $delete .
                     '</div>';
             })
 
@@ -505,6 +514,61 @@ class LeadEnquiryController extends Controller
             'status' => 'success',
             'message' => 'Status updated successfully!',
             'data' => $enquiry,
+        ]);
+    }
+
+    public function capiFeedbackHistory(DemoLeadEnquiry $leadenquiry)
+    {
+        $feedbacks = $leadenquiry->capiFeedbacks()
+            ->with('submittedBy:id,first_name,last_name')
+            ->latest('id')
+            ->get()
+            ->map(fn (LeadEnquiryCapiFeedback $feedback) => [
+                'id' => $feedback->id,
+                'outcome' => $feedback->outcome,
+                'note' => $feedback->note,
+                'submitted_by' => trim((string) optional($feedback->submittedBy)->first_name . ' '
+                    . (string) optional($feedback->submittedBy)->last_name) ?: 'Unknown user',
+                'submitted_at' => optional($feedback->submitted_at)->format('d-M-Y h:i A'),
+                'meta_event_queued' => $feedback->meta_capi_event_id !== null,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'feedbacks' => $feedbacks,
+        ]);
+    }
+
+    public function storeCapiFeedback(
+        Request $request,
+        DemoLeadEnquiry $leadenquiry,
+        LeadEnquiryFeedbackService $feedbackService
+    ) {
+        $validated = $request->validate([
+            'outcome' => [
+                'required',
+                Rule::in([
+                    LeadEnquiryCapiFeedback::INTERESTED,
+                    LeadEnquiryCapiFeedback::NOT_INTERESTED,
+                ]),
+            ],
+            'note' => 'required|string|max:2000',
+        ]);
+
+        $result = $feedbackService->submit(
+            $leadenquiry->id,
+            $validated['outcome'],
+            $validated['note'],
+            Auth::id()
+        );
+
+        return response()->json([
+            'success' => true,
+            'duplicate' => $result['duplicate'],
+            'event_queued' => $result['event_queued'],
+            'message' => $result['duplicate']
+                ? 'This feedback was already saved.'
+                : 'Lead feedback saved successfully.',
         ]);
     }
 

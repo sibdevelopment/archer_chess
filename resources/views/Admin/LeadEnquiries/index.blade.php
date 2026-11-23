@@ -246,6 +246,52 @@
         </div>
     </div>
 
+    <div class="modal fade" id="capiFeedbackModal" tabindex="-1" aria-labelledby="capiFeedbackModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <form id="capiFeedbackForm">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header border-bottom">
+                        <div>
+                            <h5 class="modal-title" id="capiFeedbackModalLabel">CAPI Lead Feedback</h5>
+                            <div class="small text-muted" id="capiFeedbackLeadName"></div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label d-block">Decision</label>
+                            <div class="btn-group" role="group" aria-label="Lead feedback decision">
+                                <input type="radio" class="btn-check" name="outcome" id="feedbackInterested"
+                                    value="INTERESTED" autocomplete="off" required>
+                                <label class="btn btn-outline-success" for="feedbackInterested">Interested</label>
+
+                                <input type="radio" class="btn-check" name="outcome" id="feedbackNotInterested"
+                                    value="NOT_INTERESTED" autocomplete="off" required>
+                                <label class="btn btn-outline-danger" for="feedbackNotInterested">Not Interested</label>
+                            </div>
+                            <div class="text-danger small mt-1" id="feedbackOutcomeError"></div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="capiFeedbackNote" class="form-label">Internal note</label>
+                            <textarea class="form-control" id="capiFeedbackNote" name="note" rows="4" maxlength="2000" required></textarea>
+                            <div class="text-danger small mt-1" id="feedbackNoteError"></div>
+                        </div>
+                        <div class="border-top pt-3">
+                            <h6 class="fw-semibold">Feedback history</h6>
+                            <div id="capiFeedbackHistory" class="d-grid gap-2"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn bg-light-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Feedback</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/backend/dist/libs/bootstrap-material-datetimepicker/node_modules/moment/moment.js"></script>
     <script src="/backend/dist/libs/daterangepicker/daterangepicker.js"></script>
 
@@ -452,6 +498,83 @@
                 $('#remarkUrl').val(url);
                 $('#remarkInput').val('');
                 $('#remarkModal').modal('show');
+            });
+
+            function escapeFeedbackText(value) {
+                return $('<div>').text(value || '').html();
+            }
+
+            function renderFeedbackHistory(feedbacks) {
+                if (!feedbacks.length) {
+                    $('#capiFeedbackHistory').html('<div class="text-muted">No feedback recorded.</div>');
+                    return;
+                }
+
+                var html = feedbacks.map(function(feedback) {
+                    var interested = feedback.outcome === 'INTERESTED';
+                    var badgeClass = interested ? 'bg-success' : 'bg-danger';
+                    var label = interested ? 'Interested' : 'Not Interested';
+                    var capiBadge = feedback.meta_event_queued
+                        ? '<span class="badge bg-info ms-1">CAPI queued</span>'
+                        : '';
+
+                    return '<div class="border rounded-2 p-3">' +
+                        '<div class="d-flex flex-wrap align-items-center gap-1 mb-2">' +
+                        '<span class="badge ' + badgeClass + '">' + label + '</span>' + capiBadge +
+                        '<span class="small text-muted ms-auto">' +
+                        escapeFeedbackText(feedback.submitted_by) + ' | ' +
+                        escapeFeedbackText(feedback.submitted_at) + '</span></div>' +
+                        '<div class="text-break">' + escapeFeedbackText(feedback.note) + '</div></div>';
+                }).join('');
+
+                $('#capiFeedbackHistory').html(html);
+            }
+
+            function loadFeedbackHistory(url) {
+                $('#capiFeedbackHistory').html('<div class="text-muted">Loading...</div>');
+
+                return $.get(url).done(function(response) {
+                    renderFeedbackHistory(response.feedbacks || []);
+                }).fail(function() {
+                    $('#capiFeedbackHistory').html('<div class="text-danger">Unable to load feedback history.</div>');
+                });
+            }
+
+            $(document).on('click', '.capi-feedback-btn', function() {
+                var url = $(this).data('url');
+                $('#capiFeedbackForm').data('url', url)[0].reset();
+                $('#capiFeedbackLeadName').text($(this).data('name'));
+                $('#feedbackOutcomeError, #feedbackNoteError').text('');
+                $('#capiFeedbackModal').modal('show');
+                loadFeedbackHistory(url);
+            });
+
+            $('#capiFeedbackForm').on('submit', function(e) {
+                e.preventDefault();
+
+                var $form = $(this);
+                var $button = $form.find('button[type="submit"]');
+                var url = $form.data('url');
+                $('#feedbackOutcomeError, #feedbackNoteError').text('');
+                $button.prop('disabled', true);
+
+                $.post(url, $form.serialize())
+                    .done(function(response) {
+                        toastr.success(response.message || 'Lead feedback saved.');
+                        loadFeedbackHistory(url);
+                        $('#capiFeedbackNote').val('');
+                    })
+                    .fail(function(xhr) {
+                        var errors = xhr.responseJSON && xhr.responseJSON.errors;
+                        if (errors) {
+                            $('#feedbackOutcomeError').text(errors.outcome ? errors.outcome[0] : '');
+                            $('#feedbackNoteError').text(errors.note ? errors.note[0] : '');
+                        }
+                        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Unable to save feedback.');
+                    })
+                    .always(function() {
+                        $button.prop('disabled', false);
+                    });
             });
 
             $('#remarkForm').on('submit', function(e) {

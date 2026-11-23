@@ -120,6 +120,8 @@ Route::middleware(['auth', 'admin', 'preventBackHistory'])->group(function () {
         Route::post('leadenquiries/data', [LeadEnquiryController::class, 'data'])->name('leadenquiries.data');
         Route::post('leadenquiries/list', [LeadEnquiryController::class, 'list'])->name('leadenquiries.list');
         Route::post('leadenquiries/change-status', [LeadEnquiryController::class, 'changeStatus'])->name('leadenquiries.change.status');
+        Route::get('leadenquiries/{leadenquiry}/capi-feedback', [LeadEnquiryController::class, 'capiFeedbackHistory'])->name('leadenquiries.capi-feedback.history');
+        Route::post('leadenquiries/{leadenquiry}/capi-feedback', [LeadEnquiryController::class, 'storeCapiFeedback'])->name('leadenquiries.capi-feedback.store');
         Route::get('leadenquiries/convert/{leadenquiry}', [LeadEnquiryController::class, 'convertToDemoLead'])->name('leadenquiries.convert');
         Route::post('leadenquiries/reject/{leadenquiry}', [LeadEnquiryController::class, 'rejectTheDemoLead'])->name('leadenquiries.reject');
 

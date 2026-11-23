@@ -4,7 +4,9 @@ namespace App\Services\MetaCapi;
 
 use App\Models\DemoLead;
 use App\Models\DemoLeadEnquiry;
+use App\Models\LeadEnquiryCapiFeedback;
 use App\Models\MetaCapiEvent;
+use App\Models\NewEnrollment;
 use Illuminate\Support\Str;
 
 class MetaCapiEventService
@@ -62,6 +64,86 @@ class MetaCapiEventService
         );
     }
 
+    public function recordEnrollment(DemoLead $demoLead, NewEnrollment $enrollment): ?MetaCapiEvent
+    {
+        $eventName = config('meta_capi.enrollment_event_name');
+
+        if (! $eventName) {
+            return null;
+        }
+
+        $existingEvent = MetaCapiEvent::query()
+            ->where('source_id', $demoLead->id)
+            ->where('event_name', $eventName)
+            ->whereIn('source_type', ['demo_lead', 'demo_lead_enrollment'])
+            ->first();
+
+        if ($existingEvent) {
+            return $existingEvent;
+        }
+
+        $enquiry = $this->enquiryFor($demoLead);
+        $user = $demoLead->user;
+
+        return $this->record(
+            'demo_lead_enrollment',
+            $demoLead->id,
+            $enquiry,
+            $eventName,
+            'CONVERTED',
+            [
+                'email' => $enquiry?->email ?: $user?->email,
+                'phone' => $enquiry?->mobile ?: $demoLead->mobile ?: $user?->mobile,
+                'first_name' => $enquiry?->kids_first_name ?: $demoLead->first_name,
+                'last_name' => $enquiry?->kids_last_name ?: $demoLead->last_name,
+                'city' => $enquiry?->city ?: $demoLead->city,
+            ],
+            [
+                'value' => is_numeric($enrollment->received_fees)
+                    ? (float) $enrollment->received_fees
+                    : null,
+                'currency' => strtoupper(trim((string) $enrollment->currency)),
+                'new_enrollment_id' => $enrollment->id,
+                'payment_level_id' => $enrollment->payment_level_id,
+            ]
+        );
+    }
+
+    public function recordLeadEnquiryFeedback(
+        DemoLeadEnquiry $enquiry,
+        LeadEnquiryCapiFeedback $feedback
+    ): ?MetaCapiEvent {
+        $eventName = config("meta_capi.lead_feedback_events.{$feedback->outcome}");
+
+        if (! $eventName) {
+            return null;
+        }
+
+        $existingEvent = MetaCapiEvent::query()
+            ->where('source_type', 'lead_enquiry_feedback')
+            ->where('source_id', $feedback->id)
+            ->first();
+
+        if ($existingEvent) {
+            return $existingEvent;
+        }
+
+        return $this->record(
+            'lead_enquiry_feedback',
+            $feedback->id,
+            $enquiry,
+            $eventName,
+            $feedback->outcome,
+            [
+                'email' => $enquiry->email,
+                'phone' => $enquiry->mobile,
+                'first_name' => $enquiry->kids_first_name,
+                'last_name' => $enquiry->kids_last_name,
+                'city' => $enquiry->city,
+            ]
+        );
+    }
+
     public function recordSyntheticTest(): MetaCapiEvent
     {
         $eventId = (string) Str::uuid();
@@ -96,7 +178,8 @@ class MetaCapiEventService
         ?DemoLeadEnquiry $enquiry,
         string $eventName,
         string $erpStatus,
-        array $customer
+        array $customer,
+        array $customData = []
     ): ?MetaCapiEvent {
         $trackingAllowed = $enquiry?->meta_tracking_allowed === true
             || ($enquiry?->meta_tracking_allowed === null && config('meta_capi.allow_legacy_leads'));
@@ -130,13 +213,13 @@ class MetaCapiEventService
             'event_id' => $eventId,
             'action_source' => 'system_generated',
             'user_data' => $userData,
-            'custom_data' => array_filter([
+            'custom_data' => array_filter(array_merge([
                 'event_source' => 'crm',
                 'lead_event_source' => config('meta_capi.lead_event_source'),
                 'erp_status' => $erpStatus,
                 'utm_source' => $enquiry->utm_source,
                 'utm_medium' => $enquiry->utm_medium,
-            ], fn ($value) => $value !== null && $value !== ''),
+            ], $customData), fn ($value) => $value !== null && $value !== ''),
         ];
 
         if ($enquiry->meta_landing_url) {

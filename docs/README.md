@@ -7,6 +7,7 @@
 3. `PROJECT-CONTEXT.md` - implementation context and operational decisions.
 4. `COMMITTED-CHANGES-2026-09-TO-10.md` - reconciliation of all 46 commits after the August documentation checkpoint.
 5. `developer/REGULAR-BATCH-ZOOM-OCCURRENCES.md` - current uncommitted per-class Zoom implementation.
+6. `deployment/DEPLOYMENT-CACHE-PERMISSIONS-SOP.md` - mandatory cache, permission, and health checks for every deployment.
 
 ## Areas
 

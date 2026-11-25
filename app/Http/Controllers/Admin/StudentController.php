@@ -143,16 +143,8 @@ class StudentController extends Controller
             });
         }
 
-        if ($request->has('weekday') && $request->weekday != '') {
-            $weekday        = $request->weekday;
-
-            $batchIds = BatchSchedule::where('weekday', $weekday)->where('status', 'ACTIVE')->get()->pluck('batch_id');
-            $query->whereIn('id', function ($subQuery) use ($batchIds) {
-                $subQuery->select('student_id')
-                    ->from('student_batches') 
-                    ->whereIn('batch_id', $batchIds);
-                    // ->where('status', 'ACTIVE');
-            });
+        if ($request->filled('weekday')) {
+            $this->applyCurrentBatchWeekdayFilter($query, $request->weekday);
         }
 
         if ($request->status) {
@@ -407,7 +399,7 @@ class StudentController extends Controller
 
 
 
-                $studentFee = $student->studentFees()->orderBy('end_date', 'desc')->first();
+                $studentFee = $student->studentFees()->orderByDesc('id')->first();
                 $whatsappBadge = '';
                 if (! $isCoach && $student->status === 'FEESDUE' && $studentFee) {
                     $notification = FeeDueWhatsappNotification::with('sentBy')
@@ -1036,21 +1028,8 @@ class StudentController extends Controller
             $query->whereIn('id', $studentIds);
         }
 
-        if ($request->has('weekday') && $request->weekday != '') {
-            $weekday        = $request->weekday;
-            $latestBatchIds = $query->with('latestBatch')->get()->pluck('latestBatch.batch_id');
-            if (! empty($latestBatchIds)) {
-                $batchIds = BatchSchedule::where('weekday', $weekday)
-                    ->whereIn('batch_id', $latestBatchIds)
-                    ->pluck('batch_id')
-                    ->unique();
-
-                $query->whereIn('id', function ($subQuery) use ($batchIds) {
-                    $subQuery->select('student_id')
-                        ->from('student_batches')
-                        ->whereIn('batch_id', $batchIds);
-                });
-            }
+        if ($request->filled('weekday')) {
+            $this->applyCurrentBatchWeekdayFilter($query, $request->weekday);
         }
 
         if ($request->status) {
@@ -1129,6 +1108,27 @@ class StudentController extends Controller
 
 
 
+
+    private function applyCurrentBatchWeekdayFilter($query, string $weekday): void
+    {
+        $query->whereIn('students.id', function ($subQuery) use ($weekday) {
+            $subQuery->select('weekday_student_batches.student_id')
+                ->from('student_batches as weekday_student_batches')
+                ->join('batch_schedules as weekday_batch_schedules', function ($join) use ($weekday) {
+                    $join->on('weekday_batch_schedules.batch_id', '=', 'weekday_student_batches.batch_id')
+                        ->where('weekday_batch_schedules.status', 'ACTIVE')
+                        ->where('weekday_batch_schedules.weekday', $weekday);
+                })
+                ->where('weekday_student_batches.status', 'ACTIVE')
+                ->whereRaw("weekday_student_batches.id = (
+                    SELECT MAX(current_student_batch.id)
+                    FROM student_batches current_student_batch
+                    WHERE current_student_batch.student_id = weekday_student_batches.student_id
+                        AND current_student_batch.status = 'ACTIVE'
+                )")
+                ->distinct();
+        });
+    }
 
     // ---------------------------------------------------------------- Below Code is for Employee Camera Check History ----------------------------
     

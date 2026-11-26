@@ -298,7 +298,9 @@ class StudentController extends Controller
             ->editColumn('batch_schedule', function ($student) use ($isCoach) {
                 $student_latest_batch = $student->latestBatch;
                 if ($student_latest_batch) {
-                    $batch_schedule = BatchSchedule::where('batch_id', $student_latest_batch->batch_id)->get();
+                    $batch_schedule = BatchSchedule::where('batch_id', $student_latest_batch->batch_id)
+                        ->where('status', 'ACTIVE')
+                        ->get();
                     $scheduless     = '';
                     foreach ($batch_schedule as $schedule) {
                         $scheduless .= $schedule->weekday . '<br>';
@@ -1114,18 +1116,40 @@ class StudentController extends Controller
         $query->whereIn('students.id', function ($subQuery) use ($weekday) {
             $subQuery->select('weekday_student_batches.student_id')
                 ->from('student_batches as weekday_student_batches')
+                ->join('students as weekday_students', 'weekday_students.id', '=', 'weekday_student_batches.student_id')
                 ->join('batch_schedules as weekday_batch_schedules', function ($join) use ($weekday) {
                     $join->on('weekday_batch_schedules.batch_id', '=', 'weekday_student_batches.batch_id')
                         ->where('weekday_batch_schedules.status', 'ACTIVE')
                         ->where('weekday_batch_schedules.weekday', $weekday);
                 })
-                ->where('weekday_student_batches.status', 'ACTIVE')
-                ->whereRaw("weekday_student_batches.id = (
-                    SELECT MAX(current_student_batch.id)
-                    FROM student_batches current_student_batch
-                    WHERE current_student_batch.student_id = weekday_student_batches.student_id
-                        AND current_student_batch.status = 'ACTIVE'
-                )")
+                ->where(function ($assignmentQuery) {
+                    $assignmentQuery->where(function ($activeQuery) {
+                        $activeQuery->where('weekday_student_batches.status', 'ACTIVE')
+                            ->whereRaw("weekday_student_batches.id = (
+                                SELECT MAX(current_student_batch.id)
+                                FROM student_batches current_student_batch
+                                WHERE current_student_batch.student_id = weekday_student_batches.student_id
+                                    AND current_student_batch.status = 'ACTIVE'
+                            )");
+                    })->orWhere(function ($feeDueQuery) {
+                        $feeDueQuery->where('weekday_students.status', 'FEESDUE')
+                            ->where('weekday_student_batches.status', 'INACTIVE')
+                            ->where('weekday_student_batches.is_fees_due', 1)
+                            ->whereNotExists(function ($activeAssignmentQuery) {
+                                $activeAssignmentQuery->selectRaw('1')
+                                    ->from('student_batches as active_student_batch')
+                                    ->whereColumn('active_student_batch.student_id', 'weekday_student_batches.student_id')
+                                    ->where('active_student_batch.status', 'ACTIVE');
+                            })
+                            ->whereRaw("weekday_student_batches.id = (
+                                SELECT MAX(fee_due_student_batch.id)
+                                FROM student_batches fee_due_student_batch
+                                WHERE fee_due_student_batch.student_id = weekday_student_batches.student_id
+                                    AND fee_due_student_batch.status = 'INACTIVE'
+                                    AND fee_due_student_batch.is_fees_due = 1
+                            )");
+                    });
+                })
                 ->distinct();
         });
     }
